@@ -439,6 +439,7 @@ nav.tabbar button{position:relative;}
     <button data-tab="history" onclick="goTo('history')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l4 2"/></svg>
       <span data-tabkey="history"></span>
+      <span class="tab-badge" id="historyBadge"></span>
     </button>
   </nav>
 
@@ -598,7 +599,7 @@ const I18N = {
     toastSubmitted:"Förfrågan skickad – utförare i närheten meddelas",
     toastAccepted:"Du har tagit jobbet – bokat",
     toastInvalidOffer:"Ange ett giltigt pris",
-    evt:{applicant:"Ny ansökan", arrived:"Utföraren har anlänt", done:"Klart – bekräfta betalning", assigned:"Du har fått jobbet"},
+    evt:{applicant:"Ny ansökan", arrived:"Utföraren har anlänt", done:"Klart – bekräfta betalning", assigned:"Du har fått jobbet", paid:"Betalning frisläppt"},
     applicantsTitle:"Ansökningar",
     assignBtn:"Tilldela",
     yourApplicationNote:"Din ansökan: {price} – väntar på att kunden väljer",
@@ -733,7 +734,7 @@ const I18N = {
     toastSubmitted:"Request sent — nearby providers notified",
     toastAccepted:"You took the job — booked",
     toastInvalidOffer:"Enter a valid price",
-    evt:{applicant:"New applicant", arrived:"The provider has arrived", done:"Done – confirm payment", assigned:"You got the job"},
+    evt:{applicant:"New applicant", arrived:"The provider has arrived", done:"Done – confirm payment", assigned:"You got the job", paid:"Payment released"},
     applicantsTitle:"Applicants",
     assignBtn:"Assign",
     yourApplicationNote:"Your application: {price} — waiting for the customer to choose",
@@ -868,7 +869,7 @@ const I18N = {
     toastSubmitted:"تم إرسال الطلب — تم إخطار مقدمي الخدمة القريبين",
     toastAccepted:"لقد أخذت المهمة — تم الحجز",
     toastInvalidOffer:"أدخل سعرًا صالحًا",
-    evt:{applicant:"متقدم جديد", arrived:"وصل مقدم الخدمة", done:"تم الإنجاز – أكّد الدفع", assigned:"تم تكليفك بالمهمة"},
+    evt:{applicant:"متقدم جديد", arrived:"وصل مقدم الخدمة", done:"تم الإنجاز – أكّد الدفع", assigned:"تم تكليفك بالمهمة", paid:"تم تحرير الدفع"},
     applicantsTitle:"المتقدمون",
     assignBtn:"تكليف",
     yourApplicationNote:"طلبك: {price} — بانتظار اختيار العميل",
@@ -1121,6 +1122,9 @@ function jobEvent(j){
   if(role==='driver' && isAssignee && j.status==='accepted' && !j.arrived && !j.markedDoneByProvider){
     return {type:'assigned', sig:j.id+':assigned'};
   }
+  if(role==='driver' && isAssignee && j.status==='done' && j.paymentReleased && j.completedAt && Date.now()-j.completedAt < 7*86400000){
+    return {type:'paid', sig:j.id+':paid'};
+  }
   return null;
 }
 function unseenEvents(){
@@ -1135,9 +1139,14 @@ function markShownSeen(){
   saveSeen();
 }
 function updateBadges(){
-  const n = currentUser ? unseenEvents().length : 0;
-  const badge = document.getElementById('mineBadge');
-  if(badge){ badge.textContent = n>9 ? '9+' : String(n); badge.classList.toggle('show', n>0); }
+  const ev = currentUser ? unseenEvents() : [];
+  const n = ev.length;
+  const setBadge = (id, count)=>{
+    const b = document.getElementById(id);
+    if(b){ b.textContent = count>9 ? '9+' : String(count); b.classList.toggle('show', count>0); }
+  };
+  setBadge('mineBadge', ev.filter(e=>e.type!=='paid').length);
+  setBadge('historyBadge', ev.filter(e=>e.type==='paid').length);
   document.title = (n>0 ? '('+n+') ' : '') + 'Diz';
 }
 function notifyNewEvents(){
