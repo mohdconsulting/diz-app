@@ -1,0 +1,1904 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Diz – prototyp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Cairo:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#17211d;
+  --teal:#1c3d37;
+  --teal-2:#2c5a51;
+  --amber:#e5a13a;
+  --paper:#f6f4ee;
+  --line:#d8d3c6;
+  --muted:#6b7570;
+  --danger:#b3462f;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  box-sizing:border-box;
+}
+*{box-sizing:border-box;}
+html,body{height:100%;margin:0;}
+body{
+  background:#e9e5d8;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:var(--ink);
+  display:flex;
+  justify-content:center;
+}
+h1,h2,h3,.brand,button{font-family:"Space Grotesk",sans-serif;}
+body[dir="rtl"] h1,body[dir="rtl"] h2,body[dir="rtl"] h3,body[dir="rtl"] .brand,body[dir="rtl"] button,body[dir="rtl"]{
+  font-family:"Cairo",sans-serif;
+}
+#frame{
+  width:100%;
+  max-width:430px;
+  min-height:100%;
+  background:var(--paper);
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  border-left:1px solid var(--line);
+  border-right:1px solid var(--line);
+}
+header.topbar{
+  background:var(--teal);
+  color:#fff;
+  padding:16px 20px 14px;
+  padding-top:calc(16px + env(safe-area-inset-top,0px));
+  position:sticky;
+  top:0;
+  z-index:5;
+}
+header.topbar .brand-row{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px;
+}
+header.topbar .brand{
+  font-size:14px;
+  letter-spacing:0.02em;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  opacity:0.85;
+}
+header.topbar .brand .dot{width:7px;height:7px;background:var(--amber);border-radius:50%;flex-shrink:0;}
+header.topbar h1{margin:0 0 2px;font-size:21px;font-weight:600;}
+.pillrow{display:flex;gap:0;border:1px solid rgba(255,255,255,0.35);flex-shrink:0;}
+.pillrow button{
+  background:none;border:none;color:#cfe0da;font-size:11.5px;font-weight:600;
+  padding:5px 9px;cursor:pointer;font-family:"Space Grotesk",sans-serif;
+}
+body[dir="rtl"] .pillrow button{font-family:"Cairo",sans-serif;}
+.pillrow button.on{background:var(--amber);color:var(--ink);}
+.pillrow.light{border-color:var(--line);}
+.pillrow.light button{color:var(--muted);}
+.pillrow.light button.on{background:var(--amber);color:var(--ink);}
+.user-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;font-size:11.5px;color:#cfe0da;}
+.user-row button{
+  background:none;border:1px solid rgba(255,255,255,0.35);color:#cfe0da;
+  font-size:11px;padding:4px 9px;cursor:pointer;font-family:"Space Grotesk",sans-serif;flex-shrink:0;
+}
+body[dir="rtl"] .user-row button{font-family:"Cairo",sans-serif;}
+main{flex:1;padding:18px 18px 90px;}
+.screen{display:none;}
+.screen.active{display:block;}
+
+.card{
+  background:#fff;
+  border:1px solid var(--line);
+  padding:14px 16px;
+  margin-bottom:12px;
+  position:relative;
+}
+.card.route::before{
+  content:"";
+  position:absolute;left:0;top:0;bottom:0;width:4px;
+  background:var(--amber);
+}
+body[dir="rtl"] .card.route::before{left:auto;right:0;}
+.card .top-row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+.card .service-badge{font-size:11px;color:var(--teal-2);font-weight:600;margin-bottom:2px;}
+.card h3{margin:0 0 4px;font-size:15px;font-weight:600;}
+.card p.meta{margin:0;font-size:13px;color:var(--muted);}
+.card .price{font-weight:700;font-size:16px;white-space:nowrap;}
+
+.status{
+  display:inline-block;font-size:11.5px;padding:3px 8px;margin-top:8px;
+  border:1px solid currentColor;
+}
+.status.waiting{color:#8a6a1f;}
+.status.accepted{color:var(--teal-2);}
+.status.done{color:var(--muted);border-style:dashed;}
+.status.pending{color:#8a6a1f;border-style:dashed;}
+
+.empty{
+  border:1px dashed var(--line);
+  padding:26px 18px;
+  text-align:center;
+  color:var(--muted);
+  font-size:14px;
+}
+
+.hero{
+  background:var(--teal);
+  color:#fff;
+  padding:22px 20px 24px;
+  margin:-18px -18px 18px;
+}
+.hero h2{margin:0 0 8px;font-size:24px;line-height:1.15;font-weight:600;}
+.hero p{margin:0 0 16px;font-size:14px;color:#cfe0da;max-width:34ch;}
+.hero .stat-row{display:flex;gap:18px;margin-top:14px;font-size:12.5px;color:#a9c3ba;}
+.hero .stat-row b{display:block;font-size:18px;color:#fff;font-weight:600;}
+
+button.primary{
+  background:var(--amber);
+  color:var(--ink);
+  border:none;
+  padding:13px 18px;
+  font-size:15px;
+  font-weight:600;
+  cursor:pointer;
+  width:100%;
+}
+button.primary:active{opacity:0.85;}
+button.primary:disabled{opacity:0.5;cursor:default;}
+button.secondary{
+  background:transparent;
+  border:1px solid var(--teal);
+  color:var(--teal);
+  padding:9px 12px;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  white-space:nowrap;
+}
+
+label{display:block;font-size:12.5px;color:var(--muted);margin:14px 0 5px;}
+label:first-of-type{margin-top:0;}
+input[type=text],input[type=number],input[type=password],select,textarea{
+  width:100%;
+  border:1px solid var(--line);
+  background:#fff;
+  padding:10px 11px;
+  font-size:14.5px;
+  font-family:inherit;
+  color:var(--ink);
+}
+textarea{resize:vertical;min-height:60px;}
+input[type=file]{
+  width:100%;border:1px solid var(--line);background:#fff;padding:8px;
+  font-size:13px;font-family:inherit;color:var(--muted);
+}
+.chip-row{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{
+  border:1px solid var(--line);padding:7px 12px;font-size:13px;cursor:pointer;background:#fff;
+  user-select:none;
+}
+.chip.on{background:var(--teal);color:#fff;border-color:var(--teal);}
+
+.estimate{
+  border:1px solid var(--teal);
+  background:#eef3f0;
+  padding:12px 14px;
+  margin-top:16px;
+  display:flex;justify-content:space-between;align-items:center;
+  gap:10px;
+}
+.estimate .num{font-size:20px;font-weight:700;white-space:nowrap;}
+
+.offer-row{display:flex;gap:8px;margin-top:8px;align-items:center;}
+.offer-row input{flex:1;width:auto;min-width:0;}
+.action-row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;}
+
+nav.tabbar{
+  position:sticky;bottom:0;
+  display:flex;
+  background:#fff;
+  border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+nav.tabbar button{
+  flex:1;background:none;border:none;padding:11px 4px 9px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  color:var(--muted);font-size:11px;font-weight:600;
+}
+nav.tabbar button.active{color:var(--teal);}
+nav.tabbar svg{width:20px;height:20px;}
+
+.section-title{
+  font-size:12.5px;color:var(--muted);
+  margin:0 0 10px;font-weight:600;
+}
+.toast{
+  position:fixed;left:50%;bottom:96px;transform:translateX(-50%);
+  background:var(--ink);color:#fff;padding:10px 18px;font-size:13.5px;
+  opacity:0;pointer-events:none;transition:opacity .25s ease;z-index:60;
+  max-width:88%;text-align:center;
+}
+.toast.show{opacity:1;}
+
+#authOverlay{
+  position:fixed;inset:0;background:var(--paper);z-index:50;
+  display:flex;align-items:center;justify-content:center;padding:20px;
+}
+.auth-card{width:100%;max-width:380px;background:#fff;border:1px solid var(--line);padding:26px 22px;}
+.auth-card h2{margin:0 0 4px;font-size:21px;font-weight:600;}
+.auth-card p.sub{margin:0 0 16px;font-size:13.5px;color:var(--muted);}
+.auth-switch{margin-top:16px;text-align:center;font-size:13px;color:var(--muted);}
+.auth-switch button{background:none;border:none;color:var(--teal-2);font-weight:600;cursor:pointer;text-decoration:underline;font-family:inherit;padding:0;font-size:13px;}
+.auth-note{font-size:12px;color:var(--muted);margin-top:6px;min-height:14px;}
+
+@media (prefers-color-scheme: dark){
+  body{background:#0e1210;}
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div id="frame">
+
+  <div id="authOverlay">
+    <div class="auth-card">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+        <div class="pillrow light" id="authLangSwitch">
+          <button data-lang="sv">SV</button>
+          <button data-lang="en">EN</button>
+          <button data-lang="ar">AR</button>
+        </div>
+      </div>
+      <h2 id="authTitle"></h2>
+      <p class="sub" id="authSubtitle"></p>
+
+      <div id="authNameWrap">
+        <label id="authNameLabel"></label>
+        <input type="text" id="authNameInput">
+      </div>
+
+      <label id="authPhoneLabel"></label>
+      <input type="text" id="authPhoneInput">
+
+      <label id="authPassLabel"></label>
+      <input type="password" id="authPassInput">
+
+      <div id="authRoleWrap">
+        <label id="authRoleLabel"></label>
+        <div class="chip-row" id="authRoleChips"></div>
+      </div>
+
+      <div id="authProfileWrap" style="display:none;">
+        <label id="authProfileLabel"></label>
+        <div class="chip-row" id="authProfileChips"></div>
+      </div>
+
+      <div style="margin-top:18px;">
+        <button class="primary" id="authSubmitBtn" onclick="submitAuth()"></button>
+      </div>
+      <p class="auth-note" id="authNote"></p>
+      <div class="auth-switch">
+        <span id="authSwitchText"></span> <button onclick="toggleAuthMode()" id="authSwitchBtn"></button>
+      </div>
+    </div>
+  </div>
+
+  <header class="topbar">
+    <div class="brand-row">
+      <div class="brand"><span class="dot"></span><span id="brandText"></span></div>
+      <div class="pillrow" id="langSwitch">
+        <button data-lang="sv">SV</button>
+        <button data-lang="en">EN</button>
+        <button data-lang="ar">AR</button>
+      </div>
+    </div>
+    <div class="user-row" id="userRow">
+      <span id="userGreeting"></span>
+      <button onclick="logout()" id="logoutBtn"></button>
+    </div>
+    <h1 id="screenTitle" style="margin-top:10px;"></h1>
+  </header>
+
+  <main>
+
+    <!-- HOME -->
+    <section class="screen active" data-screen="home">
+      <div class="hero">
+        <h2 id="heroTitle"></h2>
+        <p id="heroText"></p>
+        <button class="primary" id="heroBtn" onclick="goTo('new')"></button>
+        <div class="stat-row">
+          <div><b id="statActive">0</b><span id="statActiveLabel"></span></div>
+          <div><b id="statDone">0</b><span id="statDoneLabel"></span></div>
+        </div>
+      </div>
+      <p class="section-title" id="recentTitle"></p>
+      <div id="homeList"></div>
+    </section>
+
+    <!-- NEW REQUEST -->
+    <section class="screen" data-screen="new">
+      <p class="section-title" id="serviceSelectTitle"></p>
+      <div class="chip-row" id="serviceChips"></div>
+
+      <div id="requestDetails" style="display:none;">
+        <label id="categoryLabel" style="margin-top:18px;"></label>
+        <div class="chip-row" id="catChips"></div>
+
+        <label id="descLabel"></label>
+        <textarea id="descInput"></textarea>
+
+        <label id="photoLabel"></label>
+        <button type="button" class="secondary" id="photoTriggerBtn" onclick="document.getElementById('photoInput').click()" style="width:100%;"></button>
+        <input type="file" accept="image/*" capture="environment" id="photoInput" style="display:none;" onchange="handlePhotoSelect(event)">
+        <div id="photoPreviewWrap" style="display:none;margin-top:8px;">
+          <img id="photoPreviewImg" style="width:100%;max-height:180px;object-fit:cover;display:block;border:1px solid var(--line);">
+          <button type="button" class="secondary" id="removePhotoBtn" onclick="removePhoto()" style="margin-top:8px;"></button>
+        </div>
+
+        <label id="sizeLabel"></label>
+        <div class="chip-row" id="sizeChips"></div>
+
+        <label id="addrLabel"></label>
+        <input type="text" id="addrInput">
+
+        <div id="toAddrWrap" style="display:none;">
+          <label id="toAddrLabel"></label>
+          <input type="text" id="toAddrInput">
+        </div>
+
+        <div class="estimate">
+          <div><span id="estimateLabel"></span><br><span style="font-size:11.5px;color:var(--muted)" id="estimateSub"></span></div>
+          <div class="num" id="priceEstimate">–</div>
+        </div>
+
+        <div class="chip-row" style="margin-top:10px;">
+          <div class="chip" id="customPriceChip"></div>
+        </div>
+        <div id="customPriceWrap" style="display:none;">
+          <label id="customPriceLabel"></label>
+          <input type="number" min="1" id="customPriceInput">
+        </div>
+
+        <div style="margin-top:18px;">
+          <button class="primary" id="submitBtn" onclick="submitRequest()"></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- JOBS (courier side) -->
+    <section class="screen" data-screen="jobs">
+      <p class="section-title" id="openJobsTitle"></p>
+      <div id="jobsList"></div>
+    </section>
+
+    <!-- MINE -->
+    <section class="screen" data-screen="mine">
+      <div id="accountEditWrap" style="margin-bottom:18px;">
+        <p class="section-title" id="accountEditTitle"></p>
+        <label id="accountNameLabel"></label>
+        <input type="text" id="accountNameInput">
+        <label id="accountPhoneLabel"></label>
+        <input type="text" id="accountPhoneInput">
+        <div style="margin-top:10px;">
+          <button class="secondary" id="accountSaveBtn" onclick="saveAccountDetails()"></button>
+        </div>
+      </div>
+      <div id="profileEditWrap" style="display:none;margin-bottom:18px;">
+        <p class="section-title" id="profileEditTitle"></p>
+        <div class="chip-row" id="profileEditChips"></div>
+        <div style="margin-top:10px;">
+          <button class="secondary" id="profileSaveBtn" onclick="saveProfile()"></button>
+        </div>
+      </div>
+      <p class="section-title" id="allMineTitle"></p>
+      <div id="mineList"></div>
+    </section>
+
+    <!-- HISTORY -->
+    <section class="screen" data-screen="history">
+      <p class="section-title" id="historyTitle"></p>
+      <div id="historyList"></div>
+    </section>
+
+  </main>
+
+  <nav class="tabbar">
+    <button data-tab="home" onclick="goTo('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+      <span data-tabkey="home"></span>
+    </button>
+    <button data-tab="new" onclick="goTo('new')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+      <span data-tabkey="new"></span>
+    </button>
+    <button data-tab="jobs" onclick="goTo('jobs')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18M6 7V4h12v3M5 7l1 13h12l1-13"/></svg>
+      <span data-tabkey="jobs"></span>
+    </button>
+    <button data-tab="mine" onclick="goTo('mine')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c1.5-4 5-5.5 7-5.5S17.5 16 19 20"/></svg>
+      <span data-tabkey="mine"></span>
+    </button>
+    <button data-tab="history" onclick="goTo('history')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l4 2"/></svg>
+      <span data-tabkey="history"></span>
+    </button>
+  </nav>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+const PRICE_BASE = {
+  junk:{1:25000,2:45000,3:75000},
+  moving:{1:60000,2:120000,3:250000},
+  goods:{1:10000,2:20000},
+  pro:{1:30000,2:70000,3:50000},
+  towing:{1:40000,2:60000,3:100000},
+  deliver:{1:8000,2:15000}
+};
+const PRICE_BUMP = {
+  junk:{appliances:5000, electronics:3000, leftover:10000},
+  moving:{apartment:15000, house:40000},
+  goods:{electronics:5000, furniture:10000},
+  pro:{electrician:5000, plumber:5000, painter:4000},
+  towing:{accident:15000, transport:-10000},
+  deliver:{fragile:5000, package:2000}
+};
+const SEED_JOBS = [
+  {service:"junk", cat:"furniture", size:2, desc:"أريكة وخزانة، الطابق الثالث بدون مصعد", addr:"الكرادة، بغداد"},
+  {service:"junk", cat:"appliances", size:1, desc:"ثلاجة معطلة في المطبخ", addr:"المنصور، بغداد"},
+  {service:"moving", cat:"apartment", size:1, desc:"نقل شقة من غرفتين، عدد قليل من القطع الثقيلة", addr:"زيونة، بغداد", toAddr:"الجادرية، بغداد"},
+  {service:"goods", cat:"groceries", size:1, desc:"تسوق أسبوعي، يتم إرسال الفاتورة كصورة", addr:"شارع الرشيد، بغداد"},
+  {service:"pro", cat:"electrician", size:1, desc:"استبدال مقبسين في غرفة الجلوس", addr:"الكرادة، بغداد"},
+  {service:"towing", cat:"breakdown", size:1, desc:"السيارة توقفت فجأة على الطريق السريع", addr:"شارع محمد القاسم، بغداد", toAddr:"المنصور، بغداد"},
+  {service:"deliver", cat:"package", size:1, desc:"صندوق صغير يجب تسليمه إلى صديق", addr:"الكرادة، بغداد", toAddr:"زيونة، بغداد"}
+];
+
+const I18N = {
+  sv: {
+    dir:"ltr",
+    brand:"DIZ — skicka vad du behöver",
+    greetingPrefix:"Hej",
+    tabs:{home:"Hem", new:"Ny", jobs:"Jobb", mine:"Mina", history:"Historik"},
+    titles:{home:"Hem", new:"Ny beställning", jobs:"Jobb att ta", history:"Historik"},
+    mineTitleCustomer:"Mina förfrågningar", mineTitleDriver:"Mina uppdrag",
+    roleCustomer:"Kund", roleDriver:"Tjänsteleverantör",
+    authTitleLogin:"Logga in", authTitleRegister:"Skapa konto",
+    authSubtitleLogin:"Välkommen tillbaka till Diz", authSubtitleRegister:"Kom igång med Diz",
+    authNameLabel:"Namn", authPhoneLabel:"Telefonnummer", authPassLabel:"Lösenord",
+    authRoleLabel:"Jag vill registrera mig som:",
+    authProfileLabel:"Vilka uppdrag kan du ta emot? (välj en eller flera)",
+    profileDriver:"Förare (bud/flytt/varor)",
+    profileTowing:"Bärgare (bilbärgning)",
+    toastAuthMissingProfiles:"Välj minst en typ av uppdrag",
+    profileEditTitle:"Din profil",
+    profileSaveBtn:"Spara profil",
+    toastProfileSaved:"Profil uppdaterad",
+    accountEditTitle:"Mina uppgifter",
+    accountSaveBtn:"Spara uppgifter",
+    toastAccountSaved:"Uppgifter sparade",
+    authSubmitLogin:"Logga in", authSubmitRegister:"Skapa konto",
+    authSwitchTextLogin:"Har du inget konto?", authSwitchBtnLogin:"Registrera dig",
+    authSwitchTextRegister:"Har du redan ett konto?", authSwitchBtnRegister:"Logga in",
+    authConnecting:"Ansluter till databasen …",
+    toastAuthMissingFields:"Fyll i alla fält",
+    toastAuthMissingRole:"Välj kund eller förare",
+    toastAuthPhoneTaken:"Telefonnumret är redan registrerat",
+    toastAuthLoginFailed:"Fel telefonnummer eller lösenord",
+    toastRegisterSuccess:"Konto skapat! Välkommen.",
+    toastLoginSuccess:"Inloggad",
+    toastDbUnavailable:"Kunde inte ansluta till databasen. Försök igen senare.",
+    toastSaveFailed:"Det gick inte att spara. Försök igen.",
+    logoutBtn:"Logga ut",
+    heroTitle:"Vad kan vi hjälpa dig med idag?",
+    heroText:"Skräp, flytt, varor eller en hantverkare — beskriv vad du behöver, så kopplar vi ihop dig med rätt person nära dig.",
+    heroBtn:"Skicka en förfrågan",
+    statActiveLabel:"aktiva just nu",
+    statDoneLabel:"slutförda totalt",
+    recentTitle:"Dina senaste förfrågningar",
+    serviceSelectTitle:"Vad behöver du hjälp med?",
+    services:{
+      junk:{label:"Bli av med skräp", categoryLabel:"Kategori",
+        categories:{furniture:"Möbler",appliances:"Vitvaror",bulky:"Grovsopor",electronics:"Elektronik",leftover:"Flytt-rester"},
+        sizeLabel:"Ungefärlig storlek", sizes:{1:"Passar i bil",2:"Behöver van",3:"Flera föremål / lastbil"},
+        descPlaceholder:"T.ex. en soffa och två lådor med böcker, tre trappor upp utan hiss",
+        addrLabel:"Hämtadress", addrPlaceholder:"Gata, kvarter, stad", needsToAddr:false},
+      moving:{label:"Flytthjälp", categoryLabel:"Typ av bostad",
+        categories:{studio:"Studio/1 rum",apartment:"2-3 rum",house:"Villa/radhus"},
+        sizeLabel:"Avstånd", sizes:{1:"Inom samma stad",2:"Till annan stad",3:"Utomlands"},
+        descPlaceholder:"Beskriv vad som ska flyttas, t.ex. antal rum och tunga möbler",
+        addrLabel:"Från-adress", addrPlaceholder:"Gata, kvarter, stad", needsToAddr:true,
+        toAddrLabel:"Till-adress", toAddrPlaceholder:"Gata, kvarter, stad"},
+      goods:{label:"Beställ varor", categoryLabel:"Typ av vara",
+        categories:{groceries:"Dagligvaror",pharmacy:"Apotek",electronics:"Elektronik",furniture:"Möbler"},
+        sizeLabel:"Leveranstid", sizes:{1:"Standard (idag)",2:"Express (inom 1 timme)"},
+        descPlaceholder:"Beskriv vad som ska beställas och varifrån",
+        addrLabel:"Leveransadress", addrPlaceholder:"Gata, kvarter, stad", needsToAddr:false},
+      pro:{label:"Boka en hemtjänst", categoryLabel:"Typ av yrkesperson",
+        categories:{electrician:"Elektriker",plumber:"VVS",gardener:"Trädgårdsarbetare",painter:"Målare",cleaner:"Städning"},
+        sizeLabel:"Omfattning", sizes:{1:"Mindre jobb (under 2 tim)",2:"Större jobb (heldag)",3:"Akut/samma dag"},
+        descPlaceholder:"Beskriv vad som behöver göras",
+        addrLabel:"Adress", addrPlaceholder:"Gata, kvarter, stad", needsToAddr:false},
+      towing:{label:"Bilbärgning", categoryLabel:"Typ av problem",
+        categories:{breakdown:"Motorstopp/haveri",accident:"Olycka",flat:"Punktering/tomt batteri",transport:"Fordonstransport (till verkstad)"},
+        sizeLabel:"Fordonstyp", sizes:{1:"Personbil",2:"SUV/skåpbil",3:"Lastbil/buss"},
+        descPlaceholder:"Beskriv var bilen står och vad som hänt",
+        addrLabel:"Nuvarande plats", addrPlaceholder:"Gata, kvarter, stad", needsToAddr:true,
+        toAddrLabel:"Verkstad/destination", toAddrPlaceholder:"Gata, kvarter, stad"},
+      deliver:{label:"Leverera", categoryLabel:"Typ av leverans",
+        categories:{document:"Dokument/kuvert",package:"Paket/låda",fragile:"Ömtåligt gods",food:"Mat/take-away"},
+        sizeLabel:"Leveranstid", sizes:{1:"Standard (inom några timmar)",2:"Express (inom 1 timme)"},
+        descPlaceholder:"Beskriv vad som ska levereras",
+        addrLabel:"Från-adress", addrPlaceholder:"Gata, kvarter, stad", needsToAddr:true,
+        toAddrLabel:"Till-adress", toAddrPlaceholder:"Gata, kvarter, stad"}
+    },
+    estimateLabel:"Föreslaget pris",
+    estimateSub:"Baserat på tjänst och omfattning",
+    estimateSubCustom:"Du bestämmer själv priset",
+    customPriceChipLabel:"Ange eget pris",
+    customPriceLabel:"Ditt pris",
+    photoLabel:"Foto (valfritt)",
+    photoTriggerBtn:"Ta eller välj foto",
+    removePhotoBtn:"Ta bort foto",
+    submitBtn:"Skicka förfrågan",
+    saveChangesBtn:"Spara ändringar",
+    editBtn:"Redigera",
+    deleteBtn:"Ta bort",
+    confirmDeleteInline:"Ta bort permanent?",
+    confirmDeleteBtn:"Ja, ta bort",
+    cancelBtn:"Avbryt",
+    toastRequestUpdated:"Förfrågan uppdaterad",
+    toastRequestDeleted:"Förfrågan borttagen",
+    completeBtn:"Markera som utförd",
+    toastJobCompleted:"Jobbet markerat som utfört – betalning frisläppt",
+    paymentReleasedNote:"Betalning frisläppt till utföraren",
+    providerCompleteBtn:"Markera som utfört",
+    toastProviderMarkedDone:"Kunden har meddelats",
+    providerMarkedDoneNote:"Utföraren har markerat jobbet som klart. Bekräfta för att släppa betalningen.",
+    confirmReleaseBtn:"Bekräfta och släpp betalning",
+    waitingCustomerConfirmNote:"Väntar på kundens bekräftelse",
+    waitingProviderArriveNote:"Väntar på att utföraren anländer",
+    providerArriveBtn:"Jag har anlänt",
+    toastProviderArrived:"Kunden har meddelats om din ankomst",
+    arrivedNoteCustomer:"Utföraren har anlänt",
+    arrivedNoteProvider:"Du har anlänt – kunden meddelad",
+    openJobsTitle:"Öppna jobb i närheten",
+    takenTitle:"Redan tagna",
+    allMineTitleCustomer:"Alla dina förfrågningar", allMineTitleDriver:"Uppdrag du tagit",
+    historyTitle:"Slutförda jobb",
+    emptyHistoryCustomer:"Du har inga slutförda förfrågningar än.",
+    emptyHistoryDriver:"Du har inga slutförda uppdrag än.",
+    emptyHome:'Inga förfrågningar än.<br>Tryck på "Skicka en förfrågan" för att komma igång.',
+    emptyJobs:"Inga öppna jobb just nu. Kolla igen om en stund.",
+    emptyMineCustomer:"Du har inte skickat någon förfrågan än.",
+    emptyMineDriver:"Du har inte tagit några uppdrag än.",
+    takeJobBtn:"Ansök till detta pris",
+    proposePriceBtn:"Föreslå annat pris",
+    status:{open:"Väntar på utförare",accepted:"Utförare på väg",arrived:"Utförare har anlänt",done:"Slutfört"},
+    toastMissingCatSize:"Välj kategori och omfattning först",
+    toastMissingFields:"Fyll i beskrivning och adress",
+    toastSubmitted:"Förfrågan skickad – utförare i närheten meddelas",
+    toastAccepted:"Du har tagit jobbet – bokat",
+    toastInvalidOffer:"Ange ett giltigt pris",
+    applicantsTitle:"Ansökningar",
+    assignBtn:"Tilldela",
+    yourApplicationNote:"Din ansökan: {price} – väntar på att kunden väljer",
+    noApplicantsYet:"Inga ansökningar än",
+    toastApplied:"Din ansökan har skickats till kunden",
+    toastAssigned:"Jobbet tilldelat",
+    toastAutoAssignedSim:"Du tilldelades jobbet automatiskt",
+    priceUnit:"IQD"
+  },
+  en: {
+    dir:"ltr",
+    brand:"DIZ — send what you need",
+    greetingPrefix:"Hi",
+    tabs:{home:"Home", new:"New", jobs:"Jobs", mine:"Mine", history:"History"},
+    titles:{home:"Home", new:"New order", jobs:"Jobs to take", history:"History"},
+    mineTitleCustomer:"My requests", mineTitleDriver:"My jobs",
+    roleCustomer:"Customer", roleDriver:"Service provider",
+    authTitleLogin:"Log in", authTitleRegister:"Create account",
+    authSubtitleLogin:"Welcome back to Diz", authSubtitleRegister:"Get started with Diz",
+    authNameLabel:"Name", authPhoneLabel:"Phone number", authPassLabel:"Password",
+    authRoleLabel:"I want to register as:",
+    authProfileLabel:"Which jobs can you take? (choose one or more)",
+    profileDriver:"Driver (courier/moving/goods)",
+    profileTowing:"Tow truck driver",
+    toastAuthMissingProfiles:"Choose at least one type of job",
+    profileEditTitle:"Your profile",
+    profileSaveBtn:"Save profile",
+    toastProfileSaved:"Profile updated",
+    accountEditTitle:"My details",
+    accountSaveBtn:"Save details",
+    toastAccountSaved:"Details saved",
+    authSubmitLogin:"Log in", authSubmitRegister:"Create account",
+    authSwitchTextLogin:"Don't have an account?", authSwitchBtnLogin:"Register",
+    authSwitchTextRegister:"Already have an account?", authSwitchBtnRegister:"Log in",
+    authConnecting:"Connecting to the database …",
+    toastAuthMissingFields:"Fill in all fields",
+    toastAuthMissingRole:"Choose customer or driver",
+    toastAuthPhoneTaken:"This phone number is already registered",
+    toastAuthLoginFailed:"Incorrect phone number or password",
+    toastRegisterSuccess:"Account created! Welcome.",
+    toastLoginSuccess:"Logged in",
+    toastDbUnavailable:"Could not connect to the database. Please try again later.",
+    toastSaveFailed:"Couldn't save. Please try again.",
+    logoutBtn:"Log out",
+    heroTitle:"What can we help you with today?",
+    heroText:"Junk, moving, goods, or a tradesperson — describe what you need, and we'll connect you with the right person nearby.",
+    heroBtn:"Send a request",
+    statActiveLabel:"active now",
+    statDoneLabel:"completed total",
+    recentTitle:"Your recent requests",
+    serviceSelectTitle:"What do you need help with?",
+    services:{
+      junk:{label:"Get rid of junk", categoryLabel:"Category",
+        categories:{furniture:"Furniture",appliances:"Appliances",bulky:"Bulky waste",electronics:"Electronics",leftover:"Moving leftovers"},
+        sizeLabel:"Approximate size", sizes:{1:"Fits in a car",2:"Needs a van",3:"Several items / truck"},
+        descPlaceholder:"E.g. a sofa and two boxes of books, three floors up with no elevator",
+        addrLabel:"Pickup address", addrPlaceholder:"Street, block, city", needsToAddr:false},
+      moving:{label:"Moving help", categoryLabel:"Home type",
+        categories:{studio:"Studio apartment",apartment:"2-3 room flat",house:"House/townhouse"},
+        sizeLabel:"Distance", sizes:{1:"Within the same city",2:"To another city",3:"Abroad"},
+        descPlaceholder:"Describe what needs moving, e.g. number of rooms and heavy furniture",
+        addrLabel:"From address", addrPlaceholder:"Street, block, city", needsToAddr:true,
+        toAddrLabel:"To address", toAddrPlaceholder:"Street, block, city"},
+      goods:{label:"Order goods", categoryLabel:"Item type",
+        categories:{groceries:"Groceries",pharmacy:"Pharmacy",electronics:"Electronics",furniture:"Furniture"},
+        sizeLabel:"Delivery speed", sizes:{1:"Standard (today)",2:"Express (within 1 hour)"},
+        descPlaceholder:"Describe what to order and from where",
+        addrLabel:"Delivery address", addrPlaceholder:"Street, block, city", needsToAddr:false},
+      pro:{label:"Book a home service", categoryLabel:"Type of professional",
+        categories:{electrician:"Electrician",plumber:"Plumber",gardener:"Gardener",painter:"Painter",cleaner:"Cleaner"},
+        sizeLabel:"Scope", sizes:{1:"Small job (under 2 hrs)",2:"Bigger job (full day)",3:"Urgent/same day"},
+        descPlaceholder:"Describe what needs to be done",
+        addrLabel:"Address", addrPlaceholder:"Street, block, city", needsToAddr:false},
+      towing:{label:"Car towing", categoryLabel:"Issue type",
+        categories:{breakdown:"Breakdown",accident:"Accident",flat:"Flat tire/dead battery",transport:"Vehicle transport (to a garage)"},
+        sizeLabel:"Vehicle type", sizes:{1:"Car",2:"SUV/van",3:"Truck/bus"},
+        descPlaceholder:"Describe where the car is and what happened",
+        addrLabel:"Current location", addrPlaceholder:"Street, block, city", needsToAddr:true,
+        toAddrLabel:"Garage/destination", toAddrPlaceholder:"Street, block, city"},
+      deliver:{label:"Deliver", categoryLabel:"Delivery type",
+        categories:{document:"Document/envelope",package:"Package/box",fragile:"Fragile item",food:"Food/takeaway"},
+        sizeLabel:"Delivery speed", sizes:{1:"Standard (within a few hours)",2:"Express (within 1 hour)"},
+        descPlaceholder:"Describe what needs to be delivered",
+        addrLabel:"From address", addrPlaceholder:"Street, block, city", needsToAddr:true,
+        toAddrLabel:"To address", toAddrPlaceholder:"Street, block, city"}
+    },
+    estimateLabel:"Suggested price",
+    estimateSub:"Based on service and scope",
+    estimateSubCustom:"You set the price yourself",
+    customPriceChipLabel:"Set your own price",
+    customPriceLabel:"Your price",
+    photoLabel:"Photo (optional)",
+    photoTriggerBtn:"Take or choose photo",
+    removePhotoBtn:"Remove photo",
+    submitBtn:"Send request",
+    saveChangesBtn:"Save changes",
+    editBtn:"Edit",
+    deleteBtn:"Delete",
+    confirmDeleteInline:"Delete permanently?",
+    confirmDeleteBtn:"Yes, delete",
+    cancelBtn:"Cancel",
+    toastRequestUpdated:"Request updated",
+    toastRequestDeleted:"Request deleted",
+    completeBtn:"Mark as completed",
+    toastJobCompleted:"Job marked as completed — payment released",
+    paymentReleasedNote:"Payment released to the provider",
+    providerCompleteBtn:"Mark as completed",
+    toastProviderMarkedDone:"The customer has been notified",
+    providerMarkedDoneNote:"The provider has marked this job as done. Confirm to release payment.",
+    confirmReleaseBtn:"Confirm and release payment",
+    waitingCustomerConfirmNote:"Waiting for customer confirmation",
+    waitingProviderArriveNote:"Waiting for the provider to arrive",
+    providerArriveBtn:"I have arrived",
+    toastProviderArrived:"The customer has been notified of your arrival",
+    arrivedNoteCustomer:"The provider has arrived",
+    arrivedNoteProvider:"You have arrived — customer notified",
+    openJobsTitle:"Open jobs nearby",
+    takenTitle:"Already taken",
+    allMineTitleCustomer:"All your requests", allMineTitleDriver:"Jobs you've taken",
+    historyTitle:"Completed jobs",
+    emptyHistoryCustomer:"You don't have any completed requests yet.",
+    emptyHistoryDriver:"You don't have any completed jobs yet.",
+    emptyHome:'No requests yet.<br>Tap "Send a request" to get started.',
+    emptyJobs:"No open jobs right now. Check back soon.",
+    emptyMineCustomer:"You haven't sent a request yet.",
+    emptyMineDriver:"You haven't taken any jobs yet.",
+    takeJobBtn:"Apply at this price",
+    proposePriceBtn:"Propose a different price",
+    status:{open:"Waiting for provider",accepted:"Provider on the way",arrived:"Provider has arrived",done:"Completed"},
+    toastMissingCatSize:"Choose a category and scope first",
+    toastMissingFields:"Fill in description and address",
+    toastSubmitted:"Request sent — nearby providers notified",
+    toastAccepted:"You took the job — booked",
+    toastInvalidOffer:"Enter a valid price",
+    applicantsTitle:"Applicants",
+    assignBtn:"Assign",
+    yourApplicationNote:"Your application: {price} — waiting for the customer to choose",
+    noApplicantsYet:"No applicants yet",
+    toastApplied:"Your application was sent to the customer",
+    toastAssigned:"Job assigned",
+    toastAutoAssignedSim:"You were auto-assigned the job",
+    priceUnit:"IQD"
+  },
+  ar: {
+    dir:"rtl",
+    brand:"دز — أرسل ما تحتاجه",
+    greetingPrefix:"مرحبًا",
+    tabs:{home:"الرئيسية", new:"جديد", jobs:"المهام", mine:"طلباتي", history:"السجل"},
+    titles:{home:"الرئيسية", new:"طلب جديد", jobs:"مهام متاحة", history:"السجل"},
+    mineTitleCustomer:"طلباتي", mineTitleDriver:"مهامي",
+    roleCustomer:"عميل", roleDriver:"مقدم خدمة",
+    authTitleLogin:"تسجيل الدخول", authTitleRegister:"إنشاء حساب",
+    authSubtitleLogin:"مرحبًا بعودتك إلى دز", authSubtitleRegister:"ابدأ مع دز",
+    authNameLabel:"الاسم", authPhoneLabel:"رقم الهاتف", authPassLabel:"كلمة المرور",
+    authRoleLabel:"أريد التسجيل كـ:",
+    authProfileLabel:"ما هي المهام التي يمكنك تنفيذها؟ (اختر واحدة أو أكثر)",
+    profileDriver:"سائق (توصيل/نقل/سلع)",
+    profileTowing:"سائق سحب المركبات",
+    toastAuthMissingProfiles:"اختر نوع مهمة واحدة على الأقل",
+    profileEditTitle:"ملفك الشخصي",
+    profileSaveBtn:"حفظ الملف الشخصي",
+    toastProfileSaved:"تم تحديث الملف الشخصي",
+    accountEditTitle:"بياناتي",
+    accountSaveBtn:"حفظ البيانات",
+    toastAccountSaved:"تم حفظ البيانات",
+    authSubmitLogin:"تسجيل الدخول", authSubmitRegister:"إنشاء الحساب",
+    authSwitchTextLogin:"ليس لديك حساب؟", authSwitchBtnLogin:"سجّل الآن",
+    authSwitchTextRegister:"لديك حساب بالفعل؟", authSwitchBtnRegister:"تسجيل الدخول",
+    authConnecting:"جارٍ الاتصال بقاعدة البيانات …",
+    toastAuthMissingFields:"املأ جميع الحقول",
+    toastAuthMissingRole:"اختر عميل أو سائق",
+    toastAuthPhoneTaken:"رقم الهاتف مسجل بالفعل",
+    toastAuthLoginFailed:"رقم الهاتف أو كلمة المرور غير صحيحة",
+    toastRegisterSuccess:"تم إنشاء الحساب! مرحبًا بك.",
+    toastLoginSuccess:"تم تسجيل الدخول",
+    toastDbUnavailable:"تعذر الاتصال بقاعدة البيانات. حاول مرة أخرى لاحقًا.",
+    toastSaveFailed:"تعذر الحفظ. حاول مرة أخرى.",
+    logoutBtn:"تسجيل الخروج",
+    heroTitle:"بماذا يمكننا مساعدتك اليوم؟",
+    heroText:"نفايات، نقل أثاث، طلب سلع، أو فني منزلي — صف ما تحتاجه وسنوصلك بالشخص المناسب القريب منك.",
+    heroBtn:"أرسل طلبًا",
+    statActiveLabel:"نشِطة الآن",
+    statDoneLabel:"تم إنجازها",
+    recentTitle:"طلباتك الأخيرة",
+    serviceSelectTitle:"بماذا تحتاج المساعدة؟",
+    services:{
+      junk:{label:"التخلص من النفايات", categoryLabel:"الفئة",
+        categories:{furniture:"أثاث",appliances:"أجهزة منزلية",bulky:"نفايات كبيرة",electronics:"إلكترونيات",leftover:"بقايا انتقال"},
+        sizeLabel:"الحجم التقريبي", sizes:{1:"يناسب سيارة عادية",2:"يحتاج فان",3:"عدة أغراض / شاحنة"},
+        descPlaceholder:"مثال: أريكة وصندوقان من الكتب، الطابق الثالث بدون مصعد",
+        addrLabel:"عنوان الاستلام", addrPlaceholder:"الشارع، الحي، المدينة", needsToAddr:false},
+      moving:{label:"خدمة النقل", categoryLabel:"نوع السكن",
+        categories:{studio:"استوديو/غرفة واحدة",apartment:"شقة من غرفتين إلى ثلاث",house:"منزل/فيلا"},
+        sizeLabel:"المسافة", sizes:{1:"داخل نفس المدينة",2:"إلى مدينة أخرى",3:"إلى خارج البلاد"},
+        descPlaceholder:"صف ما يجب نقله، مثل عدد الغرف والأثاث الثقيل",
+        addrLabel:"عنوان الانطلاق", addrPlaceholder:"الشارع، الحي، المدينة", needsToAddr:true,
+        toAddrLabel:"عنوان الوجهة", toAddrPlaceholder:"الشارع، الحي، المدينة"},
+      goods:{label:"اطلب سلعًا", categoryLabel:"نوع السلعة",
+        categories:{groceries:"بقالة",pharmacy:"صيدلية",electronics:"إلكترونيات",furniture:"أثاث"},
+        sizeLabel:"سرعة التوصيل", sizes:{1:"عادي (اليوم)",2:"سريع (خلال ساعة)"},
+        descPlaceholder:"صف ما تريد طلبه ومن أين",
+        addrLabel:"عنوان التوصيل", addrPlaceholder:"الشارع، الحي، المدينة", needsToAddr:false},
+      pro:{label:"احجز خدمة منزلية", categoryLabel:"نوع الفني",
+        categories:{electrician:"كهربائي",plumber:"سباك",gardener:"بستاني",painter:"نقاش",cleaner:"تنظيف"},
+        sizeLabel:"حجم العمل", sizes:{1:"عمل صغير (أقل من ساعتين)",2:"عمل أكبر (يوم كامل)",3:"عاجل / نفس اليوم"},
+        descPlaceholder:"صف ما يجب القيام به",
+        addrLabel:"العنوان", addrPlaceholder:"الشارع، الحي، المدينة", needsToAddr:false},
+      towing:{label:"سحب السيارات", categoryLabel:"نوع المشكلة",
+        categories:{breakdown:"عطل مفاجئ",accident:"حادث",flat:"إطار مثقوب/بطارية فارغة",transport:"نقل مركبة (إلى ورشة)"},
+        sizeLabel:"نوع المركبة", sizes:{1:"سيارة صغيرة",2:"دفع رباعي/فان",3:"شاحنة/حافلة"},
+        descPlaceholder:"صف مكان السيارة وما حدث",
+        addrLabel:"الموقع الحالي", addrPlaceholder:"الشارع، الحي، المدينة", needsToAddr:true,
+        toAddrLabel:"الورشة/الوجهة", toAddrPlaceholder:"الشارع، الحي، المدينة"},
+      deliver:{label:"توصيل", categoryLabel:"نوع التوصيل",
+        categories:{document:"مستند/ظرف",package:"طرد/صندوق",fragile:"غرض قابل للكسر",food:"طعام/وجبات جاهزة"},
+        sizeLabel:"سرعة التوصيل", sizes:{1:"عادي (خلال بضع ساعات)",2:"سريع (خلال ساعة)"},
+        descPlaceholder:"صف ما يجب توصيله",
+        addrLabel:"عنوان الانطلاق", addrPlaceholder:"الشارع، الحي، المدينة", needsToAddr:true,
+        toAddrLabel:"عنوان الوجهة", toAddrPlaceholder:"الشارع، الحي، المدينة"}
+    },
+    estimateLabel:"السعر المقترح",
+    estimateSub:"بناءً على الخدمة وحجم العمل",
+    estimateSubCustom:"أنت من يحدد السعر",
+    customPriceChipLabel:"حدد سعرك الخاص",
+    customPriceLabel:"سعرك",
+    photoLabel:"صورة (اختياري)",
+    photoTriggerBtn:"التقط أو اختر صورة",
+    removePhotoBtn:"إزالة الصورة",
+    submitBtn:"إرسال الطلب",
+    saveChangesBtn:"حفظ التغييرات",
+    editBtn:"تعديل",
+    deleteBtn:"حذف",
+    confirmDeleteInline:"حذف نهائيًا؟",
+    confirmDeleteBtn:"نعم، احذف",
+    cancelBtn:"إلغاء",
+    toastRequestUpdated:"تم تحديث الطلب",
+    toastRequestDeleted:"تم حذف الطلب",
+    completeBtn:"وضع علامة كمكتمل",
+    toastJobCompleted:"تم وضع علامة على المهمة كمكتملة — تم تحرير الدفع",
+    paymentReleasedNote:"تم تحرير الدفع لمقدم الخدمة",
+    providerCompleteBtn:"وضع علامة كمنجز",
+    toastProviderMarkedDone:"تم إخطار العميل",
+    providerMarkedDoneNote:"قام مقدم الخدمة بوضع علامة على المهمة كمنجزة. أكّد لتحرير الدفع.",
+    confirmReleaseBtn:"تأكيد وتحرير الدفع",
+    waitingCustomerConfirmNote:"بانتظار تأكيد العميل",
+    waitingProviderArriveNote:"بانتظار وصول مقدم الخدمة",
+    providerArriveBtn:"لقد وصلت",
+    toastProviderArrived:"تم إخطار العميل بوصولك",
+    arrivedNoteCustomer:"وصل مقدم الخدمة",
+    arrivedNoteProvider:"لقد وصلت — تم إخطار العميل",
+    openJobsTitle:"مهام متاحة قريبة منك",
+    takenTitle:"تم أخذها بالفعل",
+    allMineTitleCustomer:"جميع طلباتك", allMineTitleDriver:"المهام التي أخذتها",
+    historyTitle:"المهام المكتملة",
+    emptyHistoryCustomer:"لا توجد طلبات مكتملة حتى الآن.",
+    emptyHistoryDriver:"لا توجد مهام مكتملة حتى الآن.",
+    emptyHome:'لا توجد طلبات بعد.<br>اضغط على "أرسل طلبًا" للبدء.',
+    emptyJobs:"لا توجد مهام متاحة الآن. تحقق مرة أخرى بعد قليل.",
+    emptyMineCustomer:"لم ترسل أي طلب بعد.",
+    emptyMineDriver:"لم تأخذ أي مهمة بعد.",
+    takeJobBtn:"التقديم بهذا السعر",
+    proposePriceBtn:"اقترح سعرًا مختلفًا",
+    status:{open:"بانتظار مقدم الخدمة",accepted:"مقدم الخدمة في الطريق",arrived:"وصل مقدم الخدمة",done:"تم الإنجاز"},
+    toastMissingCatSize:"اختر الفئة وحجم العمل أولًا",
+    toastMissingFields:"أدخل الوصف والعنوان",
+    toastSubmitted:"تم إرسال الطلب — تم إخطار مقدمي الخدمة القريبين",
+    toastAccepted:"لقد أخذت المهمة — تم الحجز",
+    toastInvalidOffer:"أدخل سعرًا صالحًا",
+    applicantsTitle:"المتقدمون",
+    assignBtn:"تكليف",
+    yourApplicationNote:"طلبك: {price} — بانتظار اختيار العميل",
+    noApplicantsYet:"لا يوجد متقدمون حتى الآن",
+    toastApplied:"تم إرسال طلبك إلى العميل",
+    toastAssigned:"تم تكليف المهمة",
+    toastAutoAssignedSim:"تم تكليفك بالمهمة تلقائيًا",
+    priceUnit:"IQD"
+  }
+};
+
+let lang = "sv";
+let role = "customer";
+let selectedService = null, selectedCat = null, selectedSize = null;
+let useCustomPrice = false;
+let editingJobId = null;
+let photoDataUrl = null;
+let jobs = [];
+
+let dbRef = null;
+let currentUser = null;
+let authMode = 'login';
+let authSelectedRole = null;
+let authSelectedProfiles = new Set();
+let editProfiles = null;
+
+function t(){ return I18N[lang]; }
+
+function priceFor(service, size, cat){
+  const base = (PRICE_BASE[service] || {})[size] || 200;
+  const bump = (PRICE_BUMP[service] || {})[cat] || 0;
+  return base + bump;
+}
+
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 1800);
+}
+
+function sanitizePhone(phone){
+  return phone.replace(/[^a-zA-Z0-9_\-.~:@+]/g, '');
+}
+function rememberPhone(phone){ try{ localStorage.setItem('diz_last_phone', phone); }catch(e){} }
+function forgetPhone(){ try{ localStorage.removeItem('diz_last_phone'); }catch(e){} }
+function safeGetLocal(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+
+function screenTitleFor(name){
+  const d = t();
+  if(name==='mine') return role==='driver' ? d.mineTitleDriver : d.mineTitleCustomer;
+  return d.titles[name];
+}
+
+/* ---------- SUPABASE DB SHIM (mimics the subset of the Firestore-like API this app uses) ---------- */
+const SUPABASE_URL = 'https://royjjuxojdlqrjteqsge.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_NITFKxKLeHmD98dHgTfBpg_ZNgaWqGm';
+
+const JOBS_CAMEL_TO_SNAKE = {
+  desc:'desc_text', toAddr:'to_addr', ownerPhone:'owner_phone', acceptedByPhone:'accepted_by_phone',
+  arrivedAt:'arrived_at', markedDoneByProvider:'marked_done_by_provider', markedDoneAt:'marked_done_at',
+  paymentReleased:'payment_released', completedAt:'completed_at', createdAt:'created_at'
+};
+const JOBS_SNAKE_TO_CAMEL = Object.fromEntries(Object.entries(JOBS_CAMEL_TO_SNAKE).map(([c,s])=>[s,c]));
+
+function jobsToRow(camelObj){
+  const row = {};
+  for(const [k,v] of Object.entries(camelObj)){
+    row[JOBS_CAMEL_TO_SNAKE[k] || k] = v;
+  }
+  return row;
+}
+function rowToJobObj(row){
+  const obj = {};
+  for(const [k,v] of Object.entries(row)){
+    if(k==='id') continue;
+    obj[JOBS_SNAKE_TO_CAMEL[k] || k] = v;
+  }
+  return obj;
+}
+function usersObjToRow(camelObj){
+  const row = {};
+  for(const [k,v] of Object.entries(camelObj)){
+    row[k==='createdAt' ? 'created_at' : k] = v;
+  }
+  return row;
+}
+function rowToUserObj(row){
+  const obj = {};
+  for(const [k,v] of Object.entries(row)){
+    if(k==='id') continue;
+    obj[k==='created_at' ? 'createdAt' : k] = v;
+  }
+  return obj;
+}
+function makeSnapshot(id, obj){
+  return { id, exists: obj!=null, data: ()=> obj ? {...obj} : undefined };
+}
+
+function createSupabaseDbShim(sb){
+  function jobDoc(id){
+    return {
+      id,
+      async get(){
+        const { data, error } = await sb.from('jobs').select('*').eq('id', id).maybeSingle();
+        if(error) throw error;
+        return makeSnapshot(id, data ? rowToJobObj(data) : undefined);
+      },
+      async set(data){
+        const { error } = await sb.from('jobs').upsert({ id, ...jobsToRow(data) });
+        if(error) throw error;
+      },
+      async update(data){
+        const { error } = await sb.from('jobs').update(jobsToRow(data)).eq('id', id);
+        if(error) throw error;
+      },
+      async delete(){
+        const { error } = await sb.from('jobs').delete().eq('id', id);
+        if(error) throw error;
+      }
+    };
+  }
+  function jobsCollection(){
+    let whereClauses = [];
+    let limitN = null;
+    return {
+      limit(n){ limitN = n; return this; },
+      where(field, op, value){ whereClauses.push([field, op, value]); return this; },
+      doc(id){ return jobDoc(id); },
+      async add(data){
+        const { data: inserted, error } = await sb.from('jobs').insert(jobsToRow(data)).select().single();
+        if(error) throw error;
+        return jobDoc(inserted.id);
+      },
+      async get(){
+        let q = sb.from('jobs').select('*');
+        for(const [field, op, value] of whereClauses){
+          const col = JOBS_CAMEL_TO_SNAKE[field] || field;
+          q = (op==='!=') ? q.neq(col, value) : q.eq(col, value);
+        }
+        if(limitN) q = q.limit(limitN);
+        const { data, error } = await q;
+        if(error) throw error;
+        return { empty: data.length===0, docs: data.map(r=>makeSnapshot(r.id, rowToJobObj(r))) };
+      },
+      onSnapshot(next, errCb){
+        const cache = new Map();
+        function emit(){ next({ docs: Array.from(cache.values()).map(r=>makeSnapshot(r.id, rowToJobObj(r))) }); }
+        (async ()=>{
+          try{
+            const { data, error } = await sb.from('jobs').select('*');
+            if(error) throw error;
+            data.forEach(r=>cache.set(r.id, r));
+            emit();
+          }catch(e){ if(errCb) errCb(e); }
+        })();
+        const channel = sb.channel('jobs-changes-'+Math.random().toString(36).slice(2))
+          .on('postgres_changes', {event:'*', schema:'public', table:'jobs'}, payload=>{
+            if(payload.eventType==='DELETE'){ cache.delete(payload.old.id); }
+            else { cache.set(payload.new.id, payload.new); }
+            emit();
+          })
+          .subscribe();
+        return ()=>{ sb.removeChannel(channel); };
+      }
+    };
+  }
+  function userDoc(key){
+    return {
+      id:key,
+      async get(){
+        const { data, error } = await sb.from('users').select('*').eq('id', key).maybeSingle();
+        if(error) throw error;
+        return makeSnapshot(key, data ? rowToUserObj(data) : undefined);
+      },
+      async set(data){
+        const { error } = await sb.from('users').upsert({ id:key, ...usersObjToRow(data) });
+        if(error) throw error;
+      },
+      async update(data){
+        const { error } = await sb.from('users').update(usersObjToRow(data)).eq('id', key);
+        if(error) throw error;
+      },
+      async delete(){
+        const { error } = await sb.from('users').delete().eq('id', key);
+        if(error) throw error;
+      }
+    };
+  }
+  return {
+    collection(name){
+      if(name==='jobs') return jobsCollection();
+      throw new Error('unsupported collection: '+name);
+    },
+    doc(path){
+      const slash = path.indexOf('/');
+      const coll = path.slice(0, slash), id = path.slice(slash+1);
+      if(coll==='jobs') return jobDoc(id);
+      if(coll==='users') return userDoc(id);
+      throw new Error('unsupported doc path: '+path);
+    }
+  };
+}
+
+/* ---------- DB ---------- */
+async function ensureSeed(){
+  try{
+    const snap = await dbRef.collection('jobs').limit(1).get();
+    if(snap.empty){
+      for(const s of SEED_JOBS){
+        await dbRef.collection('jobs').add({
+          service:s.service, cat:s.cat, desc:s.desc, addr:s.addr, toAddr:s.toAddr||null,
+          size:s.size, price:priceFor(s.service, s.size, s.cat), status:'open',
+          ownerPhone:null, acceptedByPhone:null, createdAt:Date.now()
+        });
+      }
+    }
+  }catch(e){ /* non-fatal */ }
+}
+function subscribeJobs(){
+  dbRef.collection('jobs').onSnapshot(snap=>{
+    jobs = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    refreshCurrentScreen();
+  }, err=>{ console.error('jobs snapshot error', err); });
+}
+
+/* ---------- AUTH ---------- */
+function toggleAuthMode(){
+  authMode = authMode === 'login' ? 'register' : 'login';
+  authSelectedRole = null;
+  authSelectedProfiles = new Set();
+  renderAuth();
+}
+
+function profileOptions(){
+  const d = t();
+  const opts = [{key:'driver', label:d.profileDriver}, {key:'towing', label:d.profileTowing}];
+  Object.entries(d.services.pro.categories).forEach(([key,label])=>{
+    opts.push({key, label});
+  });
+  return opts;
+}
+
+function renderAuth(){
+  const d = t();
+  const isRegister = authMode === 'register';
+  document.getElementById('authTitle').textContent = isRegister ? d.authTitleRegister : d.authTitleLogin;
+  document.getElementById('authSubtitle').textContent = isRegister ? d.authSubtitleRegister : d.authSubtitleLogin;
+  document.getElementById('authNameWrap').style.display = isRegister ? 'block' : 'none';
+  document.getElementById('authNameLabel').textContent = d.authNameLabel;
+  document.getElementById('authPhoneLabel').textContent = d.authPhoneLabel;
+  document.getElementById('authPassLabel').textContent = d.authPassLabel;
+  document.getElementById('authRoleWrap').style.display = isRegister ? 'block' : 'none';
+  document.getElementById('authRoleLabel').textContent = d.authRoleLabel;
+  document.getElementById('authRoleChips').innerHTML =
+    `<div class="chip${authSelectedRole==='customer'?' on':''}" data-val="customer">${d.roleCustomer}</div>
+     <div class="chip${authSelectedRole==='driver'?' on':''}" data-val="driver">${d.roleDriver}</div>`;
+  const showProfiles = isRegister && authSelectedRole==='driver';
+  document.getElementById('authProfileWrap').style.display = showProfiles ? 'block' : 'none';
+  if(showProfiles){
+    document.getElementById('authProfileLabel').textContent = d.authProfileLabel;
+    document.getElementById('authProfileChips').innerHTML = profileOptions().map(o=>
+      `<div class="chip${authSelectedProfiles.has(o.key)?' on':''}" data-val="${o.key}">${o.label}</div>`
+    ).join('');
+  }
+  document.getElementById('authSubmitBtn').textContent = isRegister ? d.authSubmitRegister : d.authSubmitLogin;
+  document.getElementById('authSwitchText').textContent = isRegister ? d.authSwitchTextRegister : d.authSwitchTextLogin;
+  document.getElementById('authSwitchBtn').textContent = isRegister ? d.authSwitchBtnRegister : d.authSwitchBtnLogin;
+}
+
+document.getElementById('authRoleChips').addEventListener('click', e=>{
+  const chip = e.target.closest('.chip'); if(!chip) return;
+  authSelectedRole = chip.dataset.val;
+  if(authSelectedRole !== 'driver') authSelectedProfiles = new Set();
+  renderAuth();
+});
+document.getElementById('authProfileChips').addEventListener('click', e=>{
+  const chip = e.target.closest('.chip'); if(!chip) return;
+  const key = chip.dataset.val;
+  if(authSelectedProfiles.has(key)) authSelectedProfiles.delete(key);
+  else authSelectedProfiles.add(key);
+  renderAuth();
+});
+
+async function submitAuth(){
+  const d = t();
+  if(!dbRef){ toast(d.toastDbUnavailable); return; }
+  const phone = document.getElementById('authPhoneInput').value.trim();
+  const pass = document.getElementById('authPassInput').value;
+  const key = sanitizePhone(phone);
+  if(authMode === 'register'){
+    const name = document.getElementById('authNameInput').value.trim();
+    if(!name || !phone || !pass || !key){ toast(d.toastAuthMissingFields); return; }
+    if(!authSelectedRole){ toast(d.toastAuthMissingRole); return; }
+    if(authSelectedRole==='driver' && authSelectedProfiles.size===0){ toast(d.toastAuthMissingProfiles); return; }
+    const profiles = authSelectedRole==='driver' ? Array.from(authSelectedProfiles) : [];
+    try{
+      const existing = await dbRef.doc('users/'+key).get();
+      if(existing.exists){ toast(d.toastAuthPhoneTaken); return; }
+      await dbRef.doc('users/'+key).set({name, phone, password:pass, role:authSelectedRole, profiles, createdAt:Date.now()});
+    }catch(e){ toast(d.toastSaveFailed); return; }
+    currentUser = {phone, name, password:pass, role:authSelectedRole, profiles};
+    role = authSelectedRole;
+    rememberPhone(phone);
+    toast(d.toastRegisterSuccess);
+    enterApp();
+  } else {
+    if(!phone || !pass || !key){ toast(d.toastAuthMissingFields); return; }
+    try{
+      const snap = await dbRef.doc('users/'+key).get();
+      if(!snap.exists || snap.data().password !== pass){ toast(d.toastAuthLoginFailed); return; }
+      currentUser = {phone, ...snap.data()};
+      role = currentUser.role;
+      rememberPhone(phone);
+      toast(d.toastLoginSuccess);
+      enterApp();
+    }catch(e){ toast(d.toastSaveFailed); }
+  }
+}
+
+function enterApp(){
+  document.getElementById('authOverlay').style.display = 'none';
+  document.getElementById('authPhoneInput').value = '';
+  document.getElementById('authPassInput').value = '';
+  document.getElementById('authNameInput').value = '';
+  authSelectedRole = null;
+  updateUserRow();
+  applyRoleUI();
+  goTo(role==='driver' ? 'jobs' : 'home');
+}
+
+function updateUserRow(){
+  if(!currentUser) return;
+  const d = t();
+  document.getElementById('userGreeting').textContent =
+    `${d.greetingPrefix}, ${currentUser.name} · ${role==='driver' ? d.roleDriver : d.roleCustomer}`;
+  document.getElementById('logoutBtn').textContent = d.logoutBtn;
+}
+
+function logout(){
+  currentUser = null;
+  editProfiles = null;
+  forgetPhone();
+  authMode = 'login';
+  renderAuth();
+  document.getElementById('authOverlay').style.display = 'flex';
+}
+
+function renderAccountEdit(){
+  document.getElementById('accountEditTitle').textContent = t().accountEditTitle;
+  document.getElementById('accountNameLabel').textContent = t().authNameLabel;
+  document.getElementById('accountPhoneLabel').textContent = t().authPhoneLabel;
+  document.getElementById('accountSaveBtn').textContent = t().accountSaveBtn;
+  const nameInput = document.getElementById('accountNameInput');
+  const phoneInput = document.getElementById('accountPhoneInput');
+  if(document.activeElement !== nameInput) nameInput.value = currentUser.name;
+  if(document.activeElement !== phoneInput) phoneInput.value = currentUser.phone;
+}
+
+async function saveAccountDetails(){
+  if(!dbRef || !currentUser) return;
+  const d = t();
+  const newName = document.getElementById('accountNameInput').value.trim();
+  const newPhoneRaw = document.getElementById('accountPhoneInput').value.trim();
+  const newKey = sanitizePhone(newPhoneRaw);
+  const oldKey = sanitizePhone(currentUser.phone);
+  if(!newName || !newPhoneRaw || !newKey){ toast(d.toastAuthMissingFields); return; }
+
+  if(newKey === oldKey){
+    try{
+      await dbRef.doc('users/'+oldKey).update({name:newName});
+      currentUser.name = newName;
+      toast(d.toastAccountSaved);
+      updateUserRow();
+    }catch(e){ toast(d.toastSaveFailed); }
+    return;
+  }
+
+  try{
+    const existing = await dbRef.doc('users/'+newKey).get();
+    if(existing.exists){ toast(d.toastAuthPhoneTaken); return; }
+    const oldSnap = await dbRef.doc('users/'+oldKey).get();
+    const data = oldSnap.data() || {};
+    await dbRef.doc('users/'+newKey).set({...data, name:newName, phone:newPhoneRaw});
+
+    const oldPhone = currentUser.phone;
+    const ownerJobs = await dbRef.collection('jobs').where('ownerPhone','==',oldPhone).get();
+    for(const jd of ownerJobs.docs){ await dbRef.doc('jobs/'+jd.id).update({ownerPhone:newPhoneRaw}); }
+    const acceptedJobs = await dbRef.collection('jobs').where('acceptedByPhone','==',oldPhone).get();
+    for(const jd of acceptedJobs.docs){ await dbRef.doc('jobs/'+jd.id).update({acceptedByPhone:newPhoneRaw}); }
+    const openJobsForApplicants = jobs.filter(j=>Array.isArray(j.applicants) && j.applicants.some(a=>a.phone===oldPhone));
+    for(const jd of openJobsForApplicants){
+      const updatedApplicants = jd.applicants.map(a=> a.phone===oldPhone ? {...a, phone:newPhoneRaw, name:newName} : a);
+      await dbRef.doc('jobs/'+jd.id).update({applicants:updatedApplicants});
+    }
+
+    await dbRef.doc('users/'+oldKey).delete();
+    currentUser = {...data, name:newName, phone:newPhoneRaw};
+    rememberPhone(newPhoneRaw);
+    toast(d.toastAccountSaved);
+    updateUserRow();
+    refreshCurrentScreen();
+  }catch(e){ toast(d.toastSaveFailed); }
+}
+
+function renderProfileEdit(){
+  const wrap = document.getElementById('profileEditWrap');
+  if(role !== 'driver' || !currentUser){ wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  if(!editProfiles) editProfiles = new Set(currentUser.profiles || []);
+  document.getElementById('profileEditTitle').textContent = t().profileEditTitle;
+  document.getElementById('profileEditChips').innerHTML = profileOptions().map(o=>
+    `<div class="chip${editProfiles.has(o.key)?' on':''}" data-val="${o.key}">${o.label}</div>`
+  ).join('');
+  document.getElementById('profileSaveBtn').textContent = t().profileSaveBtn;
+}
+
+document.getElementById('profileEditChips').addEventListener('click', e=>{
+  const chip = e.target.closest('.chip'); if(!chip) return;
+  const key = chip.dataset.val;
+  if(editProfiles.has(key)) editProfiles.delete(key); else editProfiles.add(key);
+  chip.classList.toggle('on');
+});
+
+async function saveProfile(){
+  if(!dbRef || !currentUser) return;
+  if(!editProfiles || editProfiles.size===0){ toast(t().toastAuthMissingProfiles); return; }
+  const profiles = Array.from(editProfiles);
+  try{
+    await dbRef.doc('users/'+sanitizePhone(currentUser.phone)).update({profiles});
+    currentUser.profiles = profiles;
+    toast(t().toastProfileSaved);
+    refreshCurrentScreen();
+  }catch(e){ toast(t().toastSaveFailed); }
+}
+
+/* ---------- BOOT ---------- */
+async function boot(){
+  document.getElementById('authNote').textContent = t().authConnecting;
+  document.getElementById('authSubmitBtn').disabled = true;
+
+  try{
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    dbRef = createSupabaseDbShim(sb);
+  }catch(e){ dbRef = null; }
+
+  document.getElementById('authNote').textContent = '';
+  document.getElementById('authSubmitBtn').disabled = false;
+
+  if(!dbRef){
+    toast(t().toastDbUnavailable);
+    document.getElementById('authOverlay').style.display = 'flex';
+    return;
+  }
+
+  await ensureSeed();
+  subscribeJobs();
+
+  const rememberedPhone = safeGetLocal('diz_last_phone');
+  if(rememberedPhone){
+    try{
+      const snap = await dbRef.doc('users/'+sanitizePhone(rememberedPhone)).get();
+      if(snap.exists){
+        currentUser = {phone: rememberedPhone, ...snap.data()};
+        role = currentUser.role;
+        enterApp();
+        return;
+      }
+    }catch(e){}
+  }
+  document.getElementById('authOverlay').style.display = 'flex';
+}
+/* ---------- END AUTH/DB ---------- */
+
+function applyStaticText(){
+  const d = t();
+  document.documentElement.lang = lang;
+  document.documentElement.dir = d.dir;
+  document.body.dir = d.dir;
+  document.getElementById('brandText').textContent = d.brand;
+  document.getElementById('heroTitle').textContent = d.heroTitle;
+  document.getElementById('heroText').textContent = d.heroText;
+  document.getElementById('heroBtn').textContent = d.heroBtn;
+  document.getElementById('statActiveLabel').textContent = d.statActiveLabel;
+  document.getElementById('statDoneLabel').textContent = d.statDoneLabel;
+  document.getElementById('recentTitle').textContent = d.recentTitle;
+  document.getElementById('serviceSelectTitle').textContent = d.serviceSelectTitle;
+  document.getElementById('openJobsTitle').textContent = d.openJobsTitle;
+  document.getElementById('allMineTitle').textContent = role==='driver' ? d.allMineTitleDriver : d.allMineTitleCustomer;
+  document.getElementById('historyTitle').textContent = d.historyTitle;
+  document.getElementById('customPriceChip').textContent = d.customPriceChipLabel;
+  document.getElementById('customPriceLabel').textContent = d.customPriceLabel;
+  document.getElementById('photoLabel').textContent = d.photoLabel;
+  document.getElementById('photoTriggerBtn').textContent = d.photoTriggerBtn;
+  document.getElementById('removePhotoBtn').textContent = d.removePhotoBtn;
+  document.getElementById('submitBtn').textContent = d.submitBtn;
+
+  document.querySelectorAll('[data-tabkey]').forEach(el=>{
+    el.textContent = d.tabs[el.dataset.tabkey];
+  });
+  document.querySelectorAll('#langSwitch button, #authLangSwitch button').forEach(b=>{
+    b.classList.toggle('on', b.dataset.lang===lang);
+  });
+
+  const serviceChips = document.getElementById('serviceChips');
+  serviceChips.innerHTML = Object.entries(d.services).map(([key,val])=>
+    `<div class="chip${selectedService===key?' on':''}" data-val="${key}">${val.label}</div>`
+  ).join('');
+
+  if(selectedService) renderRequestDetails();
+  updateEstimate();
+  renderAuth();
+  if(currentUser) updateUserRow();
+}
+
+function renderRequestDetails(){
+  const d = t();
+  const svc = d.services[selectedService];
+  document.getElementById('requestDetails').style.display = 'block';
+  document.getElementById('categoryLabel').textContent = svc.categoryLabel;
+  document.getElementById('sizeLabel').textContent = svc.sizeLabel;
+  document.getElementById('descInput').placeholder = svc.descPlaceholder;
+  document.getElementById('addrLabel').textContent = svc.addrLabel;
+  document.getElementById('addrInput').placeholder = svc.addrPlaceholder;
+  document.getElementById('toAddrWrap').style.display = svc.needsToAddr ? 'block' : 'none';
+  if(svc.needsToAddr){
+    document.getElementById('toAddrLabel').textContent = svc.toAddrLabel;
+    document.getElementById('toAddrInput').placeholder = svc.toAddrPlaceholder;
+  }
+  document.getElementById('catChips').innerHTML = Object.entries(svc.categories).map(([key,label])=>
+    `<div class="chip${selectedCat===key?' on':''}" data-val="${key}">${label}</div>`
+  ).join('');
+  document.getElementById('sizeChips').innerHTML = Object.entries(svc.sizes).map(([key,label])=>
+    `<div class="chip${selectedSize===parseInt(key)?' on':''}" data-val="${key}">${label}</div>`
+  ).join('');
+}
+
+function applyRoleUI(){
+  document.querySelector('.tabbar button[data-tab="home"]').style.display = role==='driver' ? 'none' : 'flex';
+  document.querySelector('.tabbar button[data-tab="new"]').style.display = role==='driver' ? 'none' : 'flex';
+  document.querySelector('.tabbar button[data-tab="jobs"]').style.display = role==='customer' ? 'none' : 'flex';
+  const cur = currentScreen();
+  if(role==='driver' && (cur==='home' || cur==='new')){ goTo('jobs'); return; }
+  if(role==='customer' && cur==='jobs'){ goTo('home'); return; }
+}
+
+function setLang(newLang){
+  lang = newLang;
+  applyStaticText();
+  if(currentUser) applyRoleUI();
+  refreshCurrentScreen();
+}
+
+function currentScreen(){
+  return document.querySelector('.screen.active').dataset.screen;
+}
+
+function handlePhotoSelect(e){
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    const img = new Image();
+    img.onload = function(){
+      const maxW = 800;
+      const scale = Math.min(1, maxW / img.width);
+      const w = Math.round(img.width * scale) || 1;
+      const h = Math.round(img.height * scale) || 1;
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      photoDataUrl = canvas.toDataURL('image/jpeg', 0.6);
+      document.getElementById('photoPreviewImg').src = photoDataUrl;
+      document.getElementById('photoPreviewWrap').style.display = 'block';
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function removePhoto(){
+  photoDataUrl = null;
+  document.getElementById('photoInput').value = '';
+  document.getElementById('photoPreviewWrap').style.display = 'none';
+}
+
+function resetNewRequestForm(){
+  editingJobId = null;
+  selectedService = null; selectedCat = null; selectedSize = null; useCustomPrice = false;
+  photoDataUrl = null;
+  document.getElementById('photoInput').value = '';
+  document.getElementById('photoPreviewWrap').style.display = 'none';
+  document.querySelectorAll('#serviceChips .chip, #catChips .chip, #sizeChips .chip').forEach(c=>c.classList.remove('on'));
+  document.getElementById('requestDetails').style.display = 'none';
+  document.getElementById('descInput').value = '';
+  document.getElementById('addrInput').value = '';
+  if(document.getElementById('toAddrInput')) document.getElementById('toAddrInput').value = '';
+  document.getElementById('customPriceChip').classList.remove('on');
+  document.getElementById('customPriceWrap').style.display = 'none';
+  document.getElementById('customPriceInput').value = '';
+  document.getElementById('submitBtn').textContent = t().submitBtn;
+  updateEstimate();
+}
+
+function goTo(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active', s.dataset.screen===name));
+  document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
+  document.getElementById('screenTitle').textContent = screenTitleFor(name);
+  if(name==='new') resetNewRequestForm();
+  if(name==='home') renderHome();
+  if(name==='jobs') renderJobs();
+  if(name==='mine') renderMine();
+  if(name==='history') renderHistory();
+}
+
+function refreshCurrentScreen(){
+  const name = currentScreen();
+  document.getElementById('screenTitle').textContent = screenTitleFor(name);
+  if(name==='home') renderHome();
+  if(name==='jobs') renderJobs();
+  if(name==='mine') renderMine();
+  if(name==='history') renderHistory();
+}
+
+document.getElementById('serviceChips').addEventListener('click', e=>{
+  const chip = e.target.closest('.chip'); if(!chip) return;
+  document.querySelectorAll('#serviceChips .chip').forEach(c=>c.classList.remove('on'));
+  chip.classList.add('on');
+  selectedService = chip.dataset.val;
+  selectedCat = null; selectedSize = null; useCustomPrice = false;
+  document.getElementById('customPriceChip').classList.remove('on');
+  document.getElementById('customPriceWrap').style.display = 'none';
+  renderRequestDetails();
+  updateEstimate();
+});
+document.getElementById('catChips').addEventListener('click', e=>{
+  const chip = e.target.closest('.chip'); if(!chip) return;
+  document.querySelectorAll('#catChips .chip').forEach(c=>c.classList.remove('on'));
+  chip.classList.add('on'); selectedCat = chip.dataset.val; updateEstimate();
+});
+document.getElementById('sizeChips').addEventListener('click', e=>{
+  const chip = e.target.closest('.chip'); if(!chip) return;
+  document.querySelectorAll('#sizeChips .chip').forEach(c=>c.classList.remove('on'));
+  chip.classList.add('on'); selectedSize = parseInt(chip.dataset.val); updateEstimate();
+});
+document.getElementById('langSwitch').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  setLang(b.dataset.lang);
+});
+document.getElementById('authLangSwitch').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  setLang(b.dataset.lang);
+});
+document.getElementById('customPriceChip').addEventListener('click', ()=>{
+  useCustomPrice = !useCustomPrice;
+  document.getElementById('customPriceChip').classList.toggle('on', useCustomPrice);
+  document.getElementById('customPriceWrap').style.display = useCustomPrice ? 'block' : 'none';
+  if(useCustomPrice){
+    const input = document.getElementById('customPriceInput');
+    if(!input.value && selectedSize) input.value = priceFor(selectedService, selectedSize, selectedCat);
+  }
+  updateEstimate();
+});
+document.getElementById('customPriceInput').addEventListener('input', updateEstimate);
+
+function updateEstimate(){
+  const el = document.getElementById('priceEstimate');
+  const sub = document.getElementById('estimateSub');
+  if(!sub) return;
+  sub.textContent = useCustomPrice ? t().estimateSubCustom : t().estimateSub;
+  if(useCustomPrice){
+    const val = parseInt(document.getElementById('customPriceInput').value, 10);
+    el.textContent = (val>0) ? (val + " " + t().priceUnit) : "–";
+    return;
+  }
+  if(selectedService && selectedSize){
+    el.textContent = priceFor(selectedService, selectedSize, selectedCat) + " " + t().priceUnit;
+  } else {
+    el.textContent = "–";
+  }
+}
+
+async function providerArrive(id){
+  if(!dbRef) return;
+  try{
+    await dbRef.doc('jobs/'+id).update({arrived:true, arrivedAt:Date.now()});
+    toast(t().toastProviderArrived);
+  }catch(e){ toast(t().toastSaveFailed); }
+}
+
+async function providerMarkDone(id){
+  if(!dbRef) return;
+  try{
+    await dbRef.doc('jobs/'+id).update({markedDoneByProvider:true, markedDoneAt:Date.now()});
+    toast(t().toastProviderMarkedDone);
+  }catch(e){ toast(t().toastSaveFailed); }
+}
+
+async function completeJob(id){
+  if(!dbRef) return;
+  const j = jobs.find(x=>x.id===id);
+  if(!j || !(j.arrived || j.markedDoneByProvider)) return;
+  try{
+    await dbRef.doc('jobs/'+id).update({status:'done', paymentReleased:true, completedAt:Date.now()});
+    toast(t().toastJobCompleted);
+  }catch(e){ toast(t().toastSaveFailed); }
+}
+
+let pendingDeleteId = null;
+
+function askDelete(id){
+  pendingDeleteId = id;
+  refreshCurrentScreen();
+}
+function cancelDelete(){
+  pendingDeleteId = null;
+  refreshCurrentScreen();
+}
+async function confirmDeleteRequest(id){
+  if(!dbRef) return;
+  try{
+    await dbRef.doc('jobs/'+id).delete();
+    if(editingJobId === id) resetNewRequestForm();
+    pendingDeleteId = null;
+    toast(t().toastRequestDeleted);
+  }catch(e){ toast(t().toastSaveFailed); }
+}
+
+function editJob(id){
+  const j = jobs.find(x=>x.id===id);
+  if(!j || j.status !== 'open') return;
+  goTo('new');
+  editingJobId = id;
+  selectedService = j.service;
+  selectedCat = j.cat;
+  selectedSize = j.size;
+  const computedPrice = priceFor(j.service, j.size, j.cat);
+  useCustomPrice = (j.price !== computedPrice);
+
+  document.querySelectorAll('#serviceChips .chip').forEach(c=>c.classList.toggle('on', c.dataset.val===selectedService));
+  renderRequestDetails();
+  document.getElementById('descInput').value = j.desc;
+  photoDataUrl = j.photo || null;
+  if(photoDataUrl){
+    document.getElementById('photoPreviewImg').src = photoDataUrl;
+    document.getElementById('photoPreviewWrap').style.display = 'block';
+  } else {
+    document.getElementById('photoPreviewWrap').style.display = 'none';
+  }
+  document.getElementById('addrInput').value = j.addr;
+  if(document.getElementById('toAddrInput')) document.getElementById('toAddrInput').value = j.toAddr || '';
+  document.getElementById('customPriceChip').classList.toggle('on', useCustomPrice);
+  document.getElementById('customPriceWrap').style.display = useCustomPrice ? 'block' : 'none';
+  if(useCustomPrice) document.getElementById('customPriceInput').value = j.price;
+  updateEstimate();
+  document.getElementById('submitBtn').textContent = t().saveChangesBtn;
+}
+
+async function submitRequest(){
+  const d = t();
+  if(!dbRef){ toast(d.toastDbUnavailable); return; }
+  const desc = document.getElementById('descInput').value.trim();
+  const addr = document.getElementById('addrInput').value.trim();
+  const svc = d.services[selectedService];
+  const toAddr = svc.needsToAddr ? document.getElementById('toAddrInput').value.trim() : null;
+  if(!selectedCat || !selectedSize){ toast(d.toastMissingCatSize); return; }
+  if(!desc || !addr || (svc.needsToAddr && !toAddr)){ toast(d.toastMissingFields); return; }
+  let price;
+  if(useCustomPrice){
+    const val = parseInt(document.getElementById('customPriceInput').value, 10);
+    if(!val || val<=0){ toast(d.toastInvalidOffer); return; }
+    price = val;
+  } else {
+    price = priceFor(selectedService, selectedSize, selectedCat);
+  }
+  const wasEditing = !!editingJobId;
+  try{
+    if(wasEditing){
+      await dbRef.doc('jobs/'+editingJobId).update({service:selectedService, cat:selectedCat, desc, addr, toAddr, size:selectedSize, price, photo: photoDataUrl || null});
+    } else {
+      await dbRef.collection('jobs').add({
+        service:selectedService, cat:selectedCat, desc, addr, toAddr, size:selectedSize, price,
+        photo: photoDataUrl || null,
+        status:"open",
+        ownerPhone: currentUser.phone, acceptedByPhone:null, createdAt: Date.now()
+      });
+    }
+  }catch(e){ toast(d.toastSaveFailed); return; }
+  resetNewRequestForm();
+  toast(wasEditing ? d.toastRequestUpdated : d.toastSubmitted);
+  goTo('home');
+}
+
+function catLabel(service, key){ return (t().services[service] || {}).categories?.[key] || key; }
+function serviceLabel(service){ return (t().services[service] || {}).label || service; }
+function effectiveStatusKey(j){
+  if(j.status==='accepted' && (j.arrived || j.markedDoneByProvider)) return 'arrived';
+  return j.status;
+}
+function statusLabel(j){ return t().status[effectiveStatusKey(j)]; }
+function statusClass(j){ return {open:"waiting", accepted:"accepted", arrived:"accepted", done:"done"}[effectiveStatusKey(j)]; }
+
+function submitOffer(id){
+  const j = jobs.find(x=>x.id===id);
+  if(!j) return;
+  applyToJob(id, j.price);
+}
+
+function submitCustomOffer(id){
+  const input = document.getElementById('offerInput-'+id);
+  const val = parseInt(input.value, 10);
+  if(!val || val<=0){ toast(t().toastInvalidOffer); return; }
+  applyToJob(id, val);
+}
+
+async function applyToJob(id, price){
+  if(!dbRef || !currentUser) return;
+  const j = jobs.find(x=>x.id===id);
+  if(!j) return;
+  const applicants = Array.isArray(j.applicants) ? j.applicants.slice() : [];
+  const idx = applicants.findIndex(a=>a.phone===currentUser.phone);
+  const entry = {phone: currentUser.phone, name: currentUser.name, price, appliedAt: Date.now()};
+  if(idx>=0) applicants[idx] = entry; else applicants.push(entry);
+  try{
+    await dbRef.doc('jobs/'+id).update({applicants});
+    toast(t().toastApplied);
+  }catch(e){ toast(t().toastSaveFailed); return; }
+
+  if(!j.ownerPhone){
+    setTimeout(async ()=>{
+      const jj = jobs.find(x=>x.id===id);
+      if(jj && jj.status==='open'){
+        try{
+          await dbRef.doc('jobs/'+id).update({status:'accepted', acceptedByPhone: currentUser.phone, price});
+          toast(t().toastAutoAssignedSim);
+        }catch(e){}
+      }
+    }, 1700);
+  }
+}
+
+async function assignJob(id, phone){
+  if(!dbRef) return;
+  const j = jobs.find(x=>x.id===id);
+  if(!j) return;
+  const applicants = Array.isArray(j.applicants) ? j.applicants : [];
+  const chosen = applicants.find(a=>a.phone===phone);
+  if(!chosen) return;
+  try{
+    await dbRef.doc('jobs/'+id).update({status:'accepted', acceptedByPhone: phone, price: chosen.price});
+    toast(t().toastAssigned);
+  }catch(e){ toast(t().toastSaveFailed); }
+}
+
+function jobCardHTML(j, courierView){
+  const d = t();
+  const isMine = currentUser && j.ownerPhone === currentUser.phone;
+  const isMyAcceptedJob = currentUser && j.acceptedByPhone === currentUser.phone;
+  let body;
+  const applicants = Array.isArray(j.applicants) ? j.applicants : [];
+  if(courierView){
+    if(j.status==='open'){
+      const mine = applicants.find(a=>a.phone===currentUser?.phone);
+      const note = mine
+        ? `<div style="margin-top:6px;font-size:12px;color:var(--muted);">${d.yourApplicationNote.replace('{price}', mine.price + ' ' + d.priceUnit)}</div>`
+        : '';
+      body = `${note}
+      <div class="action-row">
+        <button class="secondary" onclick="submitOffer('${j.id}')">${d.takeJobBtn}</button>
+      </div>
+      <div class="offer-row">
+        <input type="number" min="1" id="offerInput-${j.id}" value="${mine ? mine.price : j.price}">
+        <button class="secondary" onclick="submitCustomOffer('${j.id}')">${d.proposePriceBtn}</button>
+      </div>`;
+    } else {
+      body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>`;
+    }
+  } else {
+    if(j.status==='open' && isMine && role==='customer' && pendingDeleteId!==j.id){
+      const applicantsHtml = applicants.length
+        ? applicants.slice().sort((a,b)=>a.price-b.price).map(a=>`
+          <div class="card" style="margin-bottom:8px;padding:10px 12px;">
+            <div class="top-row">
+              <div><h3 style="font-size:14px;">${a.name || a.phone}</h3></div>
+              <div class="price" style="font-size:14px;">${a.price} ${d.priceUnit}</div>
+            </div>
+            <div class="action-row">
+              <button class="secondary" onclick="assignJob('${j.id}','${a.phone}')">${d.assignBtn}</button>
+            </div>
+          </div>`).join('')
+        : `<div class="empty" style="padding:14px;">${d.noApplicantsYet}</div>`;
+      body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
+      <div style="margin-top:10px;">
+        <p class="section-title" style="margin-bottom:8px;">${d.applicantsTitle}${applicants.length ? ' (' + applicants.length + ')' : ''}</p>
+        ${applicantsHtml}
+      </div>
+      <div class="action-row">
+        <button class="secondary" onclick="editJob('${j.id}')">${d.editBtn}</button>
+        <button class="secondary" onclick="askDelete('${j.id}')">${d.deleteBtn}</button>
+      </div>`;
+    } else if(j.status==='accepted' && isMine && role==='customer'){
+      let note = '';
+      let btnLabel = d.completeBtn;
+      const canComplete = !!(j.arrived || j.markedDoneByProvider);
+      if(j.markedDoneByProvider){
+        note = `<div style="margin-top:8px;font-size:13px;">${d.providerMarkedDoneNote}</div>`;
+        btnLabel = d.confirmReleaseBtn;
+      } else if(j.arrived){
+        note = `<div style="margin-top:8px;font-size:13px;">${d.arrivedNoteCustomer}</div>`;
+      } else {
+        note = `<div style="margin-top:8px;font-size:13px;color:var(--muted);">${d.waitingProviderArriveNote}</div>`;
+      }
+      body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
+      ${note}
+      ${canComplete ? `<div class="action-row">
+        <button class="secondary" onclick="completeJob('${j.id}')">${btnLabel}</button>
+      </div>` : ''}`;
+    } else if(j.status==='accepted' && role==='driver' && isMyAcceptedJob){
+      if(j.markedDoneByProvider){
+        body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
+        <div style="margin-top:6px;font-size:12px;color:var(--muted);">${d.waitingCustomerConfirmNote}</div>`;
+      } else if(j.arrived){
+        body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
+        <div style="margin-top:6px;font-size:12px;color:var(--muted);">${d.arrivedNoteProvider}</div>
+        <div class="action-row">
+          <button class="secondary" onclick="providerMarkDone('${j.id}')">${d.providerCompleteBtn}</button>
+        </div>`;
+      } else {
+        body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
+        <div class="action-row">
+          <button class="secondary" onclick="providerArrive('${j.id}')">${d.providerArriveBtn}</button>
+        </div>`;
+      }
+    } else if(j.status==='done'){
+      body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
+      <div style="margin-top:6px;font-size:12px;color:var(--muted);">${d.paymentReleasedNote}</div>`;
+    } else if(j.status==='open' && isMine && role==='customer' && pendingDeleteId===j.id){
+      body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
+      <div style="margin-top:8px;font-size:13px;">${d.confirmDeleteInline}</div>
+      <div class="action-row">
+        <button class="secondary" onclick="confirmDeleteRequest('${j.id}')">${d.confirmDeleteBtn}</button>
+        <button class="secondary" onclick="cancelDelete()">${d.cancelBtn}</button>
+      </div>`;
+    } else {
+      body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>`;
+    }
+  }
+  const route = j.toAddr ? `${j.addr} → ${j.toAddr}` : j.addr;
+  return `<div class="card route">
+    <div class="top-row">
+      <div>
+        <div class="service-badge">${serviceLabel(j.service)}</div>
+        <h3>${catLabel(j.service, j.cat)}</h3>
+        <p class="meta">${j.desc}</p>
+      </div>
+      <div class="price">${j.price} ${d.priceUnit}</div>
+    </div>
+    ${j.photo ? `<img src="${j.photo}" alt="" style="width:100%;max-height:160px;object-fit:cover;margin-top:10px;border:1px solid var(--line);">` : ''}
+    <p class="meta" style="margin-top:8px;">${route}</p>
+    ${body}
+  </div>`;
+}
+
+function renderHome(){
+  if(!currentUser) return;
+  const all = jobs.filter(j=>j.ownerPhone===currentUser.phone);
+  document.getElementById('statActive').textContent = all.filter(r=>r.status!=="done").length;
+  document.getElementById('statDone').textContent = all.filter(r=>r.status==="done").length;
+  const mine = all.filter(j=>j.status!=='done');
+  const list = document.getElementById('homeList');
+  if(mine.length===0){
+    list.innerHTML = `<div class="empty">${t().emptyHome}</div>`;
+    return;
+  }
+  list.innerHTML = mine.slice(0,3).map(j=>jobCardHTML(j,false)).join('');
+}
+
+function providerCanTake(job){
+  if(!currentUser || !currentUser.profiles || currentUser.profiles.length===0) return true;
+  const profiles = currentUser.profiles;
+  if(profiles.includes('driver') && (job.service==='junk' || job.service==='moving' || job.service==='goods' || job.service==='deliver')) return true;
+  if(job.service==='pro' && profiles.includes(job.cat)) return true;
+  if(job.service==='towing' && profiles.includes('towing')) return true;
+  return false;
+}
+
+function renderJobs(){
+  const open = jobs.filter(j=>j.status==="open" && providerCanTake(j));
+  const taken = jobs.filter(j=>j.status==="accepted" && j.acceptedByPhone===currentUser?.phone);
+  const list = document.getElementById('jobsList');
+  let html = "";
+  if(open.length===0){
+    html += `<div class="empty">${t().emptyJobs}</div>`;
+  } else {
+    html += open.map(j=>jobCardHTML(j,true)).join('');
+  }
+  if(taken.length){
+    html += `<p class="section-title" style="margin-top:18px;">${t().takenTitle}</p>` + taken.map(j=>jobCardHTML(j,false)).join('');
+  }
+  list.innerHTML = html;
+}
+
+function renderMine(){
+  if(!currentUser) return;
+  renderAccountEdit();
+  renderProfileEdit();
+  const list = document.getElementById('mineList');
+  if(role==='driver'){
+    const mineJobs = jobs.filter(j=>j.acceptedByPhone===currentUser.phone && j.status!=='done');
+    if(mineJobs.length===0){
+      list.innerHTML = `<div class="empty">${t().emptyMineDriver}</div>`;
+      return;
+    }
+    list.innerHTML = mineJobs.map(j=>jobCardHTML(j,false)).join('');
+    return;
+  }
+  const mine = jobs.filter(j=>j.ownerPhone===currentUser.phone && j.status!=='done');
+  if(mine.length===0){
+    list.innerHTML = `<div class="empty">${t().emptyMineCustomer}</div>`;
+    return;
+  }
+  list.innerHTML = mine.map(j=>jobCardHTML(j,false)).join('');
+}
+
+function renderHistory(){
+  if(!currentUser) return;
+  const list = document.getElementById('historyList');
+  document.getElementById('historyTitle').textContent = t().historyTitle;
+  if(role==='driver'){
+    const done = jobs.filter(j=>j.acceptedByPhone===currentUser.phone && j.status==='done');
+    if(done.length===0){
+      list.innerHTML = `<div class="empty">${t().emptyHistoryDriver}</div>`;
+      return;
+    }
+    list.innerHTML = done.slice().sort((a,b)=>(b.completedAt||0)-(a.completedAt||0)).map(j=>jobCardHTML(j,false)).join('');
+    return;
+  }
+  const done = jobs.filter(j=>j.ownerPhone===currentUser.phone && j.status==='done');
+  if(done.length===0){
+    list.innerHTML = `<div class="empty">${t().emptyHistoryCustomer}</div>`;
+    return;
+  }
+  list.innerHTML = done.slice().sort((a,b)=>(b.completedAt||0)-(a.completedAt||0)).map(j=>jobCardHTML(j,false)).join('');
+}
+
+applyStaticText();
+boot();
+</script>
+</body>
+</html>
