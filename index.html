@@ -114,6 +114,7 @@ body[dir="rtl"] .card.route::before{left:auto;right:0;}
 .status.accepted{color:var(--teal-2);}
 .status.done{color:var(--muted);border-style:dashed;}
 .status.pending{color:#8a6a1f;border-style:dashed;}
+.status.problem{color:var(--danger);}
 
 .empty{
   border:1px dashed var(--line);
@@ -593,13 +594,24 @@ const I18N = {
     emptyMineDriver:"Du har inte tagit några uppdrag än.",
     takeJobBtn:"Ansök till detta pris",
     proposePriceBtn:"Föreslå annat pris",
-    status:{open:"Väntar på utförare",accepted:"Utförare på väg",arrived:"Utförare har anlänt",done:"Slutfört"},
+    status:{open:"Väntar på utförare",accepted:"Utförare på väg",arrived:"Utförare har anlänt",done:"Slutfört",problem:"Problem rapporterat"},
     toastMissingCatSize:"Välj kategori och omfattning först",
     toastMissingFields:"Fyll i beskrivning och adress",
     toastSubmitted:"Förfrågan skickad – utförare i närheten meddelas",
     toastAccepted:"Du har tagit jobbet – bokat",
     toastInvalidOffer:"Ange ett giltigt pris",
-    evt:{applicant:"Ny ansökan", arrived:"Utföraren har anlänt", done:"Klart – bekräfta betalning", assigned:"Du har fått jobbet", paid:"Betalning frisläppt"},
+    reportProblemBtn:"Rapportera problem",
+    reportProblemPrompt:"Beskriv problemet med tjänsten",
+    reportProblemPlaceholder:"Vad blev fel?",
+    sendReportBtn:"Skicka rapport",
+    toastProblemReported:"Problemet är rapporterat – betalningen är pausad",
+    toastReportEmpty:"Beskriv problemet först",
+    problemReportedNoteCustomer:"Du har rapporterat ett problem. Betalningen är pausad tills ärendet är löst.",
+    problemReportedNoteProvider:"Kunden har rapporterat ett problem: ”{text}”. Betalningen är pausad.",
+    autoReleaseNote:"Betalningen släpps automatiskt om {time} om inget problem rapporteras.",
+    autoReleasedNote:"Betalning släpptes automatiskt – inget problem rapporterades inom 5 dagar",
+    remainingFmt:"{d} d {h} tim",
+    evt:{applicant:"Ny ansökan", arrived:"Utföraren har anlänt", done:"Klart – bekräfta betalning", assigned:"Du har fått jobbet", paid:"Betalning frisläppt", problem:"Problem rapporterat"},
     applicantsTitle:"Ansökningar",
     assignBtn:"Tilldela",
     yourApplicationNote:"Din ansökan: {price} – väntar på att kunden väljer",
@@ -728,13 +740,24 @@ const I18N = {
     emptyMineDriver:"You haven't taken any jobs yet.",
     takeJobBtn:"Apply at this price",
     proposePriceBtn:"Propose a different price",
-    status:{open:"Waiting for provider",accepted:"Provider on the way",arrived:"Provider has arrived",done:"Completed"},
+    status:{open:"Waiting for provider",accepted:"Provider on the way",arrived:"Provider has arrived",done:"Completed",problem:"Problem reported"},
     toastMissingCatSize:"Choose a category and scope first",
     toastMissingFields:"Fill in description and address",
     toastSubmitted:"Request sent — nearby providers notified",
     toastAccepted:"You took the job — booked",
     toastInvalidOffer:"Enter a valid price",
-    evt:{applicant:"New applicant", arrived:"The provider has arrived", done:"Done – confirm payment", assigned:"You got the job", paid:"Payment released"},
+    reportProblemBtn:"Report a problem",
+    reportProblemPrompt:"Describe the problem with the service",
+    reportProblemPlaceholder:"What went wrong?",
+    sendReportBtn:"Send report",
+    toastProblemReported:"Problem reported — payment is on hold",
+    toastReportEmpty:"Describe the problem first",
+    problemReportedNoteCustomer:"You reported a problem. Payment is on hold until it is resolved.",
+    problemReportedNoteProvider:"The customer reported a problem: “{text}”. Payment is on hold.",
+    autoReleaseNote:"Payment is released automatically in {time} unless a problem is reported.",
+    autoReleasedNote:"Payment was released automatically — no problem was reported within 5 days",
+    remainingFmt:"{d}d {h}h",
+    evt:{applicant:"New applicant", arrived:"The provider has arrived", done:"Done – confirm payment", assigned:"You got the job", paid:"Payment released", problem:"Problem reported"},
     applicantsTitle:"Applicants",
     assignBtn:"Assign",
     yourApplicationNote:"Your application: {price} — waiting for the customer to choose",
@@ -863,13 +886,24 @@ const I18N = {
     emptyMineDriver:"لم تأخذ أي مهمة بعد.",
     takeJobBtn:"التقديم بهذا السعر",
     proposePriceBtn:"اقترح سعرًا مختلفًا",
-    status:{open:"بانتظار مقدم الخدمة",accepted:"مقدم الخدمة في الطريق",arrived:"وصل مقدم الخدمة",done:"تم الإنجاز"},
+    status:{open:"بانتظار مقدم الخدمة",accepted:"مقدم الخدمة في الطريق",arrived:"وصل مقدم الخدمة",done:"تم الإنجاز",problem:"تم الإبلاغ عن مشكلة"},
     toastMissingCatSize:"اختر الفئة وحجم العمل أولًا",
     toastMissingFields:"أدخل الوصف والعنوان",
     toastSubmitted:"تم إرسال الطلب — تم إخطار مقدمي الخدمة القريبين",
     toastAccepted:"لقد أخذت المهمة — تم الحجز",
     toastInvalidOffer:"أدخل سعرًا صالحًا",
-    evt:{applicant:"متقدم جديد", arrived:"وصل مقدم الخدمة", done:"تم الإنجاز – أكّد الدفع", assigned:"تم تكليفك بالمهمة", paid:"تم تحرير الدفع"},
+    reportProblemBtn:"الإبلاغ عن مشكلة",
+    reportProblemPrompt:"صف المشكلة في الخدمة",
+    reportProblemPlaceholder:"ما الذي حدث؟",
+    sendReportBtn:"إرسال البلاغ",
+    toastProblemReported:"تم الإبلاغ عن المشكلة — الدفع معلّق",
+    toastReportEmpty:"صف المشكلة أولاً",
+    problemReportedNoteCustomer:"لقد أبلغت عن مشكلة. الدفع معلّق إلى حين حلها.",
+    problemReportedNoteProvider:"أبلغ العميل عن مشكلة: «{text}». الدفع معلّق.",
+    autoReleaseNote:"سيتم تحرير الدفع تلقائيًا خلال {time} ما لم يتم الإبلاغ عن مشكلة.",
+    autoReleasedNote:"تم تحرير الدفع تلقائيًا — لم يتم الإبلاغ عن أي مشكلة خلال 5 أيام",
+    remainingFmt:"{d} ي {h} س",
+    evt:{applicant:"متقدم جديد", arrived:"وصل مقدم الخدمة", done:"تم الإنجاز – أكّد الدفع", assigned:"تم تكليفك بالمهمة", paid:"تم تحرير الدفع", problem:"تم الإبلاغ عن مشكلة"},
     applicantsTitle:"المتقدمون",
     assignBtn:"تكليف",
     yourApplicationNote:"طلبك: {price} — بانتظار اختيار العميل",
@@ -897,6 +931,7 @@ let authSelectedProfiles = new Set();
 let editProfiles = null;
 
 function t(){ return I18N[lang]; }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 function priceFor(service, size, cat){
   const base = (PRICE_BASE[service] || {})[size] || 200;
@@ -931,7 +966,8 @@ const SUPABASE_ANON_KEY = 'sb_publishable_NITFKxKLeHmD98dHgTfBpg_ZNgaWqGm';
 const JOBS_CAMEL_TO_SNAKE = {
   desc:'desc_text', toAddr:'to_addr', ownerPhone:'owner_phone', acceptedByPhone:'accepted_by_phone',
   arrivedAt:'arrived_at', markedDoneByProvider:'marked_done_by_provider', markedDoneAt:'marked_done_at',
-  paymentReleased:'payment_released', completedAt:'completed_at', createdAt:'created_at'
+  paymentReleased:'payment_released', completedAt:'completed_at', createdAt:'created_at',
+  problemReported:'problem_reported', problemText:'problem_text', problemReportedAt:'problem_reported_at', autoReleased:'auto_released'
 };
 const JOBS_SNAKE_TO_CAMEL = Object.fromEntries(Object.entries(JOBS_CAMEL_TO_SNAKE).map(([c,s])=>[s,c]));
 
@@ -1115,9 +1151,13 @@ function jobEvent(j){
       if(n>0) return {type:'applicant', sig:j.id+':app'+n};
     }
     if(j.status==='accepted'){
+      if(j.problemReported) return null;
       if(j.markedDoneByProvider) return {type:'done', sig:j.id+':done'};
       if(j.arrived) return {type:'arrived', sig:j.id+':arrived'};
     }
+  }
+  if(role==='driver' && isAssignee && j.status==='accepted' && j.problemReported){
+    return {type:'problem', sig:j.id+':problem'};
   }
   if(role==='driver' && isAssignee && j.status==='accepted' && !j.arrived && !j.markedDoneByProvider){
     return {type:'assigned', sig:j.id+':assigned'};
@@ -1165,6 +1205,7 @@ function subscribeJobs(){
     notifyNewEvents();
     firstSnapshotDone = true;
     refreshCurrentScreen();
+    autoReleaseExpired();
   }, err=>{ console.error('jobs snapshot error', err); });
 }
 
@@ -1661,6 +1702,42 @@ async function completeJob(id){
   }catch(e){ toast(t().toastSaveFailed); }
 }
 
+const REPORT_WINDOW_MS = 5*86400000; // customer may report a problem for 5 days after the provider marks the job done
+let reportingId = null, reportDraft = '';
+function startReport(id){ reportingId = id; reportDraft = ''; refreshCurrentScreen(); }
+function cancelReport(){ reportingId = null; reportDraft = ''; refreshCurrentScreen(); }
+async function submitReport(id){
+  const text = reportDraft.trim();
+  if(!text){ toast(t().toastReportEmpty); return; }
+  if(!dbRef) return;
+  try{
+    await dbRef.doc('jobs/'+id).update({problemReported:true, problemText:text, problemReportedAt:Date.now()});
+    reportingId = null; reportDraft = '';
+    toast(t().toastProblemReported);
+  }catch(e){ toast(t().toastSaveFailed); }
+}
+function fmtRemaining(ms){
+  if(ms<0) ms = 0;
+  const d = Math.floor(ms/86400000), h = Math.floor((ms%86400000)/3600000);
+  return t().remainingFmt.replace('{d}', d).replace('{h}', h);
+}
+// Client-side fallback; the database (pg_cron) does the same on the server.
+const autoReleasing = new Set();
+async function autoReleaseExpired(){
+  if(!dbRef || !currentUser) return;
+  const now = Date.now();
+  for(const j of jobs){
+    if(j.status!=='accepted' || !j.markedDoneByProvider || j.problemReported || !j.markedDoneAt) continue;
+    if(now - j.markedDoneAt < REPORT_WINDOW_MS) continue;
+    if(j.ownerPhone!==currentUser.phone && j.acceptedByPhone!==currentUser.phone) continue;
+    if(autoReleasing.has(j.id)) continue;
+    autoReleasing.add(j.id);
+    try{ await dbRef.doc('jobs/'+j.id).update({status:'done', paymentReleased:true, autoReleased:true, completedAt:now}); }
+    catch(e){ autoReleasing.delete(j.id); }
+  }
+}
+setInterval(autoReleaseExpired, 5*60*1000);
+
 let pendingDeleteId = null;
 
 function askDelete(id){
@@ -1749,11 +1826,12 @@ async function submitRequest(){
 function catLabel(service, key){ return (t().services[service] || {}).categories?.[key] || key; }
 function serviceLabel(service){ return (t().services[service] || {}).label || service; }
 function effectiveStatusKey(j){
+  if(j.status==='accepted' && j.problemReported) return 'problem';
   if(j.status==='accepted' && (j.arrived || j.markedDoneByProvider)) return 'arrived';
   return j.status;
 }
 function statusLabel(j){ return t().status[effectiveStatusKey(j)]; }
-function statusClass(j){ return {open:"waiting", accepted:"accepted", arrived:"accepted", done:"done"}[effectiveStatusKey(j)]; }
+function statusClass(j){ return {open:"waiting", accepted:"accepted", arrived:"accepted", problem:"problem", done:"done"}[effectiveStatusKey(j)]; }
 
 function submitOffer(id){
   const j = jobs.find(x=>x.id===id);
@@ -1836,7 +1914,7 @@ function jobCardHTML(j, courierView){
         ? applicants.slice().sort((a,b)=>a.price-b.price).map(a=>`
           <div class="card" style="margin-bottom:8px;padding:10px 12px;">
             <div class="top-row">
-              <div><h3 style="font-size:14px;">${a.name || a.phone}</h3></div>
+              <div><h3 style="font-size:14px;">${esc(a.name || a.phone)}</h3></div>
               <div class="price" style="font-size:14px;">${a.price} ${d.priceUnit}</div>
             </div>
             <div class="action-row">
@@ -1857,25 +1935,52 @@ function jobCardHTML(j, courierView){
       let note = '';
       let btnLabel = d.completeBtn;
       const canComplete = !!(j.arrived || j.markedDoneByProvider);
-      if(j.markedDoneByProvider){
-        note = `<div style="margin-top:8px;font-size:13px;">${d.providerMarkedDoneNote}</div>`;
+      const noteStyle = 'margin-top:8px;font-size:13px;';
+      const subStyle = 'margin-top:6px;font-size:12.5px;color:var(--muted);';
+      if(j.problemReported){
+        note = `<div style="${noteStyle}">${d.problemReportedNoteCustomer}</div>
+          <div style="${subStyle}">“${esc(j.problemText||'')}”</div>`;
+        btnLabel = d.confirmReleaseBtn;
+      } else if(j.markedDoneByProvider){
+        const left = fmtRemaining((j.markedDoneAt||Date.now()) + REPORT_WINDOW_MS - Date.now());
+        note = `<div style="${noteStyle}">${d.providerMarkedDoneNote}</div>
+          <div style="${subStyle}">${d.autoReleaseNote.replace('{time}', left)}</div>`;
         btnLabel = d.confirmReleaseBtn;
       } else if(j.arrived){
-        note = `<div style="margin-top:8px;font-size:13px;">${d.arrivedNoteCustomer}</div>`;
+        note = `<div style="${noteStyle}">${d.arrivedNoteCustomer}</div>`;
       } else {
-        note = `<div style="margin-top:8px;font-size:13px;color:var(--muted);">${d.waitingProviderArriveNote}</div>`;
+        note = `<div style="${noteStyle}color:var(--muted);">${d.waitingProviderArriveNote}</div>`;
+      }
+      let actions = '';
+      if(reportingId===j.id && !j.problemReported){
+        actions = `<div style="margin-top:10px;">
+          <label style="margin-top:0;">${d.reportProblemPrompt}</label>
+          <textarea id="reportInput-${j.id}" oninput="reportDraft=this.value" placeholder="${esc(d.reportProblemPlaceholder)}">${esc(reportDraft)}</textarea>
+        </div>
+        <div class="action-row">
+          <button class="secondary" onclick="submitReport('${j.id}')">${d.sendReportBtn}</button>
+          <button class="secondary" onclick="cancelReport()">${d.cancelBtn}</button>
+        </div>`;
+      } else if(canComplete){
+        actions = `<div class="action-row">
+          <button class="secondary" onclick="completeJob('${j.id}')">${btnLabel}</button>
+          ${j.problemReported ? '' : `<button class="secondary" onclick="startReport('${j.id}')">${d.reportProblemBtn}</button>`}
+        </div>`;
       }
       body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
       ${note}
-      ${canComplete ? `<div class="action-row">
-        <button class="secondary" onclick="completeJob('${j.id}')">${btnLabel}</button>
-      </div>` : ''}`;
+      ${actions}`;
     } else if(j.status==='accepted' && role==='driver' && isMyAcceptedJob){
+      const problemNote = j.problemReported
+        ? `<div style="margin-top:6px;font-size:12.5px;color:var(--danger);">${d.problemReportedNoteProvider.replace('{text}', ()=>esc(j.problemText||''))}</div>`
+        : '';
       if(j.markedDoneByProvider){
         body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
+        ${problemNote}
         <div style="margin-top:6px;font-size:12px;color:var(--muted);">${d.waitingCustomerConfirmNote}</div>`;
       } else if(j.arrived){
         body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
+        ${problemNote}
         <div style="margin-top:6px;font-size:12px;color:var(--muted);">${d.arrivedNoteProvider}</div>
         <div class="action-row">
           <button class="secondary" onclick="providerMarkDone('${j.id}')">${d.providerCompleteBtn}</button>
@@ -1888,7 +1993,7 @@ function jobCardHTML(j, courierView){
       }
     } else if(j.status==='done'){
       body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
-      <div style="margin-top:6px;font-size:12px;color:var(--muted);">${d.paymentReleasedNote}</div>`;
+      <div style="margin-top:6px;font-size:12px;color:var(--muted);">${j.autoReleased ? d.autoReleasedNote : d.paymentReleasedNote}</div>`;
     } else if(j.status==='open' && isMine && role==='customer' && pendingDeleteId===j.id){
       body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
       <div style="margin-top:8px;font-size:13px;">${d.confirmDeleteInline}</div>
@@ -1913,12 +2018,12 @@ function jobCardHTML(j, courierView){
       <div>
         <div class="service-badge">${serviceLabel(j.service)}</div>
         <h3>${catLabel(j.service, j.cat)}</h3>
-        <p class="meta">${j.desc}</p>
+        <p class="meta">${esc(j.desc)}</p>
       </div>
       <div class="price">${j.price} ${d.priceUnit}</div>
     </div>
     ${j.photo ? `<img src="${j.photo}" alt="" style="width:100%;max-height:160px;object-fit:cover;margin-top:10px;border:1px solid var(--line);">` : ''}
-    <p class="meta" style="margin-top:8px;">${route}</p>
+    <p class="meta" style="margin-top:8px;">${esc(route)}</p>
     ${body}
   </div>`;
 }

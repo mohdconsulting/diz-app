@@ -40,6 +40,10 @@ create table public.jobs (
   marked_done_at bigint,
   payment_released boolean not null default false,
   completed_at bigint,
+  problem_reported boolean not null default false,
+  problem_text text,
+  problem_reported_at bigint,
+  auto_released boolean not null default false,
   created_at bigint not null
 );
 
@@ -62,3 +66,25 @@ create policy "anon full access users" on public.users
 
 create policy "anon full access jobs" on public.jobs
   for all using (true) with check (true);
+
+-- ============ AUTO-RELEASE AFTER 5 DAYS ============
+-- Om leverantören markerat jobbet klart och kunden inte rapporterat något problem
+-- inom 5 dagar slutförs ordern och betalningen släpps automatiskt.
+-- (Appen gör samma sak som reserv när någon part har den öppen.)
+create extension if not exists pg_cron;
+select cron.schedule(
+  'diz-auto-release',
+  '*/15 * * * *',
+  $$
+  update public.jobs
+     set status = 'done',
+         payment_released = true,
+         auto_released = true,
+         completed_at = (extract(epoch from now()) * 1000)::bigint
+   where status = 'accepted'
+     and marked_done_by_provider
+     and not problem_reported
+     and marked_done_at is not null
+     and marked_done_at < (extract(epoch from now()) * 1000)::bigint - 5 * 86400000
+  $$
+);
