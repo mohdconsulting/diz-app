@@ -43,6 +43,8 @@ create table public.jobs (
   problem_reported boolean not null default false,
   problem_text text,
   problem_reported_at bigint,
+  provider_response text,
+  provider_response_at bigint,
   auto_released boolean not null default false,
   created_at bigint not null
 );

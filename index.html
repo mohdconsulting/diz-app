@@ -607,11 +607,18 @@ const I18N = {
     toastProblemReported:"Problemet är rapporterat – betalningen är pausad",
     toastReportEmpty:"Beskriv problemet först",
     problemReportedNoteCustomer:"Du har rapporterat ett problem. Betalningen är pausad tills ärendet är löst.",
-    problemReportedNoteProvider:"Kunden har rapporterat ett problem: ”{text}”. Betalningen är pausad.",
+    problemReportedNoteProvider:"Kunden har rapporterat ett problem: ”{text}”. Betalningen är pausad. Du kan yttra dig nedan.",
     autoReleaseNote:"Betalningen släpps automatiskt om {time} om inget problem rapporteras.",
     autoReleasedNote:"Betalning släpptes automatiskt – inget problem rapporterades inom 5 dagar",
     remainingFmt:"{d} d {h} tim",
-    evt:{applicant:"Ny ansökan", arrived:"Utföraren har anlänt", done:"Klart – bekräfta betalning", assigned:"Du har fått jobbet", paid:"Betalning frisläppt", problem:"Problem rapporterat"},
+    respondPrompt:"Yttra dig om problemet",
+    respondPlaceholder:"Berätta din version …",
+    sendResponseBtn:"Skicka svar",
+    toastResponseSent:"Ditt svar har skickats till kunden",
+    toastResponseEmpty:"Skriv ett svar först",
+    yourResponseLabel:"Ditt svar",
+    providerResponseLabel:"Leverantörens svar",
+    evt:{applicant:"Ny ansökan", arrived:"Utföraren har anlänt", done:"Klart – bekräfta betalning", assigned:"Du har fått jobbet", paid:"Betalning frisläppt", problem:"Problem rapporterat – svara", response:"Leverantören har svarat"},
     applicantsTitle:"Ansökningar",
     assignBtn:"Tilldela",
     yourApplicationNote:"Din ansökan: {price} – väntar på att kunden väljer",
@@ -753,11 +760,18 @@ const I18N = {
     toastProblemReported:"Problem reported — payment is on hold",
     toastReportEmpty:"Describe the problem first",
     problemReportedNoteCustomer:"You reported a problem. Payment is on hold until it is resolved.",
-    problemReportedNoteProvider:"The customer reported a problem: “{text}”. Payment is on hold.",
+    problemReportedNoteProvider:"The customer reported a problem: “{text}”. Payment is on hold. You can respond below.",
     autoReleaseNote:"Payment is released automatically in {time} unless a problem is reported.",
     autoReleasedNote:"Payment was released automatically — no problem was reported within 5 days",
     remainingFmt:"{d}d {h}h",
-    evt:{applicant:"New applicant", arrived:"The provider has arrived", done:"Done – confirm payment", assigned:"You got the job", paid:"Payment released", problem:"Problem reported"},
+    respondPrompt:"Respond to the problem",
+    respondPlaceholder:"Tell your side …",
+    sendResponseBtn:"Send response",
+    toastResponseSent:"Your response was sent to the customer",
+    toastResponseEmpty:"Write a response first",
+    yourResponseLabel:"Your response",
+    providerResponseLabel:"Provider's response",
+    evt:{applicant:"New applicant", arrived:"The provider has arrived", done:"Done – confirm payment", assigned:"You got the job", paid:"Payment released", problem:"Problem reported – respond", response:"The provider has responded"},
     applicantsTitle:"Applicants",
     assignBtn:"Assign",
     yourApplicationNote:"Your application: {price} — waiting for the customer to choose",
@@ -899,11 +913,18 @@ const I18N = {
     toastProblemReported:"تم الإبلاغ عن المشكلة — الدفع معلّق",
     toastReportEmpty:"صف المشكلة أولاً",
     problemReportedNoteCustomer:"لقد أبلغت عن مشكلة. الدفع معلّق إلى حين حلها.",
-    problemReportedNoteProvider:"أبلغ العميل عن مشكلة: «{text}». الدفع معلّق.",
+    problemReportedNoteProvider:"أبلغ العميل عن مشكلة: «{text}». الدفع معلّق. يمكنك الرد أدناه.",
     autoReleaseNote:"سيتم تحرير الدفع تلقائيًا خلال {time} ما لم يتم الإبلاغ عن مشكلة.",
     autoReleasedNote:"تم تحرير الدفع تلقائيًا — لم يتم الإبلاغ عن أي مشكلة خلال 5 أيام",
     remainingFmt:"{d} ي {h} س",
-    evt:{applicant:"متقدم جديد", arrived:"وصل مقدم الخدمة", done:"تم الإنجاز – أكّد الدفع", assigned:"تم تكليفك بالمهمة", paid:"تم تحرير الدفع", problem:"تم الإبلاغ عن مشكلة"},
+    respondPrompt:"ردّ على المشكلة",
+    respondPlaceholder:"اشرح وجهة نظرك …",
+    sendResponseBtn:"إرسال الرد",
+    toastResponseSent:"تم إرسال ردك إلى العميل",
+    toastResponseEmpty:"اكتب ردًا أولاً",
+    yourResponseLabel:"ردك",
+    providerResponseLabel:"ردّ مقدم الخدمة",
+    evt:{applicant:"متقدم جديد", arrived:"وصل مقدم الخدمة", done:"تم الإنجاز – أكّد الدفع", assigned:"تم تكليفك بالمهمة", paid:"تم تحرير الدفع", problem:"تم الإبلاغ عن مشكلة – ردّ", response:"ردّ مقدم الخدمة"},
     applicantsTitle:"المتقدمون",
     assignBtn:"تكليف",
     yourApplicationNote:"طلبك: {price} — بانتظار اختيار العميل",
@@ -967,7 +988,8 @@ const JOBS_CAMEL_TO_SNAKE = {
   desc:'desc_text', toAddr:'to_addr', ownerPhone:'owner_phone', acceptedByPhone:'accepted_by_phone',
   arrivedAt:'arrived_at', markedDoneByProvider:'marked_done_by_provider', markedDoneAt:'marked_done_at',
   paymentReleased:'payment_released', completedAt:'completed_at', createdAt:'created_at',
-  problemReported:'problem_reported', problemText:'problem_text', problemReportedAt:'problem_reported_at', autoReleased:'auto_released'
+  problemReported:'problem_reported', problemText:'problem_text', problemReportedAt:'problem_reported_at', autoReleased:'auto_released',
+  providerResponse:'provider_response', providerResponseAt:'provider_response_at'
 };
 const JOBS_SNAKE_TO_CAMEL = Object.fromEntries(Object.entries(JOBS_CAMEL_TO_SNAKE).map(([c,s])=>[s,c]));
 
@@ -1151,7 +1173,7 @@ function jobEvent(j){
       if(n>0) return {type:'applicant', sig:j.id+':app'+n};
     }
     if(j.status==='accepted'){
-      if(j.problemReported) return null;
+      if(j.problemReported) return j.providerResponse ? {type:'response', sig:j.id+':resp'} : null;
       if(j.markedDoneByProvider) return {type:'done', sig:j.id+':done'};
       if(j.arrived) return {type:'arrived', sig:j.id+':arrived'};
     }
@@ -1716,6 +1738,17 @@ async function submitReport(id){
     toast(t().toastProblemReported);
   }catch(e){ toast(t().toastSaveFailed); }
 }
+let respondDrafts = {};
+async function submitResponse(id){
+  const text = (respondDrafts[id]||'').trim();
+  if(!text){ toast(t().toastResponseEmpty); return; }
+  if(!dbRef) return;
+  try{
+    await dbRef.doc('jobs/'+id).update({providerResponse:text, providerResponseAt:Date.now()});
+    delete respondDrafts[id];
+    toast(t().toastResponseSent);
+  }catch(e){ toast(t().toastSaveFailed); }
+}
 function fmtRemaining(ms){
   if(ms<0) ms = 0;
   const d = Math.floor(ms/86400000), h = Math.floor((ms%86400000)/3600000);
@@ -1939,7 +1972,8 @@ function jobCardHTML(j, courierView){
       const subStyle = 'margin-top:6px;font-size:12.5px;color:var(--muted);';
       if(j.problemReported){
         note = `<div style="${noteStyle}">${d.problemReportedNoteCustomer}</div>
-          <div style="${subStyle}">“${esc(j.problemText||'')}”</div>`;
+          <div style="${subStyle}">“${esc(j.problemText||'')}”</div>
+          ${j.providerResponse ? `<div style="margin-top:8px;font-size:13px;"><b>${d.providerResponseLabel}:</b> “${esc(j.providerResponse)}”</div>` : ''}`;
         btnLabel = d.confirmReleaseBtn;
       } else if(j.markedDoneByProvider){
         const left = fmtRemaining((j.markedDoneAt||Date.now()) + REPORT_WINDOW_MS - Date.now());
@@ -1971,9 +2005,21 @@ function jobCardHTML(j, courierView){
       ${note}
       ${actions}`;
     } else if(j.status==='accepted' && role==='driver' && isMyAcceptedJob){
-      const problemNote = j.problemReported
-        ? `<div style="margin-top:6px;font-size:12.5px;color:var(--danger);">${d.problemReportedNoteProvider.replace('{text}', ()=>esc(j.problemText||''))}</div>`
-        : '';
+      let problemNote = '';
+      if(j.problemReported){
+        problemNote = `<div style="margin-top:6px;font-size:12.5px;color:var(--danger);">${d.problemReportedNoteProvider.replace('{text}', ()=>esc(j.problemText||''))}</div>`;
+        if(j.providerResponse){
+          problemNote += `<div style="margin-top:8px;font-size:13px;"><b>${d.yourResponseLabel}:</b> “${esc(j.providerResponse)}”</div>`;
+        } else {
+          problemNote += `<div style="margin-top:10px;">
+            <label style="margin-top:0;">${d.respondPrompt}</label>
+            <textarea id="respondInput-${j.id}" oninput="respondDrafts['${j.id}']=this.value" placeholder="${esc(d.respondPlaceholder)}">${esc(respondDrafts[j.id]||'')}</textarea>
+          </div>
+          <div class="action-row">
+            <button class="secondary" onclick="submitResponse('${j.id}')">${d.sendResponseBtn}</button>
+          </div>`;
+        }
+      }
       if(j.markedDoneByProvider){
         body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
         ${problemNote}
