@@ -208,6 +208,20 @@ nav.tabbar button{
 }
 nav.tabbar button.active{color:var(--teal);}
 nav.tabbar svg{width:20px;height:20px;}
+nav.tabbar button{position:relative;}
+.tab-badge{
+  position:absolute;top:4px;left:50%;margin-left:6px;
+  min-width:16px;height:16px;padding:0 4px;border-radius:8px;
+  background:var(--danger);color:#fff;font-size:10px;font-weight:700;line-height:16px;text-align:center;
+  display:none;
+}
+.tab-badge.show{display:block;}
+.flag{
+  display:inline-flex;align-items:center;gap:5px;
+  background:var(--danger);color:#fff;font-size:11.5px;font-weight:600;
+  padding:3px 8px;margin-bottom:8px;
+}
+.flag svg{width:12px;height:12px;flex-shrink:0;}
 
 .section-title{
   font-size:12.5px;color:var(--muted);
@@ -420,6 +434,7 @@ nav.tabbar svg{width:20px;height:20px;}
     <button data-tab="mine" onclick="goTo('mine')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c1.5-4 5-5.5 7-5.5S17.5 16 19 20"/></svg>
       <span data-tabkey="mine"></span>
+      <span class="tab-badge" id="mineBadge"></span>
     </button>
     <button data-tab="history" onclick="goTo('history')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l4 2"/></svg>
@@ -583,6 +598,7 @@ const I18N = {
     toastSubmitted:"Förfrågan skickad – utförare i närheten meddelas",
     toastAccepted:"Du har tagit jobbet – bokat",
     toastInvalidOffer:"Ange ett giltigt pris",
+    evt:{applicant:"Ny ansökan", arrived:"Utföraren har anlänt", done:"Klart – bekräfta betalning", assigned:"Du har fått jobbet"},
     applicantsTitle:"Ansökningar",
     assignBtn:"Tilldela",
     yourApplicationNote:"Din ansökan: {price} – väntar på att kunden väljer",
@@ -717,6 +733,7 @@ const I18N = {
     toastSubmitted:"Request sent — nearby providers notified",
     toastAccepted:"You took the job — booked",
     toastInvalidOffer:"Enter a valid price",
+    evt:{applicant:"New applicant", arrived:"The provider has arrived", done:"Done – confirm payment", assigned:"You got the job"},
     applicantsTitle:"Applicants",
     assignBtn:"Assign",
     yourApplicationNote:"Your application: {price} — waiting for the customer to choose",
@@ -851,6 +868,7 @@ const I18N = {
     toastSubmitted:"تم إرسال الطلب — تم إخطار مقدمي الخدمة القريبين",
     toastAccepted:"لقد أخذت المهمة — تم الحجز",
     toastInvalidOffer:"أدخل سعرًا صالحًا",
+    evt:{applicant:"متقدم جديد", arrived:"وصل مقدم الخدمة", done:"تم الإنجاز – أكّد الدفع", assigned:"تم تكليفك بالمهمة"},
     applicantsTitle:"المتقدمون",
     assignBtn:"تكليف",
     yourApplicationNote:"طلبك: {price} — بانتظار اختيار العميل",
@@ -1070,9 +1088,73 @@ async function ensureSeed(){
     }
   }catch(e){ /* non-fatal */ }
 }
+/* ---------- NOTIFICATIONS (red flags) ---------- */
+let seenSet = new Set();      // event signatures the user has already seen
+let shownSigs = new Set();    // flagged events rendered on the current screen
+let notifiedSigs = new Set(); // events already toasted in this session
+let firstSnapshotDone = false;
+
+function seenKey(){ return 'diz_seen_' + (currentUser ? sanitizePhone(currentUser.phone) : ''); }
+function loadSeen(){
+  try{ seenSet = new Set(JSON.parse(localStorage.getItem(seenKey()) || '[]')); }
+  catch(e){ seenSet = new Set(); }
+}
+function saveSeen(){
+  try{ localStorage.setItem(seenKey(), JSON.stringify(Array.from(seenSet).slice(-500))); }catch(e){}
+}
+
+// Returns the event this job currently holds for the logged-in user, or null.
+function jobEvent(j){
+  if(!currentUser) return null;
+  const isOwner = j.ownerPhone === currentUser.phone;
+  const isAssignee = j.acceptedByPhone === currentUser.phone;
+  if(role==='customer' && isOwner){
+    if(j.status==='open'){
+      const n = Array.isArray(j.applicants) ? j.applicants.length : 0;
+      if(n>0) return {type:'applicant', sig:j.id+':app'+n};
+    }
+    if(j.status==='accepted'){
+      if(j.markedDoneByProvider) return {type:'done', sig:j.id+':done'};
+      if(j.arrived) return {type:'arrived', sig:j.id+':arrived'};
+    }
+  }
+  if(role==='driver' && isAssignee && j.status==='accepted' && !j.arrived && !j.markedDoneByProvider){
+    return {type:'assigned', sig:j.id+':assigned'};
+  }
+  return null;
+}
+function unseenEvents(){
+  const out = [];
+  jobs.forEach(j=>{ const e = jobEvent(j); if(e && !seenSet.has(e.sig)) out.push(e); });
+  return out;
+}
+function markShownSeen(){
+  if(shownSigs.size===0) return;
+  shownSigs.forEach(s=>seenSet.add(s));
+  shownSigs = new Set();
+  saveSeen();
+}
+function updateBadges(){
+  const n = currentUser ? unseenEvents().length : 0;
+  const badge = document.getElementById('mineBadge');
+  if(badge){ badge.textContent = n>9 ? '9+' : String(n); badge.classList.toggle('show', n>0); }
+  document.title = (n>0 ? '('+n+') ' : '') + 'Diz';
+}
+function notifyNewEvents(){
+  if(!currentUser) return;
+  const fresh = unseenEvents().filter(e=>!notifiedSigs.has(e.sig));
+  fresh.forEach(e=>notifiedSigs.add(e.sig));
+  if(firstSnapshotDone && fresh.length){
+    toast('🚩 ' + t().evt[fresh[0].type]);
+    try{ if(navigator.vibrate) navigator.vibrate(200); }catch(e){}
+  }
+}
+
 function subscribeJobs(){
   dbRef.collection('jobs').onSnapshot(snap=>{
     jobs = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    notifyNewEvents();
+    firstSnapshotDone = true;
     refreshCurrentScreen();
   }, err=>{ console.error('jobs snapshot error', err); });
 }
@@ -1177,6 +1259,9 @@ function enterApp(){
   document.getElementById('authPassInput').value = '';
   document.getElementById('authNameInput').value = '';
   authSelectedRole = null;
+  loadSeen();
+  shownSigs = new Set();
+  notifiedSigs = new Set(unseenEvents().map(e=>e.sig));
   updateUserRow();
   applyRoleUI();
   goTo(role==='driver' ? 'jobs' : 'home');
@@ -1191,7 +1276,10 @@ function updateUserRow(){
 }
 
 function logout(){
+  markShownSeen();
   currentUser = null;
+  seenSet = new Set(); shownSigs = new Set(); notifiedSigs = new Set();
+  updateBadges();
   editProfiles = null;
   forgetPhone();
   authMode = 'login';
@@ -1457,6 +1545,7 @@ function resetNewRequestForm(){
 }
 
 function goTo(name){
+  markShownSeen(); // events flagged on the screen we're leaving count as seen
   document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active', s.dataset.screen===name));
   document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
   document.getElementById('screenTitle').textContent = screenTitleFor(name);
@@ -1465,15 +1554,18 @@ function goTo(name){
   if(name==='jobs') renderJobs();
   if(name==='mine') renderMine();
   if(name==='history') renderHistory();
+  updateBadges();
 }
 
 function refreshCurrentScreen(){
   const name = currentScreen();
+  shownSigs = new Set();
   document.getElementById('screenTitle').textContent = screenTitleFor(name);
   if(name==='home') renderHome();
   if(name==='jobs') renderJobs();
   if(name==='mine') renderMine();
   if(name==='history') renderHistory();
+  updateBadges();
 }
 
 document.getElementById('serviceChips').addEventListener('click', e=>{
@@ -1800,7 +1892,14 @@ function jobCardHTML(j, courierView){
     }
   }
   const route = j.toAddr ? `${j.addr} → ${j.toAddr}` : j.addr;
+  const ev = jobEvent(j);
+  let flagHtml = '';
+  if(ev && !seenSet.has(ev.sig)){
+    shownSigs.add(ev.sig);
+    flagHtml = `<div class="flag"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 3v18h2v-7h11l-2-4 2-4H7V3z"/></svg>${d.evt[ev.type]}</div>`;
+  }
   return `<div class="card route">
+    ${flagHtml}
     <div class="top-row">
       <div>
         <div class="service-badge">${serviceLabel(j.service)}</div>
