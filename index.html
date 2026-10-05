@@ -998,7 +998,7 @@ function toast(msg){
   const el = document.getElementById('toast');
   el.textContent = msg;
   el.classList.add('show');
-  setTimeout(()=>el.classList.remove('show'), 1800);
+  setTimeout(()=>el.classList.remove('show'), msg.length>60 ? 6000 : 1800);
 }
 
 function sanitizePhone(phone){
@@ -1363,12 +1363,13 @@ async function submitAuth(){
         options: { data: { name, phone, role: authSelectedRole, profiles } }
       });
       if(error){
-        toast(/registered|exists/i.test(error.message) ? d.toastAuthPhoneTaken : (/password/i.test(error.message) ? d.toastPasswordShort : d.toastSaveFailed));
+        console.error('signUp failed', error);
+        toast(/registered|exists/i.test(error.message) ? d.toastAuthPhoneTaken : (/password/i.test(error.message) ? d.toastPasswordShort : d.toastSaveFailed + ' [' + error.message + ']'));
         return;
       }
       if(!data.session){ toast(d.toastAuthNeedsConfirm); return; }
-      if(!(await loadProfile(data.user.id))){ toast(d.toastSaveFailed); return; }
-    }catch(e){ toast(d.toastSaveFailed); return; }
+      if(!(await loadProfile(data.user.id))){ toast(d.toastSaveFailed + ' [profile missing]'); return; }
+    }catch(e){ console.error(e); toast(d.toastSaveFailed + ' [' + (e && e.message || e) + ']'); return; }
     toast(d.toastRegisterSuccess);
     enterApp();
   } else {
