@@ -540,6 +540,7 @@ const I18N = {
     toastLoginSuccess:"Inloggad",
     toastDbUnavailable:"Kunde inte ansluta till databasen. Försök igen senare.",
     toastSaveFailed:"Det gick inte att spara. Försök igen.",
+    toastPasswordShort:"Lösenordet måste vara minst 6 tecken.", toastAuthNeedsConfirm:"Kontot skapades men Supabase kräver e-postbekräftelse. Stäng av 'Confirm email' i Supabase.",
     logoutBtn:"Logga ut",
     heroTitle:"Vad kan vi hjälpa dig med idag?",
     heroText:"Skräp, flytt, varor eller en hantverkare — beskriv vad du behöver, så kopplar vi ihop dig med rätt person nära dig.",
@@ -693,6 +694,7 @@ const I18N = {
     toastLoginSuccess:"Logged in",
     toastDbUnavailable:"Could not connect to the database. Please try again later.",
     toastSaveFailed:"Couldn't save. Please try again.",
+    toastPasswordShort:"The password must be at least 6 characters.", toastAuthNeedsConfirm:"Account created, but Supabase requires email confirmation. Turn off 'Confirm email' in Supabase.",
     logoutBtn:"Log out",
     heroTitle:"What can we help you with today?",
     heroText:"Junk, moving, goods, or a tradesperson — describe what you need, and we'll connect you with the right person nearby.",
@@ -846,6 +848,7 @@ const I18N = {
     toastLoginSuccess:"تم تسجيل الدخول",
     toastDbUnavailable:"تعذر الاتصال بقاعدة البيانات. حاول مرة أخرى لاحقًا.",
     toastSaveFailed:"تعذر الحفظ. حاول مرة أخرى.",
+    toastPasswordShort:"يجب أن تتكوّن كلمة المرور من 6 أحرف على الأقل.", toastAuthNeedsConfirm:"تم إنشاء الحساب لكن Supabase يطلب تأكيد البريد. عطّل 'Confirm email' في Supabase.",
     logoutBtn:"تسجيل الخروج",
     heroTitle:"بماذا يمكننا مساعدتك اليوم؟",
     heroText:"نفايات، نقل أثاث، طلب سلع، أو فني منزلي — صف ما تحتاجه وسنوصلك بالشخص المناسب القريب منك.",
@@ -1021,7 +1024,7 @@ const JOBS_CAMEL_TO_SNAKE = {
   paymentReleased:'payment_released', completedAt:'completed_at', createdAt:'created_at',
   problemReported:'problem_reported', problemText:'problem_text', problemReportedAt:'problem_reported_at', autoReleased:'auto_released',
   providerResponse:'provider_response', providerResponseAt:'provider_response_at',
-  adminNote:'admin_note', resolvedAt:'resolved_at'
+  resolvedAt:'resolved_at'
 };
 const JOBS_SNAKE_TO_CAMEL = Object.fromEntries(Object.entries(JOBS_CAMEL_TO_SNAKE).map(([c,s])=>[s,c]));
 
@@ -1060,6 +1063,8 @@ function makeSnapshot(id, obj){
 }
 
 function createSupabaseDbShim(sb){
+  const reloaders = new Set();
+  const reloadJobs = ()=>reloaders.forEach(f=>f());
   function jobDoc(id){
     return {
       id,
@@ -1071,14 +1076,18 @@ function createSupabaseDbShim(sb){
       async set(data){
         const { error } = await sb.from('jobs').upsert({ id, ...jobsToRow(data) });
         if(error) throw error;
+        reloadJobs();
       },
       async update(data){
-        const { error } = await sb.from('jobs').update(jobsToRow(data)).eq('id', id);
+        const { data: rows, error } = await sb.from('jobs').update(jobsToRow(data)).eq('id', id).select('id');
         if(error) throw error;
+        if(!rows || rows.length===0) throw new Error('no rows updated (not allowed or not visible)');
+        reloadJobs();
       },
       async delete(){
         const { error } = await sb.from('jobs').delete().eq('id', id);
         if(error) throw error;
+        reloadJobs();
       }
     };
   }
@@ -1092,6 +1101,7 @@ function createSupabaseDbShim(sb){
       async add(data){
         const { data: inserted, error } = await sb.from('jobs').insert(jobsToRow(data)).select().single();
         if(error) throw error;
+        reloadJobs();
         return jobDoc(inserted.id);
       },
       async get(){
@@ -1106,24 +1116,24 @@ function createSupabaseDbShim(sb){
         return { empty: data.length===0, docs: data.map(r=>makeSnapshot(r.id, rowToJobObj(r))) };
       },
       onSnapshot(next, errCb){
-        const cache = new Map();
-        function emit(){ next({ docs: Array.from(cache.values()).map(r=>makeSnapshot(r.id, rowToJobObj(r))) }); }
-        (async ()=>{
+        // With row-level security a client only receives events for rows it may see, and rows can
+        // disappear from view (e.g. a job assigned to someone else). So on any change we simply refetch.
+        let alive = true, timer = null;
+        async function load(){
           try{
             const { data, error } = await sb.from('jobs').select('*');
             if(error) throw error;
-            data.forEach(r=>cache.set(r.id, r));
-            emit();
+            if(alive) next({ docs: data.map(r=>makeSnapshot(r.id, rowToJobObj(r))) });
           }catch(e){ if(errCb) errCb(e); }
-        })();
+        }
+        const schedule = ()=>{ clearTimeout(timer); timer = setTimeout(load, 120); };
+        reloaders.add(schedule);
+        load();
         const channel = sb.channel('jobs-changes-'+Math.random().toString(36).slice(2))
-          .on('postgres_changes', {event:'*', schema:'public', table:'jobs'}, payload=>{
-            if(payload.eventType==='DELETE'){ cache.delete(payload.old.id); }
-            else { cache.set(payload.new.id, payload.new); }
-            emit();
-          })
+          .on('postgres_changes', {event:'*', schema:'public', table:'jobs'}, schedule)
           .subscribe();
-        return ()=>{ sb.removeChannel(channel); };
+        const poll = setInterval(load, 30000); // safety net if realtime drops or a row leaves our view
+        return ()=>{ alive = false; clearTimeout(timer); clearInterval(poll); reloaders.delete(schedule); sb.removeChannel(channel); };
       }
     };
   }
@@ -1173,20 +1183,6 @@ function createSupabaseDbShim(sb){
 }
 
 /* ---------- DB ---------- */
-async function ensureSeed(){
-  try{
-    const snap = await dbRef.collection('jobs').limit(1).get();
-    if(snap.empty){
-      for(const s of SEED_JOBS){
-        await dbRef.collection('jobs').add({
-          service:s.service, cat:s.cat, desc:s.desc, addr:s.addr, toAddr:s.toAddr||null,
-          size:s.size, price:priceFor(s.service, s.size, s.cat), status:'open',
-          ownerPhone:null, acceptedByPhone:null, createdAt:Date.now()
-        });
-      }
-    }
-  }catch(e){ /* non-fatal */ }
-}
 /* ---------- NOTIFICATIONS (red flags) ---------- */
 let seenSet = new Set();      // event signatures the user has already seen
 let shownSigs = new Set();    // flagged events rendered on the current screen
@@ -1265,8 +1261,9 @@ function notifyNewEvents(){
   }
 }
 
+let unsubJobs = null;
 function subscribeJobs(){
-  dbRef.collection('jobs').onSnapshot(snap=>{
+  return dbRef.collection('jobs').onSnapshot(snap=>{
     jobs = snap.docs.map(d=>({id:d.id, ...d.data()}));
     notifyNewEvents();
     firstSnapshotDone = true;
@@ -1333,36 +1330,53 @@ document.getElementById('authProfileChips').addEventListener('click', e=>{
   renderAuth();
 });
 
+let sbRef = null;
+const AUTH_EMAIL_DOMAIN = 'diz-app.me'; // phone numbers are mapped to <digits>@diz-app.me; no mail is ever sent
+function authEmail(phone){
+  const local = phone.replace(/[^a-zA-Z0-9]/g,'').toLowerCase();
+  return local ? local + '@' + AUTH_EMAIL_DOMAIN : '';
+}
+async function loadProfile(uid){
+  const snap = await dbRef.doc('users/'+uid).get();
+  if(!snap.exists) return false;
+  currentUser = {id:uid, ...snap.data()};
+  role = currentUser.role;
+  return true;
+}
+
 async function submitAuth(){
   const d = t();
-  if(!dbRef){ toast(d.toastDbUnavailable); return; }
+  if(!dbRef || !sbRef){ toast(d.toastDbUnavailable); return; }
   const phone = document.getElementById('authPhoneInput').value.trim();
   const pass = document.getElementById('authPassInput').value;
-  const key = sanitizePhone(phone);
+  const email = authEmail(phone);
   if(authMode === 'register'){
     const name = document.getElementById('authNameInput').value.trim();
-    if(!name || !phone || !pass || !key){ toast(d.toastAuthMissingFields); return; }
+    if(!name || !phone || !pass || !email){ toast(d.toastAuthMissingFields); return; }
     if(!authSelectedRole){ toast(d.toastAuthMissingRole); return; }
     if(authSelectedRole==='driver' && authSelectedProfiles.size===0){ toast(d.toastAuthMissingProfiles); return; }
+    if(pass.length < 6){ toast(d.toastPasswordShort); return; }
     const profiles = authSelectedRole==='driver' ? Array.from(authSelectedProfiles) : [];
     try{
-      const existing = await dbRef.doc('users/'+key).get();
-      if(existing.exists){ toast(d.toastAuthPhoneTaken); return; }
-      await dbRef.doc('users/'+key).set({name, phone, password:pass, role:authSelectedRole, profiles, createdAt:Date.now()});
+      const { data, error } = await sbRef.auth.signUp({
+        email, password: pass,
+        options: { data: { name, phone, role: authSelectedRole, profiles } }
+      });
+      if(error){
+        toast(/registered|exists/i.test(error.message) ? d.toastAuthPhoneTaken : (/password/i.test(error.message) ? d.toastPasswordShort : d.toastSaveFailed));
+        return;
+      }
+      if(!data.session){ toast(d.toastAuthNeedsConfirm); return; }
+      if(!(await loadProfile(data.user.id))){ toast(d.toastSaveFailed); return; }
     }catch(e){ toast(d.toastSaveFailed); return; }
-    currentUser = {phone, name, password:pass, role:authSelectedRole, profiles};
-    role = authSelectedRole;
-    rememberPhone(phone);
     toast(d.toastRegisterSuccess);
     enterApp();
   } else {
-    if(!phone || !pass || !key){ toast(d.toastAuthMissingFields); return; }
+    if(!phone || !pass || !email){ toast(d.toastAuthMissingFields); return; }
     try{
-      const snap = await dbRef.doc('users/'+key).get();
-      if(!snap.exists || snap.data().password !== pass){ toast(d.toastAuthLoginFailed); return; }
-      currentUser = {phone, ...snap.data()};
-      role = currentUser.role;
-      rememberPhone(phone);
+      const { data, error } = await sbRef.auth.signInWithPassword({ email, password: pass });
+      if(error){ toast(d.toastAuthLoginFailed); return; }
+      if(!(await loadProfile(data.user.id))){ await sbRef.auth.signOut(); toast(d.toastAuthLoginFailed); return; }
       toast(d.toastLoginSuccess);
       enterApp();
     }catch(e){ toast(d.toastSaveFailed); }
@@ -1380,7 +1394,8 @@ function enterApp(){
   notifiedSigs = new Set(unseenEvents().map(e=>e.sig));
   updateUserRow();
   applyRoleUI();
-  if(role==='admin') loadAdminUsers();
+  if(!unsubJobs) unsubJobs = subscribeJobs();
+  if(role==='admin') loadAdminData();
   goTo(role==='admin' ? 'admin' : (role==='driver' ? 'jobs' : 'home'));
 }
 
@@ -1392,13 +1407,16 @@ function updateUserRow(){
   document.getElementById('logoutBtn').textContent = d.logoutBtn;
 }
 
-function logout(){
+async function logout(){
   markShownSeen();
+  if(unsubJobs){ unsubJobs(); unsubJobs = null; }
+  jobs = []; firstSnapshotDone = false;
+  adminUsersList = []; adminNotes = {};
+  try{ if(sbRef) await sbRef.auth.signOut(); }catch(e){}
   currentUser = null;
   seenSet = new Set(); shownSigs = new Set(); notifiedSigs = new Set();
   updateBadges();
   editProfiles = null;
-  forgetPhone();
   authMode = 'login';
   renderAuth();
   document.getElementById('authOverlay').style.display = 'flex';
@@ -1412,52 +1430,20 @@ function renderAccountEdit(){
   const nameInput = document.getElementById('accountNameInput');
   const phoneInput = document.getElementById('accountPhoneInput');
   if(document.activeElement !== nameInput) nameInput.value = currentUser.name;
-  if(document.activeElement !== phoneInput) phoneInput.value = currentUser.phone;
+  phoneInput.value = currentUser.phone;
+  phoneInput.disabled = true; // phone number is the login id and can't be changed
 }
 
 async function saveAccountDetails(){
   if(!dbRef || !currentUser) return;
   const d = t();
   const newName = document.getElementById('accountNameInput').value.trim();
-  const newPhoneRaw = document.getElementById('accountPhoneInput').value.trim();
-  const newKey = sanitizePhone(newPhoneRaw);
-  const oldKey = sanitizePhone(currentUser.phone);
-  if(!newName || !newPhoneRaw || !newKey){ toast(d.toastAuthMissingFields); return; }
-
-  if(newKey === oldKey){
-    try{
-      await dbRef.doc('users/'+oldKey).update({name:newName});
-      currentUser.name = newName;
-      toast(d.toastAccountSaved);
-      updateUserRow();
-    }catch(e){ toast(d.toastSaveFailed); }
-    return;
-  }
-
+  if(!newName){ toast(d.toastAuthMissingFields); return; }
   try{
-    const existing = await dbRef.doc('users/'+newKey).get();
-    if(existing.exists){ toast(d.toastAuthPhoneTaken); return; }
-    const oldSnap = await dbRef.doc('users/'+oldKey).get();
-    const data = oldSnap.data() || {};
-    await dbRef.doc('users/'+newKey).set({...data, name:newName, phone:newPhoneRaw});
-
-    const oldPhone = currentUser.phone;
-    const ownerJobs = await dbRef.collection('jobs').where('ownerPhone','==',oldPhone).get();
-    for(const jd of ownerJobs.docs){ await dbRef.doc('jobs/'+jd.id).update({ownerPhone:newPhoneRaw}); }
-    const acceptedJobs = await dbRef.collection('jobs').where('acceptedByPhone','==',oldPhone).get();
-    for(const jd of acceptedJobs.docs){ await dbRef.doc('jobs/'+jd.id).update({acceptedByPhone:newPhoneRaw}); }
-    const openJobsForApplicants = jobs.filter(j=>Array.isArray(j.applicants) && j.applicants.some(a=>a.phone===oldPhone));
-    for(const jd of openJobsForApplicants){
-      const updatedApplicants = jd.applicants.map(a=> a.phone===oldPhone ? {...a, phone:newPhoneRaw, name:newName} : a);
-      await dbRef.doc('jobs/'+jd.id).update({applicants:updatedApplicants});
-    }
-
-    await dbRef.doc('users/'+oldKey).delete();
-    currentUser = {...data, name:newName, phone:newPhoneRaw};
-    rememberPhone(newPhoneRaw);
+    await dbRef.doc('users/'+currentUser.id).update({name:newName});
+    currentUser.name = newName;
     toast(d.toastAccountSaved);
     updateUserRow();
-    refreshCurrentScreen();
   }catch(e){ toast(d.toastSaveFailed); }
 }
 
@@ -1485,7 +1471,7 @@ async function saveProfile(){
   if(!editProfiles || editProfiles.size===0){ toast(t().toastAuthMissingProfiles); return; }
   const profiles = Array.from(editProfiles);
   try{
-    await dbRef.doc('users/'+sanitizePhone(currentUser.phone)).update({profiles});
+    await dbRef.doc('users/'+currentUser.id).update({profiles});
     currentUser.profiles = profiles;
     toast(t().toastProfileSaved);
     refreshCurrentScreen();
@@ -1498,9 +1484,9 @@ async function boot(){
   document.getElementById('authSubmitBtn').disabled = true;
 
   try{
-    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    dbRef = createSupabaseDbShim(sb);
-  }catch(e){ dbRef = null; }
+    sbRef = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    dbRef = createSupabaseDbShim(sbRef);
+  }catch(e){ dbRef = null; sbRef = null; }
 
   document.getElementById('authNote').textContent = '';
   document.getElementById('authSubmitBtn').disabled = false;
@@ -1511,21 +1497,14 @@ async function boot(){
     return;
   }
 
-  await ensureSeed();
-  subscribeJobs();
-
-  const rememberedPhone = safeGetLocal('diz_last_phone');
-  if(rememberedPhone){
-    try{
-      const snap = await dbRef.doc('users/'+sanitizePhone(rememberedPhone)).get();
-      if(snap.exists){
-        currentUser = {phone: rememberedPhone, ...snap.data()};
-        role = currentUser.role;
-        enterApp();
-        return;
-      }
-    }catch(e){}
-  }
+  // Restore an existing Supabase session (stored by supabase-js in the browser)
+  try{
+    const { data } = await sbRef.auth.getSession();
+    if(data && data.session && await loadProfile(data.session.user.id)){
+      enterApp();
+      return;
+    }
+  }catch(e){}
   document.getElementById('authOverlay').style.display = 'flex';
 }
 /* ---------- END AUTH/DB ---------- */
@@ -2267,7 +2246,7 @@ const ADM = {
 };
 function ad(){ return ADM[lang]; }
 
-let adminFilter = 'all', adminQuery = '', adminUsersList = [];
+let adminFilter = 'all', adminQuery = '', adminUsersList = [], adminNotes = {};
 let adminNoteDrafts = {}, adminPending = null, adminPendingUser = null;
 
 function adminCat(j){
@@ -2286,14 +2265,20 @@ function userLabel(phone){
   return u ? `${esc(u.name)} · ${esc(phone)}` : esc(phone);
 }
 
-async function loadAdminUsers(){
-  if(!dbRef || role!=='admin') return;
+async function loadAdminData(){
+  if(!dbRef || !sbRef || role!=='admin') return;
   try{
     const snap = await dbRef.collection('users').get();
     adminUsersList = snap.docs.map(d=>({id:d.id, ...d.data()}));
   }catch(e){ console.error('load users failed', e); }
+  try{
+    const { data, error } = await sbRef.from('admin_notes').select('job_id,note');
+    if(error) throw error;
+    adminNotes = Object.fromEntries(data.map(r=>[r.job_id, r.note]));
+  }catch(e){ console.error('load notes failed', e); }
   if(role==='admin') refreshCurrentScreen();
 }
+const loadAdminUsers = loadAdminData;
 
 function setAdminFilter(f){ adminFilter = f; renderAdmin(); }
 
@@ -2353,7 +2338,7 @@ function adminJobCardHTML(j){
   const a = ad(), d = t();
   const applicants = Array.isArray(j.applicants) ? j.applicants : [];
   const route = j.toAddr ? `${j.addr} → ${j.toAddr}` : j.addr;
-  const draft = adminNoteDrafts[j.id]!==undefined ? adminNoteDrafts[j.id] : (j.adminNote||'');
+  const draft = adminNoteDrafts[j.id]!==undefined ? adminNoteDrafts[j.id] : (adminNotes[j.id]||'');
   const pend = (adminPending && adminPending.id===j.id) ? adminPending.type : null;
   const row = (label, val)=>`<div class="adm-row"><span>${label}</span><b>${val}</b></div>`;
   const appl = applicants.length ? applicants.map(x=>`${esc(x.name)} (${x.price})`).join(', ') : a.none;
@@ -2414,10 +2399,18 @@ function adminAsk(id, type){ adminPending = {id, type}; renderAdminList(); }
 function adminAbort(){ adminPending = null; renderAdminList(); }
 
 async function saveAdminNote(id){
-  if(!dbRef) return;
-  const text = (adminNoteDrafts[id]!==undefined ? adminNoteDrafts[id] : (jobs.find(j=>j.id===id)||{}).adminNote || '').trim();
+  if(!sbRef || role!=='admin') return;
+  const text = (adminNoteDrafts[id]!==undefined ? adminNoteDrafts[id] : (adminNotes[id]||'')).trim();
   try{
-    await dbRef.doc('jobs/'+id).update({adminNote: text || null});
+    if(text){
+      const { error } = await sbRef.from('admin_notes').upsert({job_id:id, note:text, updated_at:Date.now()});
+      if(error) throw error;
+      adminNotes[id] = text;
+    } else {
+      const { error } = await sbRef.from('admin_notes').delete().eq('job_id', id);
+      if(error) throw error;
+      delete adminNotes[id];
+    }
     delete adminNoteDrafts[id];
     toast(ad().noteSaved);
   }catch(e){ toast(t().toastSaveFailed); }
@@ -2478,7 +2471,8 @@ function renderAdminUsers(){
 async function adminDeleteUser(id){
   if(!dbRef || role!=='admin') return;
   try{
-    await dbRef.doc('users/'+id).delete();
+    const { error } = await sbRef.rpc('admin_delete_user', {uid:id});
+    if(error) throw error;
     adminUsersList = adminUsersList.filter(u=>u.id!==id);
     adminPendingUser = null;
     renderAdminUsers();
