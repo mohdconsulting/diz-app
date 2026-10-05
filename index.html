@@ -224,6 +224,18 @@ nav.tabbar button{position:relative;}
 }
 .flag svg{width:12px;height:12px;flex-shrink:0;}
 
+.adm-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px;}
+.adm-tile{background:#fff;border:1px solid var(--line);padding:10px 12px;}
+.adm-tile b{display:block;font-size:19px;font-weight:700;}
+.adm-tile span{font-size:11.5px;color:var(--muted);}
+.adm-tile.warn b{color:var(--danger);}
+.adm-filters{margin-bottom:12px;}
+.adm-row{display:flex;justify-content:space-between;gap:12px;font-size:12.5px;padding:3px 0;border-bottom:1px dashed var(--line);}
+.adm-row span{color:var(--muted);flex-shrink:0;}
+.adm-row b{font-weight:600;text-align:end;word-break:break-word;}
+.adm-problem{margin-top:8px;padding:8px 10px;border:1px solid var(--danger);font-size:12.5px;}
+.adm-confirm{margin-top:8px;font-size:13px;color:var(--danger);}
+button.danger{background:#fff;color:var(--danger);border:1px solid var(--danger);padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;}
 .section-title{
   font-size:12.5px;color:var(--muted);
   margin:0 0 10px;font-weight:600;
@@ -417,6 +429,16 @@ nav.tabbar button{position:relative;}
       <div id="historyList"></div>
     </section>
 
+    <!-- ADMIN -->
+    <section class="screen" data-screen="admin">
+      <div id="adminHead"></div>
+      <input type="text" id="adminSearch" oninput="adminQuery=this.value;renderAdminList()" style="margin-bottom:12px;">
+      <div id="adminList"></div>
+    </section>
+    <section class="screen" data-screen="adminUsers">
+      <div id="adminUsersList"></div>
+    </section>
+
   </main>
 
   <nav class="tabbar">
@@ -441,6 +463,15 @@ nav.tabbar button{position:relative;}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l4 2"/></svg>
       <span data-tabkey="history"></span>
       <span class="tab-badge" id="historyBadge"></span>
+    </button>
+    <button data-tab="admin" onclick="goTo('admin')" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg>
+      <span data-tabkey="admin"></span>
+      <span class="tab-badge" id="adminBadge"></span>
+    </button>
+    <button data-tab="adminUsers" onclick="goTo('adminUsers')" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3 20c1-4 4-5 6-5s5 1 6 5"/><circle cx="17" cy="9" r="2.5"/><path d="M17 14.5c2 0 3.5 1.5 4 5"/></svg>
+      <span data-tabkey="adminUsers"></span>
     </button>
   </nav>
 
@@ -479,8 +510,8 @@ const I18N = {
     dir:"ltr",
     brand:"DIZ — skicka vad du behöver",
     greetingPrefix:"Hej",
-    tabs:{home:"Hem", new:"Ny", jobs:"Jobb", mine:"Mina", history:"Historik"},
-    titles:{home:"Hem", new:"Ny beställning", jobs:"Jobb att ta", history:"Historik"},
+    tabs:{home:"Hem", new:"Ny", jobs:"Jobb", mine:"Mina", history:"Historik", admin:"Admin", adminUsers:"Användare"},
+    titles:{home:"Hem", new:"Ny beställning", jobs:"Jobb att ta", history:"Historik", admin:"Alla uppdrag", adminUsers:"Användare"},
     mineTitleCustomer:"Mina förfrågningar", mineTitleDriver:"Mina uppdrag",
     roleCustomer:"Kund", roleDriver:"Tjänsteleverantör",
     authTitleLogin:"Logga in", authTitleRegister:"Skapa konto",
@@ -594,7 +625,7 @@ const I18N = {
     emptyMineDriver:"Du har inte tagit några uppdrag än.",
     takeJobBtn:"Ansök till detta pris",
     proposePriceBtn:"Föreslå annat pris",
-    status:{open:"Väntar på utförare",accepted:"Utförare på väg",arrived:"Utförare har anlänt",done:"Slutfört",problem:"Problem rapporterat"},
+    status:{open:"Väntar på utförare",accepted:"Utförare på väg",arrived:"Utförare har anlänt",done:"Slutfört",problem:"Problem rapporterat",cancelled:"Avbrutet"},
     toastMissingCatSize:"Välj kategori och omfattning först",
     toastMissingFields:"Fyll i beskrivning och adress",
     toastSubmitted:"Förfrågan skickad – utförare i närheten meddelas",
@@ -618,7 +649,7 @@ const I18N = {
     toastResponseEmpty:"Skriv ett svar först",
     yourResponseLabel:"Ditt svar",
     providerResponseLabel:"Leverantörens svar",
-    evt:{applicant:"Ny ansökan", arrived:"Utföraren har anlänt", done:"Klart – bekräfta betalning", assigned:"Du har fått jobbet", paid:"Betalning frisläppt", problem:"Problem rapporterat – svara", response:"Leverantören har svarat"},
+    evt:{applicant:"Ny ansökan", arrived:"Utföraren har anlänt", done:"Klart – bekräfta betalning", assigned:"Du har fått jobbet", paid:"Betalning frisläppt", problem:"Problem rapporterat – svara", response:"Leverantören har svarat", cancelled:"Uppdraget avbröts av admin"},
     applicantsTitle:"Ansökningar",
     assignBtn:"Tilldela",
     yourApplicationNote:"Din ansökan: {price} – väntar på att kunden väljer",
@@ -632,8 +663,8 @@ const I18N = {
     dir:"ltr",
     brand:"DIZ — send what you need",
     greetingPrefix:"Hi",
-    tabs:{home:"Home", new:"New", jobs:"Jobs", mine:"Mine", history:"History"},
-    titles:{home:"Home", new:"New order", jobs:"Jobs to take", history:"History"},
+    tabs:{home:"Home", new:"New", jobs:"Jobs", mine:"Mine", history:"History", admin:"Admin", adminUsers:"Users"},
+    titles:{home:"Home", new:"New order", jobs:"Jobs to take", history:"History", admin:"All jobs", adminUsers:"Users"},
     mineTitleCustomer:"My requests", mineTitleDriver:"My jobs",
     roleCustomer:"Customer", roleDriver:"Service provider",
     authTitleLogin:"Log in", authTitleRegister:"Create account",
@@ -747,7 +778,7 @@ const I18N = {
     emptyMineDriver:"You haven't taken any jobs yet.",
     takeJobBtn:"Apply at this price",
     proposePriceBtn:"Propose a different price",
-    status:{open:"Waiting for provider",accepted:"Provider on the way",arrived:"Provider has arrived",done:"Completed",problem:"Problem reported"},
+    status:{open:"Waiting for provider",accepted:"Provider on the way",arrived:"Provider has arrived",done:"Completed",problem:"Problem reported",cancelled:"Cancelled"},
     toastMissingCatSize:"Choose a category and scope first",
     toastMissingFields:"Fill in description and address",
     toastSubmitted:"Request sent — nearby providers notified",
@@ -771,7 +802,7 @@ const I18N = {
     toastResponseEmpty:"Write a response first",
     yourResponseLabel:"Your response",
     providerResponseLabel:"Provider's response",
-    evt:{applicant:"New applicant", arrived:"The provider has arrived", done:"Done – confirm payment", assigned:"You got the job", paid:"Payment released", problem:"Problem reported – respond", response:"The provider has responded"},
+    evt:{applicant:"New applicant", arrived:"The provider has arrived", done:"Done – confirm payment", assigned:"You got the job", paid:"Payment released", problem:"Problem reported – respond", response:"The provider has responded", cancelled:"Job cancelled by admin"},
     applicantsTitle:"Applicants",
     assignBtn:"Assign",
     yourApplicationNote:"Your application: {price} — waiting for the customer to choose",
@@ -785,8 +816,8 @@ const I18N = {
     dir:"rtl",
     brand:"دز — أرسل ما تحتاجه",
     greetingPrefix:"مرحبًا",
-    tabs:{home:"الرئيسية", new:"جديد", jobs:"المهام", mine:"طلباتي", history:"السجل"},
-    titles:{home:"الرئيسية", new:"طلب جديد", jobs:"مهام متاحة", history:"السجل"},
+    tabs:{home:"الرئيسية", new:"جديد", jobs:"المهام", mine:"طلباتي", history:"السجل", admin:"الإدارة", adminUsers:"المستخدمون"},
+    titles:{home:"الرئيسية", new:"طلب جديد", jobs:"مهام متاحة", history:"السجل", admin:"كل الطلبات", adminUsers:"المستخدمون"},
     mineTitleCustomer:"طلباتي", mineTitleDriver:"مهامي",
     roleCustomer:"عميل", roleDriver:"مقدم خدمة",
     authTitleLogin:"تسجيل الدخول", authTitleRegister:"إنشاء حساب",
@@ -900,7 +931,7 @@ const I18N = {
     emptyMineDriver:"لم تأخذ أي مهمة بعد.",
     takeJobBtn:"التقديم بهذا السعر",
     proposePriceBtn:"اقترح سعرًا مختلفًا",
-    status:{open:"بانتظار مقدم الخدمة",accepted:"مقدم الخدمة في الطريق",arrived:"وصل مقدم الخدمة",done:"تم الإنجاز",problem:"تم الإبلاغ عن مشكلة"},
+    status:{open:"بانتظار مقدم الخدمة",accepted:"مقدم الخدمة في الطريق",arrived:"وصل مقدم الخدمة",done:"تم الإنجاز",problem:"تم الإبلاغ عن مشكلة",cancelled:"ملغى"},
     toastMissingCatSize:"اختر الفئة وحجم العمل أولًا",
     toastMissingFields:"أدخل الوصف والعنوان",
     toastSubmitted:"تم إرسال الطلب — تم إخطار مقدمي الخدمة القريبين",
@@ -924,7 +955,7 @@ const I18N = {
     toastResponseEmpty:"اكتب ردًا أولاً",
     yourResponseLabel:"ردك",
     providerResponseLabel:"ردّ مقدم الخدمة",
-    evt:{applicant:"متقدم جديد", arrived:"وصل مقدم الخدمة", done:"تم الإنجاز – أكّد الدفع", assigned:"تم تكليفك بالمهمة", paid:"تم تحرير الدفع", problem:"تم الإبلاغ عن مشكلة – ردّ", response:"ردّ مقدم الخدمة"},
+    evt:{applicant:"متقدم جديد", arrived:"وصل مقدم الخدمة", done:"تم الإنجاز – أكّد الدفع", assigned:"تم تكليفك بالمهمة", paid:"تم تحرير الدفع", problem:"تم الإبلاغ عن مشكلة – ردّ", response:"ردّ مقدم الخدمة", cancelled:"ألغى المشرف الطلب"},
     applicantsTitle:"المتقدمون",
     assignBtn:"تكليف",
     yourApplicationNote:"طلبك: {price} — بانتظار اختيار العميل",
@@ -989,7 +1020,8 @@ const JOBS_CAMEL_TO_SNAKE = {
   arrivedAt:'arrived_at', markedDoneByProvider:'marked_done_by_provider', markedDoneAt:'marked_done_at',
   paymentReleased:'payment_released', completedAt:'completed_at', createdAt:'created_at',
   problemReported:'problem_reported', problemText:'problem_text', problemReportedAt:'problem_reported_at', autoReleased:'auto_released',
-  providerResponse:'provider_response', providerResponseAt:'provider_response_at'
+  providerResponse:'provider_response', providerResponseAt:'provider_response_at',
+  adminNote:'admin_note', resolvedAt:'resolved_at'
 };
 const JOBS_SNAKE_TO_CAMEL = Object.fromEntries(Object.entries(JOBS_CAMEL_TO_SNAKE).map(([c,s])=>[s,c]));
 
@@ -1120,6 +1152,14 @@ function createSupabaseDbShim(sb){
   return {
     collection(name){
       if(name==='jobs') return jobsCollection();
+      if(name==='users') return {
+        async get(){
+          // password is deliberately not selected
+          const { data, error } = await sb.from('users').select('id,phone,name,role,profiles,created_at');
+          if(error) throw error;
+          return { empty: data.length===0, docs: data.map(r=>makeSnapshot(r.id, rowToUserObj(r))) };
+        }
+      };
       throw new Error('unsupported collection: '+name);
     },
     doc(path){
@@ -1167,6 +1207,9 @@ function jobEvent(j){
   if(!currentUser) return null;
   const isOwner = j.ownerPhone === currentUser.phone;
   const isAssignee = j.acceptedByPhone === currentUser.phone;
+  if(j.status==='cancelled' && ((role==='customer' && isOwner) || (role==='driver' && isAssignee)) && j.completedAt && Date.now()-j.completedAt < 7*86400000){
+    return {type:'cancelled', sig:j.id+':cancelled'};
+  }
   if(role==='customer' && isOwner){
     if(j.status==='open'){
       const n = Array.isArray(j.applicants) ? j.applicants.length : 0;
@@ -1207,8 +1250,9 @@ function updateBadges(){
     const b = document.getElementById(id);
     if(b){ b.textContent = count>9 ? '9+' : String(count); b.classList.toggle('show', count>0); }
   };
-  setBadge('mineBadge', ev.filter(e=>e.type!=='paid').length);
-  setBadge('historyBadge', ev.filter(e=>e.type==='paid').length);
+  setBadge('mineBadge', ev.filter(e=>e.type!=='paid' && e.type!=='cancelled').length);
+  setBadge('historyBadge', ev.filter(e=>e.type==='paid' || e.type==='cancelled').length);
+  setBadge('adminBadge', (role==='admin' && currentUser) ? jobs.filter(j=>adminCat(j)==='problem').length : 0);
   document.title = (n>0 ? '('+n+') ' : '') + 'Diz';
 }
 function notifyNewEvents(){
@@ -1336,14 +1380,15 @@ function enterApp(){
   notifiedSigs = new Set(unseenEvents().map(e=>e.sig));
   updateUserRow();
   applyRoleUI();
-  goTo(role==='driver' ? 'jobs' : 'home');
+  if(role==='admin') loadAdminUsers();
+  goTo(role==='admin' ? 'admin' : (role==='driver' ? 'jobs' : 'home'));
 }
 
 function updateUserRow(){
   if(!currentUser) return;
   const d = t();
   document.getElementById('userGreeting').textContent =
-    `${d.greetingPrefix}, ${currentUser.name} · ${role==='driver' ? d.roleDriver : d.roleCustomer}`;
+    `${d.greetingPrefix}, ${currentUser.name} · ${roleLabel()}`;
   document.getElementById('logoutBtn').textContent = d.logoutBtn;
 }
 
@@ -1549,10 +1594,13 @@ function renderRequestDetails(){
 }
 
 function applyRoleUI(){
-  document.querySelector('.tabbar button[data-tab="home"]').style.display = role==='driver' ? 'none' : 'flex';
-  document.querySelector('.tabbar button[data-tab="new"]').style.display = role==='driver' ? 'none' : 'flex';
-  document.querySelector('.tabbar button[data-tab="jobs"]').style.display = role==='customer' ? 'none' : 'flex';
+  const show=(tab,on)=>{ document.querySelector('.tabbar button[data-tab="'+tab+'"]').style.display = on ? 'flex' : 'none'; };
+  const isA = role==='admin';
+  show('home', role==='customer'); show('new', role==='customer'); show('jobs', role==='driver');
+  show('mine', !isA); show('history', !isA); show('admin', isA); show('adminUsers', isA);
   const cur = currentScreen();
+  if(isA){ if(cur!=='admin' && cur!=='adminUsers') goTo('admin'); return; }
+  if(cur==='admin' || cur==='adminUsers'){ goTo(role==='driver' ? 'jobs' : 'home'); return; }
   if(role==='driver' && (cur==='home' || cur==='new')){ goTo('jobs'); return; }
   if(role==='customer' && cur==='jobs'){ goTo('home'); return; }
 }
@@ -1626,6 +1674,8 @@ function goTo(name){
   if(name==='jobs') renderJobs();
   if(name==='mine') renderMine();
   if(name==='history') renderHistory();
+  if(name==='admin') renderAdmin();
+  if(name==='adminUsers'){ renderAdminUsers(); loadAdminUsers(); }
   updateBadges();
 }
 
@@ -1637,6 +1687,8 @@ function refreshCurrentScreen(){
   if(name==='jobs') renderJobs();
   if(name==='mine') renderMine();
   if(name==='history') renderHistory();
+  if(name==='admin') renderAdmin();
+  if(name==='adminUsers') renderAdminUsers();
   updateBadges();
 }
 
@@ -1864,7 +1916,9 @@ function effectiveStatusKey(j){
   return j.status;
 }
 function statusLabel(j){ return t().status[effectiveStatusKey(j)]; }
-function statusClass(j){ return {open:"waiting", accepted:"accepted", arrived:"accepted", problem:"problem", done:"done"}[effectiveStatusKey(j)]; }
+function statusClass(j){ return {open:"waiting", accepted:"accepted", arrived:"accepted", problem:"problem", done:"done", cancelled:"done"}[effectiveStatusKey(j)]; }
+function isFinal(j){ return j.status==='done' || j.status==='cancelled'; }
+function roleLabel(){ const d=t(); return role==='admin' ? ad().roleAdmin : (role==='driver' ? d.roleDriver : d.roleCustomer); }
 
 function submitOffer(id){
   const j = jobs.find(x=>x.id===id);
@@ -2037,9 +2091,12 @@ function jobCardHTML(j, courierView){
           <button class="secondary" onclick="providerArrive('${j.id}')">${d.providerArriveBtn}</button>
         </div>`;
       }
+    } else if(j.status==='cancelled'){
+      body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
+      <div style="margin-top:6px;font-size:12px;color:var(--muted);">${ad().cancelledNote}</div>`;
     } else if(j.status==='done'){
       body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
-      <div style="margin-top:6px;font-size:12px;color:var(--muted);">${j.autoReleased ? d.autoReleasedNote : d.paymentReleasedNote}</div>`;
+      <div style="margin-top:6px;font-size:12px;color:var(--muted);">${j.resolution==='released' ? ad().releasedNote : (j.autoReleased ? d.autoReleasedNote : d.paymentReleasedNote)}</div>`;
     } else if(j.status==='open' && isMine && role==='customer' && pendingDeleteId===j.id){
       body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
       <div style="margin-top:8px;font-size:13px;">${d.confirmDeleteInline}</div>
@@ -2077,9 +2134,9 @@ function jobCardHTML(j, courierView){
 function renderHome(){
   if(!currentUser) return;
   const all = jobs.filter(j=>j.ownerPhone===currentUser.phone);
-  document.getElementById('statActive').textContent = all.filter(r=>r.status!=="done").length;
+  document.getElementById('statActive').textContent = all.filter(r=>!isFinal(r)).length;
   document.getElementById('statDone').textContent = all.filter(r=>r.status==="done").length;
-  const mine = all.filter(j=>j.status!=='done');
+  const mine = all.filter(j=>!isFinal(j));
   const list = document.getElementById('homeList');
   if(mine.length===0){
     list.innerHTML = `<div class="empty">${t().emptyHome}</div>`;
@@ -2119,7 +2176,7 @@ function renderMine(){
   renderProfileEdit();
   const list = document.getElementById('mineList');
   if(role==='driver'){
-    const mineJobs = jobs.filter(j=>j.acceptedByPhone===currentUser.phone && j.status!=='done');
+    const mineJobs = jobs.filter(j=>j.acceptedByPhone===currentUser.phone && !isFinal(j));
     if(mineJobs.length===0){
       list.innerHTML = `<div class="empty">${t().emptyMineDriver}</div>`;
       return;
@@ -2127,7 +2184,7 @@ function renderMine(){
     list.innerHTML = mineJobs.map(j=>jobCardHTML(j,false)).join('');
     return;
   }
-  const mine = jobs.filter(j=>j.ownerPhone===currentUser.phone && j.status!=='done');
+  const mine = jobs.filter(j=>j.ownerPhone===currentUser.phone && !isFinal(j));
   if(mine.length===0){
     list.innerHTML = `<div class="empty">${t().emptyMineCustomer}</div>`;
     return;
@@ -2140,7 +2197,7 @@ function renderHistory(){
   const list = document.getElementById('historyList');
   document.getElementById('historyTitle').textContent = t().historyTitle;
   if(role==='driver'){
-    const done = jobs.filter(j=>j.acceptedByPhone===currentUser.phone && j.status==='done');
+    const done = jobs.filter(j=>j.acceptedByPhone===currentUser.phone && isFinal(j));
     if(done.length===0){
       list.innerHTML = `<div class="empty">${t().emptyHistoryDriver}</div>`;
       return;
@@ -2148,13 +2205,287 @@ function renderHistory(){
     list.innerHTML = done.slice().sort((a,b)=>(b.completedAt||0)-(a.completedAt||0)).map(j=>jobCardHTML(j,false)).join('');
     return;
   }
-  const done = jobs.filter(j=>j.ownerPhone===currentUser.phone && j.status==='done');
+  const done = jobs.filter(j=>j.ownerPhone===currentUser.phone && isFinal(j));
   if(done.length===0){
     list.innerHTML = `<div class="empty">${t().emptyHistoryCustomer}</div>`;
     return;
   }
   list.innerHTML = done.slice().sort((a,b)=>(b.completedAt||0)-(a.completedAt||0)).map(j=>jobCardHTML(j,false)).join('');
 }
+
+
+/* ---------- ADMIN PANEL ---------- */
+const ADM = {
+  sv:{
+    roleAdmin:"Admin", cancelledNote:"Uppdraget avbröts av administratör. Betalningen återbetalas till kunden.",
+    releasedNote:"Betalningen släpptes av administratör.",
+    tiles:{total:"Totalt", open:"Öppna", active:"Pågående", problem:"Problem", done:"Slutförda", cancelled:"Avbrutna", escrow:"Spärrat belopp", released:"Utbetalt"},
+    filters:{all:"Alla", open:"Öppna", active:"Pågående", problem:"Problem", done:"Slutförda", cancelled:"Avbrutna"},
+    searchPh:"Sök på id, adress, namn, telefon…", noJobs:"Inga uppdrag matchar.",
+    customer:"Kund", provider:"Utförare", applicants:"Ansökningar", none:"–", id:"Id",
+    created:"Skapad", arrived:"Anlände", markedDone:"Markerad klar", completed:"Avslutad",
+    problemTitle:"Rapporterat problem", providerResponse:"Utförarens svar", noResponse:"Utföraren har inte svarat än.",
+    resolution:"Admin-beslut", res:{released:"Betalning släppt till utföraren", refunded:"Återbetalad till kunden", cancelled:"Avbrutet", reopened:"Återöppnat"},
+    noteLabel:"Intern anteckning (syns bara för admin)", notePh:"Skriv en anteckning…", saveNote:"Spara anteckning", noteSaved:"Anteckning sparad",
+    release:"Släpp betalning", refund:"Återbetala kund", cancel:"Avbryt uppdrag", reopen:"Återöppna", del:"Radera",
+    confirm:{release:"Släpp betalningen till utföraren och avsluta uppdraget?", refund:"Avbryt uppdraget och återbetala kunden?", cancel:"Avbryt uppdraget?", reopen:"Återöppna uppdraget så att nya utförare kan ansöka? Tilldelning och problemrapport rensas.", delete:"Radera uppdraget permanent?"},
+    yes:"Bekräfta", no:"Avbryt", done:"Klart",
+    usersEmpty:"Inga användare.", jobsCount:"uppdrag", delUser:"Radera användare", delUserConfirm:"Radera användaren permanent? Deras uppdrag finns kvar.", userDeleted:"Användare raderad", adminProtected:"Admin-konton raderas via databasen."
+  },
+  en:{
+    roleAdmin:"Admin", cancelledNote:"The job was cancelled by an administrator. The payment is refunded to the customer.",
+    releasedNote:"The payment was released by an administrator.",
+    tiles:{total:"Total", open:"Open", active:"In progress", problem:"Problems", done:"Completed", cancelled:"Cancelled", escrow:"Held amount", released:"Paid out"},
+    filters:{all:"All", open:"Open", active:"In progress", problem:"Problems", done:"Completed", cancelled:"Cancelled"},
+    searchPh:"Search id, address, name, phone…", noJobs:"No jobs match.",
+    customer:"Customer", provider:"Provider", applicants:"Applicants", none:"–", id:"Id",
+    created:"Created", arrived:"Arrived", markedDone:"Marked done", completed:"Completed",
+    problemTitle:"Reported problem", providerResponse:"Provider's response", noResponse:"The provider hasn't responded yet.",
+    resolution:"Admin decision", res:{released:"Payment released to provider", refunded:"Refunded to customer", cancelled:"Cancelled", reopened:"Reopened"},
+    noteLabel:"Internal note (admin only)", notePh:"Write a note…", saveNote:"Save note", noteSaved:"Note saved",
+    release:"Release payment", refund:"Refund customer", cancel:"Cancel job", reopen:"Reopen", del:"Delete",
+    confirm:{release:"Release the payment to the provider and close the job?", refund:"Cancel the job and refund the customer?", cancel:"Cancel the job?", reopen:"Reopen the job so new providers can apply? Assignment and problem report are cleared.", delete:"Delete the job permanently?"},
+    yes:"Confirm", no:"Cancel", done:"Done",
+    usersEmpty:"No users.", jobsCount:"jobs", delUser:"Delete user", delUserConfirm:"Delete this user permanently? Their jobs remain.", userDeleted:"User deleted", adminProtected:"Admin accounts are removed via the database."
+  },
+  ar:{
+    roleAdmin:"مشرف", cancelledNote:"ألغى المشرف الطلب. سيُعاد المبلغ إلى العميل.",
+    releasedNote:"حرّر المشرف الدفعة.",
+    tiles:{total:"الإجمالي", open:"مفتوحة", active:"قيد التنفيذ", problem:"مشاكل", done:"مكتملة", cancelled:"ملغاة", escrow:"مبلغ محجوز", released:"مدفوع"},
+    filters:{all:"الكل", open:"مفتوحة", active:"قيد التنفيذ", problem:"مشاكل", done:"مكتملة", cancelled:"ملغاة"},
+    searchPh:"ابحث بالمعرّف أو العنوان أو الاسم أو الهاتف…", noJobs:"لا توجد طلبات مطابقة.",
+    customer:"العميل", provider:"مقدم الخدمة", applicants:"المتقدمون", none:"–", id:"المعرّف",
+    created:"أُنشئ", arrived:"وصل", markedDone:"أُعلن الإنجاز", completed:"اكتمل",
+    problemTitle:"المشكلة المبلَّغ عنها", providerResponse:"ردّ مقدم الخدمة", noResponse:"لم يردّ مقدم الخدمة بعد.",
+    resolution:"قرار المشرف", res:{released:"تم تحرير الدفع لمقدم الخدمة", refunded:"أُعيد المبلغ للعميل", cancelled:"ملغى", reopened:"أُعيد فتحه"},
+    noteLabel:"ملاحظة داخلية (للمشرف فقط)", notePh:"اكتب ملاحظة…", saveNote:"حفظ الملاحظة", noteSaved:"تم حفظ الملاحظة",
+    release:"تحرير الدفع", refund:"إعادة المبلغ للعميل", cancel:"إلغاء الطلب", reopen:"إعادة الفتح", del:"حذف",
+    confirm:{release:"تحرير الدفع لمقدم الخدمة وإغلاق الطلب؟", refund:"إلغاء الطلب وإعادة المبلغ للعميل؟", cancel:"إلغاء الطلب؟", reopen:"إعادة فتح الطلب ليتقدم مقدمو خدمة جدد؟ سيُمسح التكليف وبلاغ المشكلة.", delete:"حذف الطلب نهائيًا؟"},
+    yes:"تأكيد", no:"إلغاء", done:"تم",
+    usersEmpty:"لا يوجد مستخدمون.", jobsCount:"طلبات", delUser:"حذف المستخدم", delUserConfirm:"حذف هذا المستخدم نهائيًا؟ تبقى طلباته.", userDeleted:"تم حذف المستخدم", adminProtected:"تُحذف حسابات المشرفين عبر قاعدة البيانات."
+  }
+};
+function ad(){ return ADM[lang]; }
+
+let adminFilter = 'all', adminQuery = '', adminUsersList = [];
+let adminNoteDrafts = {}, adminPending = null, adminPendingUser = null;
+
+function adminCat(j){
+  if(j.status==='open') return 'open';
+  if(j.status==='accepted') return j.problemReported ? 'problem' : 'active';
+  return j.status; // done | cancelled
+}
+function fmtTime(ts){
+  if(!ts) return ad().none;
+  try{ return new Date(ts).toLocaleString({sv:'sv-SE', en:'en-GB', ar:'ar-IQ'}[lang]); }catch(e){ return String(ts); }
+}
+function userByPhone(phone){ return adminUsersList.find(u=>u.phone===phone); }
+function userLabel(phone){
+  if(!phone) return ad().none;
+  const u = userByPhone(phone);
+  return u ? `${esc(u.name)} · ${esc(phone)}` : esc(phone);
+}
+
+async function loadAdminUsers(){
+  if(!dbRef || role!=='admin') return;
+  try{
+    const snap = await dbRef.collection('users').get();
+    adminUsersList = snap.docs.map(d=>({id:d.id, ...d.data()}));
+  }catch(e){ console.error('load users failed', e); }
+  if(role==='admin') refreshCurrentScreen();
+}
+
+function setAdminFilter(f){ adminFilter = f; renderAdmin(); }
+
+function renderAdmin(){
+  if(role!=='admin') return;
+  const a = ad(), d = t();
+  const cnt = {open:0, active:0, problem:0, done:0, cancelled:0};
+  let escrow = 0, released = 0;
+  jobs.forEach(j=>{
+    const c = adminCat(j); if(cnt[c]!==undefined) cnt[c]++;
+    if(j.status==='accepted') escrow += j.price||0;
+    if(j.status==='done' && j.paymentReleased) released += j.price||0;
+  });
+  const money = n=>`${n.toLocaleString(lang==='ar'?'ar-IQ':lang)} ${d.priceUnit}`;
+  const tile = (label, val, warn)=>`<div class="adm-tile${warn?' warn':''}"><b>${val}</b><span>${label}</span></div>`;
+  document.getElementById('adminHead').innerHTML =
+    `<div class="adm-stats">
+      ${tile(a.tiles.total, jobs.length)}
+      ${tile(a.tiles.open, cnt.open)}
+      ${tile(a.tiles.active, cnt.active)}
+      ${tile(a.tiles.problem, cnt.problem, cnt.problem>0)}
+      ${tile(a.tiles.done, cnt.done)}
+      ${tile(a.tiles.cancelled, cnt.cancelled)}
+      ${tile(a.tiles.escrow, money(escrow))}
+      ${tile(a.tiles.released, money(released))}
+    </div>
+    <div class="chip-row adm-filters">
+      ${['all','open','active','problem','done','cancelled'].map(f=>
+        `<div class="chip${adminFilter===f?' on':''}" onclick="setAdminFilter('${f}')">${a.filters[f]}${f==='all'?'':' ('+cnt[f]+')'}</div>`).join('')}
+    </div>`;
+  document.getElementById('adminSearch').placeholder = a.searchPh;
+  renderAdminList();
+}
+
+function renderAdminList(){
+  if(role!=='admin') return;
+  const a = ad();
+  const q = adminQuery.trim().toLowerCase();
+  let list = jobs.filter(j=>adminFilter==='all' || adminCat(j)===adminFilter);
+  if(q){
+    list = list.filter(j=>{
+      const ow = userByPhone(j.ownerPhone), pr = userByPhone(j.acceptedByPhone);
+      return [j.id, j.desc, j.addr, j.toAddr, j.ownerPhone, j.acceptedByPhone, ow&&ow.name, pr&&pr.name, serviceLabel(j.service), catLabel(j.service, j.cat)]
+        .filter(Boolean).join(' ').toLowerCase().includes(q);
+    });
+  }
+  list = list.slice().sort((x,y)=>{
+    const px = adminCat(x)==='problem' ? 0 : 1, py = adminCat(y)==='problem' ? 0 : 1;
+    return px-py || (y.createdAt||0)-(x.createdAt||0);
+  });
+  document.getElementById('adminList').innerHTML = list.length
+    ? list.map(adminJobCardHTML).join('')
+    : `<div class="empty">${a.noJobs}</div>`;
+}
+
+function adminJobCardHTML(j){
+  const a = ad(), d = t();
+  const applicants = Array.isArray(j.applicants) ? j.applicants : [];
+  const route = j.toAddr ? `${j.addr} → ${j.toAddr}` : j.addr;
+  const draft = adminNoteDrafts[j.id]!==undefined ? adminNoteDrafts[j.id] : (j.adminNote||'');
+  const pend = (adminPending && adminPending.id===j.id) ? adminPending.type : null;
+  const row = (label, val)=>`<div class="adm-row"><span>${label}</span><b>${val}</b></div>`;
+  const appl = applicants.length ? applicants.map(x=>`${esc(x.name)} (${x.price})`).join(', ') : a.none;
+
+  let problemBox = '';
+  if(j.problemReported){
+    problemBox = `<div class="adm-problem">
+      <b style="color:var(--danger);">${a.problemTitle}</b> · ${fmtTime(j.problemReportedAt)}<br>“${esc(j.problemText||'')}”
+      <div style="margin-top:6px;"><b>${a.providerResponse}:</b> ${j.providerResponse ? '“'+esc(j.providerResponse)+'” · '+fmtTime(j.providerResponseAt) : '<i>'+a.noResponse+'</i>'}</div>
+    </div>`;
+  }
+
+  const btn = (type, cls)=>`<button class="${cls||'secondary'}" onclick="adminAsk('${j.id}','${type}')">${a[type==='delete'?'del':type]}</button>`;
+  let actions = '';
+  if(j.status==='accepted') actions += btn('release') + btn('refund') + btn('reopen');
+  else if(j.status==='open') actions += btn('cancel');
+  else if(j.status==='cancelled') actions += btn('reopen');
+  actions += btn('delete','danger');
+
+  const confirmBox = pend ? `<div class="adm-confirm">${a.confirm[pend]}
+      <div class="action-row">
+        <button class="${pend==='delete'?'danger':'secondary'}" onclick="adminDo('${j.id}','${pend}')">${a.yes}</button>
+        <button class="secondary" onclick="adminAbort()">${a.no}</button>
+      </div></div>` : `<div class="action-row">${actions}</div>`;
+
+  return `<div class="card route">
+    <div class="top-row">
+      <div>
+        <div class="service-badge">${serviceLabel(j.service)}</div>
+        <h3>${catLabel(j.service, j.cat)}</h3>
+        <p class="meta">${esc(j.desc)}</p>
+      </div>
+      <div class="price">${j.price} ${d.priceUnit}</div>
+    </div>
+    <span class="status ${statusClass(j)}" style="margin-top:8px;display:inline-block;">${statusLabel(j)}</span>
+    ${j.photo ? `<img src="${j.photo}" alt="" style="width:100%;max-height:140px;object-fit:cover;margin-top:10px;border:1px solid var(--line);">` : ''}
+    <div style="margin-top:8px;">
+      ${row(a.id, esc(j.id))}
+      ${row('📍', esc(route))}
+      ${row(a.customer, userLabel(j.ownerPhone))}
+      ${row(a.provider, userLabel(j.acceptedByPhone))}
+      ${row(a.applicants, appl)}
+      ${row(a.created, fmtTime(j.createdAt))}
+      ${j.arrivedAt ? row(a.arrived, fmtTime(j.arrivedAt)) : ''}
+      ${j.markedDoneAt ? row(a.markedDone, fmtTime(j.markedDoneAt)) : ''}
+      ${j.completedAt ? row(a.completed, fmtTime(j.completedAt)) : ''}
+      ${j.resolution ? row(a.resolution, esc(a.res[j.resolution]||j.resolution) + (j.resolvedAt ? ' · '+fmtTime(j.resolvedAt) : '')) : ''}
+    </div>
+    ${problemBox}
+    <div style="margin-top:10px;font-size:12px;color:var(--muted);">${a.noteLabel}</div>
+    <textarea id="admNote-${j.id}" placeholder="${a.notePh}" oninput="adminNoteDrafts['${j.id}']=this.value">${esc(draft)}</textarea>
+    <div class="action-row"><button class="secondary" onclick="saveAdminNote('${j.id}')">${a.saveNote}</button></div>
+    ${confirmBox}
+  </div>`;
+}
+
+function adminAsk(id, type){ adminPending = {id, type}; renderAdminList(); }
+function adminAbort(){ adminPending = null; renderAdminList(); }
+
+async function saveAdminNote(id){
+  if(!dbRef) return;
+  const text = (adminNoteDrafts[id]!==undefined ? adminNoteDrafts[id] : (jobs.find(j=>j.id===id)||{}).adminNote || '').trim();
+  try{
+    await dbRef.doc('jobs/'+id).update({adminNote: text || null});
+    delete adminNoteDrafts[id];
+    toast(ad().noteSaved);
+  }catch(e){ toast(t().toastSaveFailed); }
+}
+
+async function adminDo(id, type){
+  if(!dbRef || role!=='admin') return;
+  const now = Date.now();
+  const ref = dbRef.doc('jobs/'+id);
+  let upd = null;
+  if(type==='release') upd = {status:'done', paymentReleased:true, completedAt:now, resolution:'released', resolvedAt:now};
+  else if(type==='refund') upd = {status:'cancelled', paymentReleased:false, completedAt:now, resolution:'refunded', resolvedAt:now};
+  else if(type==='cancel') upd = {status:'cancelled', paymentReleased:false, completedAt:now, resolution:'cancelled', resolvedAt:now};
+  else if(type==='reopen') upd = {status:'open', acceptedByPhone:null, arrived:false, arrivedAt:null,
+    markedDoneByProvider:false, markedDoneAt:null, paymentReleased:false, completedAt:null,
+    problemReported:false, problemText:null, problemReportedAt:null, providerResponse:null, providerResponseAt:null,
+    autoReleased:false, resolution:'reopened', resolvedAt:now};
+  try{
+    if(type==='delete') await ref.delete(); else await ref.update(upd);
+    adminPending = null;
+    // Make the change visible immediately, even if realtime is slow
+    if(type==='delete') jobs = jobs.filter(j=>j.id!==id);
+    else jobs = jobs.map(j=>j.id===id ? {...j, ...upd} : j);
+    refreshCurrentScreen();
+    toast(ad().done);
+  }catch(e){ console.error(e); toast(t().toastSaveFailed); }
+}
+
+function renderAdminUsers(){
+  if(role!=='admin') return;
+  const a = ad();
+  const el = document.getElementById('adminUsersList');
+  if(!adminUsersList.length){ el.innerHTML = `<div class="empty">${a.usersEmpty}</div>`; return; }
+  const d = t();
+  const roleName = r=> r==='admin' ? a.roleAdmin : (r==='driver' ? d.roleDriver : d.roleCustomer);
+  el.innerHTML = adminUsersList.slice().sort((x,y)=>(y.createdAt||0)-(x.createdAt||0)).map(u=>{
+    const n = jobs.filter(j=>j.ownerPhone===u.phone || j.acceptedByPhone===u.phone).length;
+    const pend = adminPendingUser===u.id;
+    const actions = u.role==='admin'
+      ? `<div style="margin-top:6px;font-size:12px;color:var(--muted);">${a.adminProtected}</div>`
+      : (pend
+        ? `<div class="adm-confirm">${a.delUserConfirm}<div class="action-row">
+            <button class="danger" onclick="adminDeleteUser('${esc(u.id)}')">${a.yes}</button>
+            <button class="secondary" onclick="adminPendingUser=null;renderAdminUsers()">${a.no}</button></div></div>`
+        : `<div class="action-row"><button class="danger" onclick="adminPendingUser='${esc(u.id)}';renderAdminUsers()">${a.delUser}</button></div>`);
+    return `<div class="card">
+      <div class="top-row"><div>
+        <div class="service-badge">${roleName(u.role)}</div>
+        <h3>${esc(u.name)}</h3>
+        <p class="meta">${esc(u.phone)}</p>
+      </div><div class="meta" style="font-size:12px;color:var(--muted);">${n} ${a.jobsCount}</div></div>
+      <div style="margin-top:6px;font-size:12px;color:var(--muted);">${fmtTime(u.createdAt)}</div>
+      ${actions}
+    </div>`;
+  }).join('');
+}
+
+async function adminDeleteUser(id){
+  if(!dbRef || role!=='admin') return;
+  try{
+    await dbRef.doc('users/'+id).delete();
+    adminUsersList = adminUsersList.filter(u=>u.id!==id);
+    adminPendingUser = null;
+    renderAdminUsers();
+    toast(ad().userDeleted);
+  }catch(e){ toast(t().toastSaveFailed); }
+}
+/* ---------- END ADMIN PANEL ---------- */
 
 applyStaticText();
 boot();

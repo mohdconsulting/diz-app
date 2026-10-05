@@ -14,7 +14,7 @@ create table public.users (
   phone text not null,
   name text not null,
   password text not null,          -- OBS: klartext, samma enkla modell som prototypen hade innan
-  role text not null,              -- 'customer' | 'driver'
+  role text not null,              -- 'customer' | 'driver' | 'admin' (admin skapas via migration_003)
   profiles jsonb not null default '[]'::jsonb,
   created_at bigint not null
 );
@@ -30,7 +30,7 @@ create table public.jobs (
   to_addr text,
   price int,
   photo text,
-  status text not null default 'open',   -- 'open' | 'accepted' | 'done'
+  status text not null default 'open',   -- 'open' | 'accepted' | 'done' | 'cancelled'
   owner_phone text,
   accepted_by_phone text,
   applicants jsonb not null default '[]'::jsonb,
@@ -46,6 +46,9 @@ create table public.jobs (
   provider_response text,
   provider_response_at bigint,
   auto_released boolean not null default false,
+  admin_note text,
+  resolution text,                 -- 'released' | 'refunded' | 'cancelled' | 'reopened'
+  resolved_at bigint,
   created_at bigint not null
 );
 
