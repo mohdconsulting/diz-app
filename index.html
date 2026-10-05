@@ -1331,10 +1331,13 @@ document.getElementById('authProfileChips').addEventListener('click', e=>{
 });
 
 let sbRef = null;
-const AUTH_EMAIL_DOMAIN = 'diz-app.me'; // phone numbers are mapped to <digits>@diz-app.me; no mail is ever sent
+// Supabase Auth needs an email-shaped id and rejects domains without mail servers, so each phone number is mapped to
+// diz.<digits>@gmail.com. No mail is ever sent (Confirm email must be OFF). To use your own domain, change the constants.
+const AUTH_EMAIL_PREFIX = 'diz.';
+const AUTH_EMAIL_DOMAIN = 'gmail.com';
 function authEmail(phone){
   const local = phone.replace(/[^a-zA-Z0-9]/g,'').toLowerCase();
-  return local ? local + '@' + AUTH_EMAIL_DOMAIN : '';
+  return local ? AUTH_EMAIL_PREFIX + local + '@' + AUTH_EMAIL_DOMAIN : '';
 }
 async function loadProfile(uid){
   const snap = await dbRef.doc('users/'+uid).get();
