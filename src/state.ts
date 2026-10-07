@@ -1,7 +1,7 @@
 import { I18N, type Dict } from './i18n';
 import { type DbShim } from './db';
 import { type SbClient } from './supabase';
-import { type Lang, type Role, type Job, type AppUser, type ServiceKey } from './types';
+import { type Lang, type Role, type Job, type AppUser, type ServiceKey, type Payment, type PaymentsMode } from './types';
 
 export let lang: Lang = "sv";
 export let role: Role = "customer";
@@ -12,6 +12,8 @@ export let useCustomPrice = false;
 export let editingJobId: string | null = null;
 export let photoDataUrl: string | null = null;
 export let jobs: Job[] = [];
+export let payments: Payment[] = [];
+export let paymentsMode: PaymentsMode = 'off';
 
 export let dbRef: DbShim | null = null;
 export let currentUser: AppUser | null = null;
@@ -62,3 +64,5 @@ export function setEditingJobId(v: typeof editingJobId){ editingJobId = v; }
 export function setPhotoDataUrl(v: typeof photoDataUrl){ photoDataUrl = v; }
 
 export function setAuthMode(v: typeof authMode){ authMode = v; }
+export function setPayments(v: typeof payments){ payments = v; }
+export function setPaymentsMode(v: typeof paymentsMode){ paymentsMode = v; }

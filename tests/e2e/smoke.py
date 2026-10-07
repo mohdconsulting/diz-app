@@ -58,6 +58,22 @@ async def main():
         await pg.click('.tabbar button[data-tab=mine]'); await pg.wait_for_timeout(300)
         await click_btn('assignJob')
         check('assigned', await pg.evaluate("__db.jobs[0].status")=='accepted')
+        check('customer sees pay button', await pg.locator('button[onclick^="startPayment("]:visible').count()==1)
+        await logout()
+        # --- driver must wait until the customer has paid
+        await login('0780222')
+        await pg.click('.tabbar button[data-tab=mine]'); await pg.wait_for_timeout(300)
+        check('driver cannot arrive before payment', await pg.locator('button[onclick^="providerArrive("]:visible').count()==0)
+        await logout()
+        # --- customer pays: first attempt fails, second succeeds (mock provider)
+        await login('0770111')
+        await pg.click('.tabbar button[data-tab=mine]'); await pg.wait_for_timeout(300)
+        await click_btn('startPayment'); check('mock checkout shown', await pg.locator('button[onclick^="mockPay("]:visible').count()==2)
+        await pg.locator('button[onclick$=", false)"]:visible').click(); await pg.wait_for_timeout(600)
+        check('payment failed stored', await pg.evaluate("__db.payments[0].status")=='failed')
+        await click_btn('startPayment'); await pg.locator('button[onclick$=", true)"]:visible').click(); await pg.wait_for_timeout(600)
+        check('payment held', await pg.evaluate("__db.payments.map(p=>p.status).join()")=='failed,held')
+        check('pay button gone', await pg.locator('button[onclick^="startPayment("]:visible').count()==0)
         await logout()
         # --- driver arrives, marks done
         await login('0780222')
@@ -95,6 +111,9 @@ async def main():
         check('admin note stored', await pg.evaluate("__db.admin_notes.length")==1)
         await click_btn('adminAsk'); await click_btn('adminDo')   # first action = release
         check('admin released', await pg.evaluate("__db.jobs[0].status")=='done' and await pg.evaluate("__db.jobs[0].resolution")=='released')
+        check('payment released', await pg.evaluate("__db.payments.map(p=>p.status).join()")=='failed,released')
+        await click_btn('adminAsk'); await click_btn('adminDo')   # payout
+        check('payment paid out', await pg.evaluate("__db.payments.map(p=>p.status).join()")=='failed,paid_out')
         await pg.click('.tabbar button[data-tab=adminUsers]'); await pg.wait_for_timeout(500)
         check('users listed', await pg.locator('#adminUsersList .card').count()==3)
         await logout()
