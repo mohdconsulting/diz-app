@@ -1,5 +1,6 @@
 import { toggleAuthMode, submitAuth, logout, saveProfile, saveAccountDetails } from './auth';
 import { goTo } from './shell';
+import { startPayment, mockPay, cancelMockCheckout } from './payments';
 import {
   submitResponse, submitRequest, submitReport, submitOffer, submitCustomOffer, startReport, removePhoto,
   providerMarkDone, providerArrive, handlePhotoSelect, editJob, confirmDeleteRequest, completeJob, cancelReport,
@@ -16,5 +17,5 @@ export const handlers = {
   startReport, setAdminFilter, saveProfile, saveAdminNote, saveAccountDetails, removePhoto, providerMarkDone,
   providerArrive, logout, handlePhotoSelect, editJob, confirmDeleteRequest, completeJob, cancelReport, cancelDelete,
   assignJob, askDelete, adminDo, adminDeleteUser, adminAsk, adminAbort, setReportDraft, setRespondDraft,
-  setAdminQuery, setAdminNoteDraft, setAdminPendingUser,
+  setAdminQuery, setAdminNoteDraft, setAdminPendingUser, startPayment, mockPay, cancelMockCheckout,
 };

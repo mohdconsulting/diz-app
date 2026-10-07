@@ -23,6 +23,7 @@ export interface SbClient {
   channel(name: string): SbChannel;
   removeChannel(ch: SbChannel): unknown;
   rpc(fn: string, args: object): PromiseLike<SbResult>;
+  functions: { invoke(name: string, opts?: { body?: object }): Promise<SbResult> };
   auth: {
     signUp(args: { email: string; password: string; options?: { data?: Record<string, unknown> } }):
       Promise<{ data: { user: { id: string } | null; session: SbSession | null }; error: SbError | null }>;

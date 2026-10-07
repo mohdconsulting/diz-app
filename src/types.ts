@@ -56,3 +56,28 @@ export interface AppUser {
 
 export type EventType =
   | 'applicant' | 'arrived' | 'done' | 'assigned' | 'paid' | 'problem' | 'response' | 'cancelled';
+
+export type PaymentsMode = 'off' | 'mock' | 'live';
+export type PaymentStatus = 'pending' | 'held' | 'failed' | 'refund_due' | 'refunded' | 'released' | 'paid_out';
+
+/** A payment for one job (database table `payments`, camelCase here). Written only by server-side functions. */
+export interface Payment {
+  id: string;
+  jobId: string;
+  customerPhone: string;
+  providerPhone: string;
+  amount: number;
+  commission: number;
+  payoutAmount: number;
+  currency: string;
+  psp: 'mock' | 'qi';
+  pspRef: string | null;
+  checkoutUrl: string | null;
+  status: PaymentStatus;
+  failureReason: string | null;
+  createdAt: number;
+  paidAt: number | null;
+  releasedAt: number | null;
+  refundedAt: number | null;
+  payoutAt: number | null;
+}

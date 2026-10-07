@@ -1,3 +1,4 @@
+import { startPayments, stopPayments } from './payments';
 import { $ } from './util';
 import { createSupabaseDbShim, SUPABASE_URL, SUPABASE_ANON_KEY } from './db';
 import { type AppUser } from './types';
@@ -138,6 +139,7 @@ export function enterApp(){
   updateUserRow();
   applyRoleUI();
   if(!unsubJobs) setUnsubJobs(subscribeJobs());
+  void startPayments();
   if(role==='admin') loadAdminData();
   goTo(role==='admin' ? 'admin' : (role==='driver' ? 'jobs' : 'home'));
 }
@@ -153,6 +155,7 @@ export function updateUserRow(){
 export async function logout(){
   markShownSeen();
   if(unsubJobs){ unsubJobs(); setUnsubJobs(null); }
+  stopPayments();
   setJobs([]); setFirstSnapshotDone(false);
   setAdminUsersList([]); setAdminNotes({});
   try{ if(sbRef) await sb().auth.signOut(); }catch(e){}

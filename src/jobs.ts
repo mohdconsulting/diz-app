@@ -3,11 +3,12 @@ import { priceFor } from './pricing';
 import { type Service } from './i18n';
 import { type Job, type ServiceKey } from './types';
 import { esc, toast } from './util';
-import { role, selectedService, setSelectedService, selectedCat, setSelectedCat, selectedSize, setSelectedSize, useCustomPrice, setUseCustomPrice, editingJobId, setEditingJobId, photoDataUrl, setPhotoDataUrl, jobs, dbRef, currentUser, t, me, db } from './state';
+import { role, paymentsMode, selectedService, setSelectedService, selectedCat, setSelectedCat, selectedSize, setSelectedSize, useCustomPrice, setUseCustomPrice, editingJobId, setEditingJobId, photoDataUrl, setPhotoDataUrl, jobs, dbRef, currentUser, t, me, db } from './state';
 import { seenSet, shownSigs, jobEvent } from './notifications';
 import { renderAccountEdit, renderProfileEdit } from './auth';
 import { goTo, refreshCurrentScreen } from './shell';
 import { ad } from './admin';
+import { customerPaymentHTML, providerPaymentHTML, settledPaymentHTML, isFunded } from './payments';
 
 export function renderRequestDetails(){
   const d = t();
@@ -427,8 +428,13 @@ export function jobCardHTML(j: Job, courierView: boolean): string {
       } else {
         note = `<div style="${noteStyle}color:var(--muted);">${d.waitingProviderArriveNote}</div>`;
       }
+      const payBlock = customerPaymentHTML(j);
+      const funded = paymentsMode === 'off' || isFunded(j.id);
       let actions = '';
-      if(reportingId===j.id && !j.problemReported){
+      if(!funded){
+        actions = '';
+        note = '';
+      } else if(reportingId===j.id && !j.problemReported){
         actions = `<div style="margin-top:10px;">
           <label style="margin-top:0;">${d.reportProblemPrompt}</label>
           <textarea id="reportInput-${j.id}" oninput="setReportDraft(this.value)" placeholder="${esc(d.reportProblemPlaceholder)}">${esc(reportDraft)}</textarea>
@@ -444,10 +450,15 @@ export function jobCardHTML(j: Job, courierView: boolean): string {
         </div>`;
       }
       body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
+      ${payBlock}
       ${note}
       ${actions}`;
+    } else if(j.status==='accepted' && role==='driver' && isMyAcceptedJob && providerPaymentHTML(j).blocking){
+      body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
+      ${providerPaymentHTML(j).html}`;
     } else if(j.status==='accepted' && role==='driver' && isMyAcceptedJob){
-      let problemNote = '';
+      const payLine = providerPaymentHTML(j).html;
+      let problemNote = payLine;
       if(j.problemReported){
         problemNote = `<div style="margin-top:6px;font-size:12.5px;color:var(--danger);">${d.problemReportedNoteProvider.replace('{text}', ()=>esc(j.problemText||''))}</div>`;
         if(j.providerResponse){
@@ -481,10 +492,12 @@ export function jobCardHTML(j: Job, courierView: boolean): string {
       }
     } else if(j.status==='cancelled'){
       body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
-      <div style="margin-top:6px;font-size:12px;color:var(--muted);">${ad().cancelledNote}</div>`;
+      <div style="margin-top:6px;font-size:12px;color:var(--muted);">${ad().cancelledNote}</div>
+      ${settledPaymentHTML(j, role==='driver')}`;
     } else if(j.status==='done'){
       body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
-      <div style="margin-top:6px;font-size:12px;color:var(--muted);">${j.resolution==='released' ? ad().releasedNote : (j.autoReleased ? d.autoReleasedNote : d.paymentReleasedNote)}</div>`;
+      <div style="margin-top:6px;font-size:12px;color:var(--muted);">${j.resolution==='released' ? ad().releasedNote : (j.autoReleased ? d.autoReleasedNote : d.paymentReleasedNote)}</div>
+      ${settledPaymentHTML(j, role==='driver')}`;
     } else if(j.status==='open' && isMine && role==='customer' && pendingDeleteId===j.id){
       body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
       <div style="margin-top:8px;font-size:13px;">${d.confirmDeleteInline}</div>

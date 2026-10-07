@@ -1,3 +1,4 @@
+import { adminPaymentHTML, paymentFor, adminSettlePayment, loadPayments } from './payments';
 import { $ } from './util';
 import { type Role, type Job, type JobPatch } from './types';
 import { esc, toast } from './util';
@@ -181,7 +182,7 @@ export function adminJobCardHTML(j: Job): string {
   else if(j.status==='cancelled') actions += btn('reopen');
   actions += btn('delete','danger');
 
-  const confirmBox = pend ? `<div class="adm-confirm">${(a.confirm as Record<string,string>)[pend]}
+  const confirmBox = pend ? `<div class="adm-confirm">${pend==='payout' ? d.pay.confirmPayout : pend==='payrefund' ? d.pay.confirmRefund : (a.confirm as Record<string,string>)[pend]}
       <div class="action-row">
         <button class="${pend==='delete'?'danger':'secondary'}" onclick="adminDo('${j.id}','${pend}')">${a.yes}</button>
         <button class="secondary" onclick="adminAbort()">${a.no}</button>
@@ -204,6 +205,7 @@ export function adminJobCardHTML(j: Job): string {
       ${row(a.customer, userLabel(j.ownerPhone))}
       ${row(a.provider, userLabel(j.acceptedByPhone))}
       ${row(a.applicants, appl)}
+      ${adminPaymentHTML(j)}
       ${row(a.created, fmtTime(j.createdAt))}
       ${j.arrivedAt ? row(a.arrived, fmtTime(j.arrivedAt)) : ''}
       ${j.markedDoneAt ? row(a.markedDone, fmtTime(j.markedDoneAt)) : ''}
@@ -241,6 +243,13 @@ export async function saveAdminNote(id: string){
 
 export async function adminDo(id: string, type: string){
   if(!dbRef || role!=='admin') return;
+  if(type==='payout' || type==='payrefund'){
+    const p = paymentFor(id);
+    if(p) await adminSettlePayment(p.id, type==='payout' ? 'payout' : 'refund');
+    adminPending = null;
+    refreshCurrentScreen();
+    return;
+  }
   const now = Date.now();
   const ref = db().job(id);
   let upd: JobPatch | null = null;
@@ -257,6 +266,7 @@ export async function adminDo(id: string, type: string){
     // Make the change visible immediately, even if realtime is slow
     if(type==='delete') setJobs(jobs.filter(j=>j.id!==id));
     else if(upd){ const patch = upd; setJobs(jobs.map(j=>j.id===id ? {...j, ...patch} as Job : j)); }
+    void loadPayments();
     refreshCurrentScreen();
     toast(ad().done);
   }catch(e){ console.error(e); toast(t().toastSaveFailed); }
