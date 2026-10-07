@@ -118,3 +118,39 @@ select pg_temp.x('mode off: create_payment refused', $$select public.create_paym
 reset role; update public.app_settings set value='mock' where key='payments_mode';
 delete from public.jobs where id='j4';
 select pg_temp.eq('deleted funded job -> refund_due', (select status from public.payments where job_id='j4'), 'refund_due');
+
+-- ===== Tilldela & betala =====
+reset role;
+update public.app_settings set value='mock' where key='payments_mode';
+insert into public.jobs(id,service,price,owner_phone,created_at,status,applicants) values
+ ('j6','junk',9000,'c1',1,'open','[{"phone":"d1","name":"Drv1","price":7000},{"phone":"d2","name":"Drv2","price":6000}]'),
+ ('j7','junk',3000,'c1',1,'open','[{"phone":"d1","name":"Drv1","price":3000}]'),
+ ('j8','junk',2500,'c1',1,'open','[{"phone":"d1","name":"Drv1","price":2500}]');
+set role authenticated;
+select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-0000000000a1',false);
+select pg_temp.x('assign: direct assignment is blocked without payment', $$update public.jobs set status='accepted', accepted_by_phone='d1', price=7000 where id='j6'$$, 'fail');
+select pg_temp.x('assign: cannot pay a non-applicant', $$select public.create_payment('j6','c2')$$, 'fail');
+select pg_temp.x('assign: create payment for d1', $$select public.create_payment('j6','d1')$$, 'ok');
+select pg_temp.eq('assign: payment uses the applicant price', (select amount||'/'||provider_phone||'/'||status from public.payments where job_id='j6'), '7000/d1/pending');
+select pg_temp.eq('assign: job stays open while unpaid', (select status from public.jobs where id='j6'), 'open');
+select pg_temp.x('assign: choosing d2 replaces the pending payment', $$select public.create_payment('j6','d2')$$, 'ok');
+select pg_temp.eq('assign: old pending failed, new pending for d2', (select string_agg(provider_phone||':'||status||':'||amount, ',' order by provider_phone) from public.payments where job_id='j6'), 'd1:failed:7000,d2:pending:6000');
+select pg_temp.x('assign: failed mock payment', $$select public.mock_pay((select id from public.payments where job_id='j6' and status='pending'), false)$$, 'ok');
+select pg_temp.eq('assign: job still open after failed payment', (select status from public.jobs where id='j6'), 'open');
+select pg_temp.x('assign: retry', $$select public.create_payment('j6','d2')$$, 'ok');
+select pg_temp.x('assign: pay', $$select public.mock_pay((select id from public.payments where job_id='j6' and status='pending'), true)$$, 'ok');
+select pg_temp.eq('assign: job assigned by payment', (select status||'/'||accepted_by_phone||'/'||price from public.jobs where id='j6'), 'accepted/d2/6000');
+select pg_temp.eq('assign: payment held', (select status from public.payments where job_id='j6' and provider_phone='d2' and psp_ref is not null), 'held');
+-- race: applicant changes the price after the payment was created -> money goes back, job stays open
+select pg_temp.x('race: create payment for j7', $$select public.create_payment('j7','d1')$$, 'ok');
+select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-0000000000b1',false);
+select pg_temp.x('race: d1 changes their price', $$update public.jobs set applicants='[{"phone":"d1","name":"Drv1","price":4000}]'::jsonb where id='j7'$$, 'ok');
+select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-0000000000a1',false);
+select pg_temp.x('race: customer pays the old price', $$select public.mock_pay((select id from public.payments where job_id='j7' and status='pending'), true)$$, 'ok');
+select pg_temp.eq('race: refund due, job open', (select p.status||'/'||j.status from public.payments p join public.jobs j on j.id=p.job_id where p.job_id='j7'), 'refund_due/open');
+-- webhook path assigns too
+select pg_temp.x('webhook: create payment for j8', $$select public.create_payment('j8','d1')$$, 'ok');
+reset role; set role service_role; select set_config('request.jwt.claim.sub','',false);
+select pg_temp.x('webhook: confirm_payment', $$select public.confirm_payment((select id from public.payments where job_id='j8'),'qi-9')$$, 'ok');
+select pg_temp.eq('webhook: job assigned', (select status||'/'||accepted_by_phone from public.jobs where id='j8'), 'accepted/d1');
+reset role;

@@ -42,14 +42,21 @@
     rpc:async(fn,args)=>{
       const me=session&&db.users.find(u=>u.id===session.user.id);
       if(fn==='create_payment'){
-        const j=db.jobs.find(x=>x.id===args.p_job_id); if(!j||!me||j.owner_phone!==me.phone||j.status!=='accepted') return {error:{message:'forbidden'}};
+        const j=db.jobs.find(x=>x.id===args.p_job_id); if(!j||!me||j.owner_phone!==me.phone) return {error:{message:'forbidden'}};
+        let prov,amt;
+        if(j.status==='accepted'){ prov=j.accepted_by_phone; amt=j.price; }
+        else if(j.status==='open'&&args.p_provider_phone){ const ap=(j.applicants||[]).find(x=>x.phone===args.p_provider_phone); if(!ap) return {error:{message:'provider has not applied'}}; prov=ap.phone; amt=ap.price; }
+        else return {error:{message:'job is not payable'}};
         let p=db.payments.find(x=>x.job_id===j.id&&['pending','held','released','paid_out'].includes(x.status));
-        if(!p){ p={id:'p'+Math.random().toString(16).slice(2),job_id:j.id,customer_phone:j.owner_phone,provider_phone:j.accepted_by_phone,amount:j.price,commission:0,payout_amount:j.price,currency:'IQD',psp:'mock',psp_ref:null,checkout_url:null,status:'pending',created_at:nowMs()}; db.payments.push(p); }
+        if(p&&(p.status!=='pending'||(p.provider_phone===prov&&p.amount===amt))) return {data:p,error:null};
+        if(p) p.status='failed';
+        p={id:'p'+Math.random().toString(16).slice(2),job_id:j.id,customer_phone:j.owner_phone,provider_phone:prov,amount:amt,commission:0,payout_amount:amt,currency:'IQD',psp:'mock',psp_ref:null,checkout_url:null,status:'pending',created_at:nowMs()}; db.payments.push(p);
         persist(); return {data:p,error:null};
       }
       if(fn==='mock_pay'){
         const p=db.payments.find(x=>x.id===args.p_payment_id); if(!p||!me||p.customer_phone!==me.phone) return {error:{message:'forbidden'}};
-        if(p.status==='pending'){ p.status=args.p_success?'held':'failed'; if(args.p_success) p.paid_at=nowMs(); }
+        if(p.status==='pending'){ p.status=args.p_success?'held':'failed'; if(args.p_success){ p.paid_at=nowMs();
+          const j=db.jobs.find(x=>x.id===p.job_id); if(j&&j.status==='open'){ j.status='accepted'; j.accepted_by_phone=p.provider_phone; j.price=p.amount; } } }
         persist(); return {data:p,error:null};
       }
       if(fn==='admin_settle_payment'){
