@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Diz – prototyp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Cairo:wght@500;600;700&display=swap" rel="stylesheet">
+<style>/*__STYLES__*/</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div id="frame">
+
+  <div id="authOverlay">
+    <div class="auth-card">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+        <div class="pillrow light" id="authLangSwitch">
+          <button data-lang="sv">SV</button>
+          <button data-lang="en">EN</button>
+          <button data-lang="ar">AR</button>
+        </div>
+      </div>
+      <h2 id="authTitle"></h2>
+      <p class="sub" id="authSubtitle"></p>
+
+      <div id="authNameWrap">
+        <label id="authNameLabel"></label>
+        <input type="text" id="authNameInput">
+      </div>
+
+      <label id="authPhoneLabel"></label>
+      <input type="text" id="authPhoneInput">
+
+      <label id="authPassLabel"></label>
+      <input type="password" id="authPassInput">
+
+      <div id="authRoleWrap">
+        <label id="authRoleLabel"></label>
+        <div class="chip-row" id="authRoleChips"></div>
+      </div>
+
+      <div id="authProfileWrap" style="display:none;">
+        <label id="authProfileLabel"></label>
+        <div class="chip-row" id="authProfileChips"></div>
+      </div>
+
+      <div style="margin-top:18px;">
+        <button class="primary" id="authSubmitBtn" onclick="submitAuth()"></button>
+      </div>
+      <p class="auth-note" id="authNote"></p>
+      <div class="auth-switch">
+        <span id="authSwitchText"></span> <button onclick="toggleAuthMode()" id="authSwitchBtn"></button>
+      </div>
+    </div>
+  </div>
+
+  <header class="topbar">
+    <div class="brand-row">
+      <div class="brand"><span class="dot"></span><span id="brandText"></span></div>
+      <div class="pillrow" id="langSwitch">
+        <button data-lang="sv">SV</button>
+        <button data-lang="en">EN</button>
+        <button data-lang="ar">AR</button>
+      </div>
+    </div>
+    <div class="user-row" id="userRow">
+      <span id="userGreeting"></span>
+      <button onclick="logout()" id="logoutBtn"></button>
+    </div>
+    <h1 id="screenTitle" style="margin-top:10px;"></h1>
+  </header>
+
+  <main>
+
+    <!-- HOME -->
+    <section class="screen active" data-screen="home">
+      <div class="hero">
+        <h2 id="heroTitle"></h2>
+        <p id="heroText"></p>
+        <button class="primary" id="heroBtn" onclick="goTo('new')"></button>
+        <div class="stat-row">
+          <div><b id="statActive">0</b><span id="statActiveLabel"></span></div>
+          <div><b id="statDone">0</b><span id="statDoneLabel"></span></div>
+        </div>
+      </div>
+      <p class="section-title" id="recentTitle"></p>
+      <div id="homeList"></div>
+    </section>
+
+    <!-- NEW REQUEST -->
+    <section class="screen" data-screen="new">
+      <p class="section-title" id="serviceSelectTitle"></p>
+      <div class="chip-row" id="serviceChips"></div>
+
+      <div id="requestDetails" style="display:none;">
+        <label id="categoryLabel" style="margin-top:18px;"></label>
+        <div class="chip-row" id="catChips"></div>
+
+        <label id="descLabel"></label>
+        <textarea id="descInput"></textarea>
+
+        <label id="photoLabel"></label>
+        <button type="button" class="secondary" id="photoTriggerBtn" onclick="document.getElementById('photoInput').click()" style="width:100%;"></button>
+        <input type="file" accept="image/*" capture="environment" id="photoInput" style="display:none;" onchange="handlePhotoSelect(event)">
+        <div id="photoPreviewWrap" style="display:none;margin-top:8px;">
+          <img id="photoPreviewImg" style="width:100%;max-height:180px;object-fit:cover;display:block;border:1px solid var(--line);">
+          <button type="button" class="secondary" id="removePhotoBtn" onclick="removePhoto()" style="margin-top:8px;"></button>
+        </div>
+
+        <label id="sizeLabel"></label>
+        <div class="chip-row" id="sizeChips"></div>
+
+        <label id="addrLabel"></label>
+        <input type="text" id="addrInput">
+
+        <div id="toAddrWrap" style="display:none;">
+          <label id="toAddrLabel"></label>
+          <input type="text" id="toAddrInput">
+        </div>
+
+        <div class="estimate">
+          <div><span id="estimateLabel"></span><br><span style="font-size:11.5px;color:var(--muted)" id="estimateSub"></span></div>
+          <div class="num" id="priceEstimate">–</div>
+        </div>
+
+        <div class="chip-row" style="margin-top:10px;">
+          <div class="chip" id="customPriceChip"></div>
+        </div>
+        <div id="customPriceWrap" style="display:none;">
+          <label id="customPriceLabel"></label>
+          <input type="number" min="1" id="customPriceInput">
+        </div>
+
+        <div style="margin-top:18px;">
+          <button class="primary" id="submitBtn" onclick="submitRequest()"></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- JOBS (courier side) -->
+    <section class="screen" data-screen="jobs">
+      <p class="section-title" id="openJobsTitle"></p>
+      <div id="jobsList"></div>
+    </section>
+
+    <!-- MINE -->
+    <section class="screen" data-screen="mine">
+      <div id="accountEditWrap" style="margin-bottom:18px;">
+        <p class="section-title" id="accountEditTitle"></p>
+        <label id="accountNameLabel"></label>
+        <input type="text" id="accountNameInput">
+        <label id="accountPhoneLabel"></label>
+        <input type="text" id="accountPhoneInput">
+        <div style="margin-top:10px;">
+          <button class="secondary" id="accountSaveBtn" onclick="saveAccountDetails()"></button>
+        </div>
+      </div>
+      <div id="profileEditWrap" style="display:none;margin-bottom:18px;">
+        <p class="section-title" id="profileEditTitle"></p>
+        <div class="chip-row" id="profileEditChips"></div>
+        <div style="margin-top:10px;">
+          <button class="secondary" id="profileSaveBtn" onclick="saveProfile()"></button>
+        </div>
+      </div>
+      <p class="section-title" id="allMineTitle"></p>
+      <div id="mineList"></div>
+    </section>
+
+    <!-- HISTORY -->
+    <section class="screen" data-screen="history">
+      <p class="section-title" id="historyTitle"></p>
+      <div id="historyList"></div>
+    </section>
+
+    <!-- ADMIN -->
+    <section class="screen" data-screen="admin">
+      <div id="adminHead"></div>
+      <input type="text" id="adminSearch" oninput="setAdminQuery(this.value)" style="margin-bottom:12px;">
+      <div id="adminList"></div>
+    </section>
+    <section class="screen" data-screen="adminUsers">
+      <div id="adminUsersList"></div>
+    </section>
+
+  </main>
+
+  <nav class="tabbar">
+    <button data-tab="home" onclick="goTo('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+      <span data-tabkey="home"></span>
+    </button>
+    <button data-tab="new" onclick="goTo('new')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+      <span data-tabkey="new"></span>
+    </button>
+    <button data-tab="jobs" onclick="goTo('jobs')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18M6 7V4h12v3M5 7l1 13h12l1-13"/></svg>
+      <span data-tabkey="jobs"></span>
+    </button>
+    <button data-tab="mine" onclick="goTo('mine')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c1.5-4 5-5.5 7-5.5S17.5 16 19 20"/></svg>
+      <span data-tabkey="mine"></span>
+      <span class="tab-badge" id="mineBadge"></span>
+    </button>
+    <button data-tab="history" onclick="goTo('history')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l4 2"/></svg>
+      <span data-tabkey="history"></span>
+      <span class="tab-badge" id="historyBadge"></span>
+    </button>
+    <button data-tab="admin" onclick="goTo('admin')" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg>
+      <span data-tabkey="admin"></span>
+      <span class="tab-badge" id="adminBadge"></span>
+    </button>
+    <button data-tab="adminUsers" onclick="goTo('adminUsers')" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3 20c1-4 4-5 6-5s5 1 6 5"/><circle cx="17" cy="9" r="2.5"/><path d="M17 14.5c2 0 3.5 1.5 4 5"/></svg>
+      <span data-tabkey="adminUsers"></span>
+    </button>
+  </nav>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>/*__SCRIPT__*/</script>
+</body>
+</html>

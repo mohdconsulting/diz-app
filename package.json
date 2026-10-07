@@ -1,0 +1,16 @@
+{
+  "name": "diz-app",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "description": "Diz – tjänstemarknadsplats (TypeScript, byggs till en enda index.html)",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc --noEmit && node scripts/build.mjs",
+    "watch": "node scripts/build.mjs --watch"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "typescript": "^6.0.3"
+  }
+}
