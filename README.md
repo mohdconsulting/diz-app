@@ -57,10 +57,11 @@ Röktest: `npm run build && python3 tests/e2e/smoke.py` (kräver `pip install pl
 Utveckling sker på `develop`; ändringar släpps till `main` när ägaren bestämmer det.
 
 ## Betalningar (deposition)
-Flöde: kunden tilldelar en utförare → **kunden betalar** → pengarna ligger i deposition (`held`) → utföraren kan markera ankomst/klart → kunden godkänner (eller 5 dagar går) → `released` → utbetalning till utföraren (`paid_out`). Avbryts/återbetalas uppdraget blir betalningen `refund_due` → `refunded`.
+Flöde: kunden trycker **Tilldela & betala** på en sökande (ett enda steg) → pengarna ligger i deposition (`held`) och **då** tilldelas uppdraget av databasen → utföraren kan markera ankomst/klart → kunden godkänner (eller 5 dagar går) → `released` → utbetalning till utföraren (`paid_out`). Avbryts/återbetalas uppdraget blir betalningen `refund_due` → `refunded`.
 
 - **Läge** styrs av `app_settings.payments_mode`: `off` (ingen betalning), `mock` (testkassa i appen, inga riktiga pengar) eller `live` (riktig leverantör).
 - **Klienten kan aldrig skriva i `payments`.** Allt går via funktioner: `create_payment` (kund), `mock_pay` (bara mock), `confirm_payment`/`fail_payment`/`attach_checkout` (bara service_role, från webhook/Edge Function) och `admin_settle_payment` (admin bokför utbetalning/återbetalning).
+- Går betalningen inte igenom förblir uppdraget öppet. Hinner uppdraget ändras under tiden (annan utförare vald, budet ändrat) markeras betalningen `refund_due` i stället för att tilldela fel. Direkt tilldelning utan betalning blockeras av databasen när läget inte är `off`.
 - Triggern `jobs_payment_guard` hindrar utföraren från att starta, och kunden från att släppa betalning, innan uppdraget är finansierat.
 - **Byta till Qi Card:** gör `supabase/functions/start-checkout` och `qi-webhook` riktiga (markerade `TODO(Qi)`: skapa betalning, verifiera webhook-signatur, kontrollera status), driftsätt dem, lägg hemligheterna med `supabase secrets set`, och sätt `payments_mode` till `live`. Appens kod (`src/payments.ts`) och databasen behöver inte ändras.
 - Utbetalning till utförare och återbetalning är idag **manuella** (admin trycker "Markera utbetald/återbetald" efter att ha flyttat pengarna). Automatisk utbetalning kräver att leverantören erbjuder det.

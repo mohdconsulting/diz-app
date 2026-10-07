@@ -58,6 +58,8 @@ export interface DbShim {
   collection(name: 'users'): UsersCollection;
   job(id: string): JobDoc;
   user(id: string): UserDoc;
+  /** Refetch jobs for every active listener (e.g. after the server changed a job on our behalf). */
+  reload(): void;
 }
 export interface JobDoc {
   id: string;
@@ -209,5 +211,6 @@ export function createSupabaseDbShim(sb: SbClient): DbShim {
     },
     job: jobDoc,
     user: userDoc,
+    reload: reloadJobs,
   };
 }

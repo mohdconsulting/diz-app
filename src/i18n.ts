@@ -3,6 +3,8 @@ import type { Lang, ServiceKey } from './types';
 const I18N_RAW = {
   sv: {
     pay:{
+      assignPayBtn:"Tilldela & betala {amount}",
+      payTo:"Betala till {name}",
       payBtn:"Betala {amount}",
       needPayCustomer:"Betala för att uppdraget ska kunna starta. Pengarna ligger säkert i deposition tills du godkänner utfört jobb.",
       waitingPayProvider:"Väntar på att kunden betalar – du kan starta när betalningen är säkrad i deposition.",
@@ -181,6 +183,8 @@ const I18N_RAW = {
   },
   en: {
     pay:{
+      assignPayBtn:"Assign & pay {amount}",
+      payTo:"Pay {name}",
       payBtn:"Pay {amount}",
       needPayCustomer:"Pay so the job can start. The money is held safely in escrow until you approve the finished job.",
       waitingPayProvider:"Waiting for the customer to pay — you can start once the payment is secured in escrow.",
@@ -359,6 +363,8 @@ const I18N_RAW = {
   },
   ar: {
     pay:{
+      assignPayBtn:"تكليف ودفع {amount}",
+      payTo:"الدفع إلى {name}",
       payBtn:"ادفع {amount}",
       needPayCustomer:"ادفع ليبدأ العمل. يُحفظ المبلغ بأمان في الضمان إلى أن توافق على إنجاز العمل.",
       waitingPayProvider:"بانتظار دفع العميل — يمكنك البدء بعد تأمين الدفعة في الضمان.",

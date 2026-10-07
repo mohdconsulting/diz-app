@@ -89,11 +89,16 @@ language sql stable security definer set search_path = public as $$
 $$;
 
 -- ============ FUNKTIONER ============
--- Kunden startar betalning för ett tilldelat uppdrag. Idempotent: finns redan en levande betalning returneras den.
-create or replace function public.create_payment(p_job_id text) returns public.payments
+-- "Tilldela & betala": kunden väljer en sökande och betalar i ett steg. Betalningen skapas medan uppdraget är öppet;
+-- först när pengarna är i deposition (held) tilldelas uppdraget (se payment_after_held).
+-- För uppdrag som redan är tilldelade men ofinansierade (äldre data, eller läge slogs på efteråt) betalas den
+-- redan valda utföraren. Idempotent: samma val ger samma betalning tillbaka.
+drop function if exists public.create_payment(text);
+create or replace function public.create_payment(p_job_id text, p_provider_phone text default null) returns public.payments
 language plpgsql security definer set search_path = public as $$
 declare
   j public.jobs; p public.payments; mode text := public.payments_mode(); pct numeric; fee int;
+  prov text; amt int; appl jsonb;
   now_ms bigint := (extract(epoch from now()) * 1000)::bigint;
 begin
   if auth.uid() is null then raise exception 'not authenticated' using errcode = '42501'; end if;
@@ -102,18 +107,51 @@ begin
   if not found or j.owner_phone is distinct from public.my_phone() then
     raise exception 'forbidden' using errcode = '42501';
   end if;
-  if j.status <> 'accepted' or j.accepted_by_phone is null or coalesce(j.price, 0) <= 0 then
+  if j.status = 'accepted' and j.accepted_by_phone is not null then
+    prov := j.accepted_by_phone; amt := j.price;
+  elsif j.status = 'open' and p_provider_phone is not null then
+    select v into appl from jsonb_array_elements(j.applicants) as e(v) where v->>'phone' = p_provider_phone limit 1;
+    if appl is null then raise exception 'provider has not applied'; end if;
+    prov := p_provider_phone; amt := (appl->>'price')::int;
+  else
     raise exception 'job is not payable';
   end if;
+  if coalesce(amt, 0) <= 0 then raise exception 'job is not payable'; end if;
+
   select * into p from public.payments
    where job_id = p_job_id and status in ('pending','held','released','paid_out') limit 1;
-  if found then return p; end if;
+  if found then
+    if p.status <> 'pending' or (p.provider_phone = prov and p.amount = amt) then return p; end if;
+    -- kunden valde en annan utförare/ett annat pris: den gamla obetalda betalningen ersätts
+    update public.payments set status = 'failed', failure_reason = 'replaced by a new choice' where id = p.id;
+  end if;
   select coalesce((select value::numeric from public.app_settings where key = 'commission_percent'), 0) into pct;
-  fee := round(j.price * pct / 100.0);
+  fee := round(amt * pct / 100.0);
   insert into public.payments(job_id, customer_phone, provider_phone, amount, commission, payout_amount, psp, created_at)
-  values (j.id, j.owner_phone, j.accepted_by_phone, j.price, fee, j.price - fee,
-          case when mode = 'mock' then 'mock' else 'qi' end, now_ms)
+  values (j.id, j.owner_phone, prov, amt, fee, amt - fee, case when mode = 'mock' then 'mock' else 'qi' end, now_ms)
   returning * into p;
+  return p;
+end $$;
+
+-- Pengarna är i deposition: tilldela uppdraget till den utförare kunden valde. Går det inte (uppdraget är inte längre öppet,
+-- utföraren drog tillbaka sitt bud, priset ändrades) markeras betalningen för återbetalning i stället.
+create or replace function public.payment_after_held(p public.payments) returns public.payments
+language plpgsql security definer set search_path = public as $$
+declare j public.jobs; appl jsonb;
+begin
+  select * into j from public.jobs where id = p.job_id for update;
+  if found then
+    if j.status = 'accepted' and j.accepted_by_phone = p.provider_phone then return p; end if;   -- redan tilldelad
+    select v into appl from jsonb_array_elements(j.applicants) as e(v) where v->>'phone' = p.provider_phone limit 1;
+    if j.status = 'open' and appl is not null and (appl->>'price')::numeric = p.amount then
+      begin
+        update public.jobs set status = 'accepted', accepted_by_phone = p.provider_phone, price = p.amount where id = j.id;
+        return p;
+      exception when others then null;
+      end;
+    end if;
+  end if;
+  update public.payments set status = 'refund_due', failure_reason = 'job could not be assigned' where id = p.id returning * into p;
   return p;
 end $$;
 
@@ -131,6 +169,7 @@ begin
   if p.status <> 'pending' then return p; end if;
   if p_success then
     update public.payments set status = 'held', paid_at = now_ms, psp_ref = 'mock-' || id where id = p.id returning * into p;
+    p := public.payment_after_held(p);
   else
     update public.payments set status = 'failed', failure_reason = 'mock: payment failed' where id = p.id returning * into p;
   end if;
@@ -149,7 +188,7 @@ begin
   if p.status <> 'pending' then raise exception 'payment is %, cannot confirm', p.status; end if;
   update public.payments set status = 'held', paid_at = now_ms, psp_ref = coalesce(p_psp_ref, psp_ref)
    where id = p.id returning * into p;
-  return p;
+  return public.payment_after_held(p);
 end $$;
 
 -- LIVE (service_role): betalningen misslyckades/avbröts hos leverantören.
@@ -199,13 +238,14 @@ end $$;
 do $$ begin
   if not exists (select 1 from pg_roles where rolname = 'service_role') then create role service_role nologin; end if;
 end $$;
-revoke all on function public.create_payment(text) from public, anon, authenticated;
+revoke all on function public.create_payment(text, text) from public, anon, authenticated;
+revoke all on function public.payment_after_held(public.payments) from public, anon, authenticated;
 revoke all on function public.mock_pay(uuid, boolean) from public, anon, authenticated;
 revoke all on function public.confirm_payment(uuid, text) from public, anon, authenticated;
 revoke all on function public.fail_payment(uuid, text) from public, anon, authenticated;
 revoke all on function public.attach_checkout(uuid, text, text) from public, anon, authenticated;
 revoke all on function public.admin_settle_payment(uuid, text) from public, anon, authenticated;
-grant execute on function public.create_payment(text) to authenticated;
+grant execute on function public.create_payment(text, text) to authenticated;
 grant execute on function public.mock_pay(uuid, boolean) to authenticated;
 grant execute on function public.admin_settle_payment(uuid, text) to authenticated, service_role;
 grant execute on function public.confirm_payment(uuid, text) to service_role;
@@ -213,12 +253,19 @@ grant execute on function public.fail_payment(uuid, text) to service_role;
 grant execute on function public.attach_checkout(uuid, text, text) to service_role;
 
 -- ============ KOPPLING TILL UPPDRAGEN ============
--- Vakt: när betalning krävs får utföraren inte markera ankomst/klart och kunden inte släppa betalningen
--- förrän uppdraget är finansierat. (Admin och databasens egna jobb, t.ex. pg_cron, är undantagna.)
+-- Vakt: när betalning krävs kan uppdraget inte tilldelas utan betalning, och utföraren får inte markera
+-- ankomst/klart och kunden inte släppa betalningen förrän uppdraget är finansierat. (Admin och databasens egna jobb, t.ex. pg_cron, är undantagna.)
 create or replace function public.jobs_payment_guard() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
   if auth.uid() is null or public.is_admin() or public.payments_mode() = 'off' then return new; end if;
+  -- tilldelning kräver betalning: öppet -> tilldelat får bara ske när just den utförarens betalning ligger i deposition
+  if old.status = 'open' and new.status = 'accepted'
+     and not exists (select 1 from public.payments
+                      where job_id = old.id and provider_phone = new.accepted_by_phone
+                        and status in ('held','released','paid_out')) then
+    raise exception 'payment required' using errcode = '42501';
+  end if;
   if old.status = 'accepted' and not public.job_is_funded(old.id)
      and ( new.arrived is distinct from old.arrived
         or new.marked_done_by_provider is distinct from old.marked_done_by_provider

@@ -8,7 +8,7 @@ import { seenSet, shownSigs, jobEvent } from './notifications';
 import { renderAccountEdit, renderProfileEdit } from './auth';
 import { goTo, refreshCurrentScreen } from './shell';
 import { ad } from './admin';
-import { customerPaymentHTML, providerPaymentHTML, settledPaymentHTML, isFunded } from './payments';
+import { startPayment, openJobPaymentHTML, customerPaymentHTML, providerPaymentHTML, settledPaymentHTML, isFunded } from './payments';
 
 export function renderRequestDetails(){
   const d = t();
@@ -355,6 +355,8 @@ export async function assignJob(id: string, phone: string){
   const applicants = Array.isArray(j.applicants) ? j.applicants : [];
   const chosen = applicants.find(a=>a.phone===phone);
   if(!chosen) return;
+  // With payments on, "assign" and "pay" are one step: the job is assigned by the database once the money is secured.
+  if(paymentsMode !== 'off'){ await startPayment(id, phone); return; }
   try{
     await db().job(id).update({status:'accepted', acceptedByPhone: phone, price: chosen.price});
     toast(t().toastAssigned);
@@ -394,15 +396,16 @@ export function jobCardHTML(j: Job, courierView: boolean): string {
               <div class="price" style="font-size:14px;">${a.price} ${d.priceUnit}</div>
             </div>
             <div class="action-row">
-              <button class="secondary" onclick="assignJob('${j.id}','${a.phone}')">${d.assignBtn}</button>
+              <button class="secondary" onclick="assignJob('${j.id}','${a.phone}')">${paymentsMode !== 'off' ? d.pay.assignPayBtn.replace('{amount}', a.price + ' ' + d.priceUnit) : d.assignBtn}</button>
             </div>
           </div>`).join('')
         : `<div class="empty" style="padding:14px;">${d.noApplicantsYet}</div>`;
+      const checkout = openJobPaymentHTML(j);
       body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
-      <div style="margin-top:10px;">
+      ${checkout || `<div style="margin-top:10px;">
         <p class="section-title" style="margin-bottom:8px;">${d.applicantsTitle}${applicants.length ? ' (' + applicants.length + ')' : ''}</p>
         ${applicantsHtml}
-      </div>
+      </div>`}
       <div class="action-row">
         <button class="secondary" onclick="editJob('${j.id}')">${d.editBtn}</button>
         <button class="secondary" onclick="askDelete('${j.id}')">${d.deleteBtn}</button>

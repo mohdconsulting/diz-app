@@ -1,5 +1,5 @@
 import { esc, toast } from './util';
-import { t, sb, sbRef, payments, setPayments, paymentsMode, setPaymentsMode, currentUser, role } from './state';
+import { t, sb, sbRef, payments, setPayments, paymentsMode, setPaymentsMode, currentUser, role, dbRef } from './state';
 import { refreshCurrentScreen } from './shell';
 import type { Job, Payment, PaymentStatus, PaymentsMode } from './types';
 
@@ -84,7 +84,7 @@ export function subscribePayments(): () => void {
   if(!sbRef || paymentsMode === 'off') return () => {};
   void loadPayments();
   const channel = sb().channel('payments-changes-' + Math.random().toString(36).slice(2))
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'payments' }, () => { void loadPayments(); })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'payments' }, () => { void loadPayments(); dbRef?.reload(); })
     .subscribe();
   const poll = setInterval(() => { void loadPayments(); }, 30000);
   return () => { clearInterval(poll); sb().removeChannel(channel); };
@@ -118,11 +118,12 @@ export function stopPayments(){
 }
 
 // ---------- actions (called from inline handlers) ----------
-export async function startPayment(jobId: string){
+/** `providerPhone` = the applicant the customer chose ("assign & pay"); omitted for an already assigned, unpaid job. */
+export async function startPayment(jobId: string, providerPhone?: string){
   const prov = providerFor(paymentsMode);
   if(!prov) return;
   try{
-    const { data, error } = await sb().rpc('create_payment', { p_job_id: jobId });
+    const { data, error } = await sb().rpc('create_payment', { p_job_id: jobId, p_provider_phone: providerPhone ?? null });
     if(error) throw error;
     const p = rowToPayment(data as Row);
     await loadPayments();
@@ -136,6 +137,7 @@ export async function mockPay(paymentId: string, success: boolean){
     if(error) throw error;
     setMockCheckoutId(null);
     await loadPayments();
+    dbRef?.reload();   // a successful payment assigns the job in the database
     toast(success ? t().pay.toastPaid : t().pay.toastFailed);
   }catch(e){ console.error(e); toast(t().pay.toastError); }
 }
@@ -157,6 +159,27 @@ const money = (n: number) => n + ' ' + t().priceUnit;
 const NOTE = 'margin-top:8px;font-size:13px;';
 const SUB = 'margin-top:6px;font-size:12.5px;color:var(--muted);';
 
+function mockPanelHTML(p: Payment, who: string): string {
+  const d = t().pay;
+  return `<div class="adm-confirm" style="margin-top:10px;">
+    <b>${d.mockTitle}</b>
+    <div style="margin-top:4px;">${who ? d.payTo.replace('{name}', esc(who)) + ' · ' : ''}${money(p.amount)}</div>
+    <div class="action-row">
+      <button class="secondary" onclick="mockPay('${p.id}', true)">${d.mockPayBtn}</button>
+      <button class="secondary" onclick="mockPay('${p.id}', false)">${d.mockFailBtn}</button>
+      <button class="secondary" onclick="cancelMockCheckout()">${d.mockCancelBtn}</button>
+    </div></div>`;
+}
+
+/** Checkout panel on an OPEN job's card, shown while the customer pays for the applicant they picked (mock provider). */
+export function openJobPaymentHTML(j: Job): string {
+  if(paymentsMode !== 'mock' || !mockCheckoutId) return '';
+  const p = payments.find(x => x.id === mockCheckoutId && x.jobId === j.id && x.status === 'pending');
+  if(!p) return '';
+  const a = (Array.isArray(j.applicants) ? j.applicants : []).find(x => x.phone === p.providerPhone);
+  return mockPanelHTML(p, a ? (a.name || a.phone) : p.providerPhone);
+}
+
 /** Payment block for the CUSTOMER's card (accepted job). */
 export function customerPaymentHTML(j: Job): string {
   if(paymentsMode === 'off') return '';
@@ -164,15 +187,7 @@ export function customerPaymentHTML(j: Job): string {
   if(p && (p.status === 'held')) return `<div style="${NOTE}">🔒 ${d.held}</div>`;
   if(p && p.status === 'released') return `<div style="${NOTE}">${d.released}</div>`;
   if(p && p.status === 'paid_out') return `<div style="${NOTE}">${d.paidOut}</div>`;
-  if(p && p.status === 'pending' && mockCheckoutId === p.id){
-    return `<div class="adm-confirm" style="margin-top:10px;">
-      <b>${d.mockTitle}</b><div style="margin-top:4px;">${money(p.amount)}</div>
-      <div class="action-row">
-        <button class="secondary" onclick="mockPay('${p.id}', true)">${d.mockPayBtn}</button>
-        <button class="secondary" onclick="mockPay('${p.id}', false)">${d.mockFailBtn}</button>
-        <button class="secondary" onclick="cancelMockCheckout()">${d.mockCancelBtn}</button>
-      </div></div>`;
-  }
+  if(p && p.status === 'pending' && mockCheckoutId === p.id) return mockPanelHTML(p, '');
   const label = p && p.status === 'pending' ? d.pending : d.needPayCustomer;
   return `<div style="${NOTE}">${label}</div>
     <div class="action-row"><button class="secondary" onclick="startPayment('${j.id}')">${d.payBtn.replace('{amount}', money(j.price))}</button></div>`;
