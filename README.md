@@ -6,7 +6,14 @@ Prototyp för en tjänstemarknadsplats i Irak: kunder lägger upp uppdrag (flytt
 ```
 src/
   main.ts        startpunkt (kopplar inline-handlers till window och startar appen)
-  app.ts         UI, state, auth, jobb-flöden, notiser, adminpanel
+  handlers.ts    funktioner som inline onclick/oninput i markup anropar (exponeras på window)
+  state.ts       delat tillstånd (lang, role, jobs, currentUser …) + setters, t()/me()/db()/sb()
+  util.ts        $, esc, toast, sanitizePhone, localStorage-hjälpare
+  notifications.ts  röda flaggor/badges/toasts (jobEvent, seenSet)
+  auth.ts        inloggning, registrering, konto/profil, boot och sessionsåterställning
+  jobs.ts        uppdragsflöden: formulär, kort, ansökan, tilldelning, rapportering, listor
+  admin.ts       adminpanelen (uppdrag, anteckningar, användare)
+  shell.ts       navigation, språk, statiska texter, realtidsprenumeration, start()
   db.ts          Firestore-liknande lager ovanpå Supabase (snake_case <-> camelCase)
   i18n.ts        sv/en/ar – en/ar måste ha exakt samma nycklar som sv (kompileringsfel annars)
   types.ts       Job, AppUser, Role m.m.   supabase.ts  minimala typer för supabase-js (CDN)
