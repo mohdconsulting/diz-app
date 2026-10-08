@@ -9,6 +9,7 @@ import { seenSet, shownSigs, jobEvent } from './notifications';
 import { renderAccountEdit, renderProfileEdit } from './auth';
 import { goTo, refreshCurrentScreen } from './shell';
 import { ad } from './admin';
+import { stopSharing, providerShareHTML, customerTrackingHTML } from './tracking';
 import { startPayment, openJobPaymentHTML, customerPaymentHTML, providerPaymentHTML, settledPaymentHTML, isFunded } from './payments';
 
 /** GPS pins chosen in the request form (optional). Sent with the job so the driver's Maps link is exact. */
@@ -194,6 +195,7 @@ export function updateEstimate(){
 export async function providerArrive(id: string){
   if(!dbRef) return;
   try{
+    await stopSharing();   // arrival ends position sharing (the database also removes the stored position)
     await db().job(id).update({arrived:true, arrivedAt:Date.now()});
     toast(t().toastProviderArrived);
   }catch(e){ toast(t().toastSaveFailed); }
@@ -525,6 +527,7 @@ export function jobCardHTML(j: Job, courierView: boolean): string {
       }
       body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
       ${payBlock}
+      ${funded ? customerTrackingHTML(j) : ''}
       ${note}
       ${actions}`;
     } else if(j.status==='accepted' && role==='driver' && isMyAcceptedJob && providerPaymentHTML(j).blocking){
@@ -560,6 +563,8 @@ export function jobCardHTML(j: Job, courierView: boolean): string {
         </div>`;
       } else {
         body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
+        ${payLine}
+        ${providerShareHTML(j)}
         <div class="action-row">
           <button class="secondary" onclick="providerArrive('${j.id}')">${d.providerArriveBtn}</button>
         </div>`;

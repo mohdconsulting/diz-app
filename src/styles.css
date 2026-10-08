@@ -262,3 +262,7 @@ button.danger{background:#fff;color:var(--danger);border:1px solid var(--danger)
 .suggest-item{padding:10px 12px;font-size:13.5px;cursor:pointer;border-bottom:1px solid var(--line);}
 .suggest-item:last-child{border-bottom:0;}
 .suggest-item.on,.suggest-item:hover{background:var(--soft, rgba(127,127,127,.12));}
+
+.live-map{height:240px;margin-top:10px;border:1px solid var(--line);}
+.track-slot{margin-top:4px;}
+.live-marker{font-size:22px;line-height:28px;text-align:center;background:none;border:0;}

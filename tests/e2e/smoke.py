@@ -5,6 +5,7 @@ import asyncio, sys, pathlib
 from playwright.async_api import async_playwright
 HERE=pathlib.Path(__file__).resolve().parent
 stub=(HERE/'fake-supabase.js').read_text()
+leaflet_stub=(HERE/'fake-leaflet.js').read_text()
 URL=(HERE/'../../index.html').resolve().as_uri()
 async def main():
     async with async_playwright() as p:
@@ -16,6 +17,8 @@ async def main():
         pg.on('console',lambda m: errs.append('CONSOLE '+m.text) if m.type=='error' and 'fonts' not in m.text and 'ERR_FAILED' not in m.text else None)
         await pg.route('**/@supabase/supabase-js@2',lambda r:r.fulfill(body=stub,content_type='application/javascript'))
         await pg.route('**/fonts.g*/**',lambda r:r.abort())
+        await pg.route('**/leaflet@*/dist/leaflet.js',lambda r:r.fulfill(body=leaflet_stub,content_type='application/javascript'))
+        await pg.route('**/leaflet@*/dist/leaflet.css',lambda r:r.fulfill(body='',content_type='text/css'))
         photon_calls=[]
         async def photon(r):
             photon_calls.append(r.request.url)
@@ -92,6 +95,26 @@ async def main():
         check('assigned by payment', await pg.evaluate("__db.jobs[0].status")=='accepted' and await pg.evaluate("__db.jobs[0].accepted_by_phone")=='0780222')
         check('payment held', await pg.evaluate("__db.payments.map(p=>p.status).join()")=='held')
         check('no pay button after assigning', await pg.locator('button[onclick^="startPayment("]:visible').count()==0)
+        await logout()
+        # --- driver shares position; customer follows on the map
+        await login('0780222')
+        await pg.click('.tabbar button[data-tab=mine]'); await pg.wait_for_timeout(300)
+        check('driver sees share button', await pg.locator('button[onclick^="toggleSharing("]:visible').count()==1)
+        await click_btn('toggleSharing'); await pg.wait_for_timeout(800)
+        check('position shared to the database', await pg.evaluate("__db.provider_locations.length")==1 and await pg.evaluate("__db.provider_locations[0].lat")==33.3152)
+        check('driver can stop sharing', await pg.locator('button[onclick^="toggleSharing("]:visible').count()==1)
+        await logout()
+        check('sign-out removes the shared position', await pg.evaluate("__db.provider_locations.length")==0)
+        await pg.evaluate("__db.provider_locations.push({job_id:__db.jobs[0].id,provider_phone:'0780222',customer_phone:'0770111',lat:33.3,lng:44.4,accuracy:10,updated_at:Date.now()})")
+        await login('0770111')
+        await pg.click('.tabbar button[data-tab=mine]'); await pg.wait_for_timeout(500)
+        check('customer sees that the provider shares', 'Utföraren delar sin position' in await pg.inner_text('#mineList'))
+        await click_btn('toggleTrackMap'); await pg.wait_for_timeout(800)
+        check('map created with provider + address markers', await pg.evaluate("__leaflet.maps")==1 and await pg.evaluate("__leaflet.markers.length")==2)
+        check('provider marker at shared position', await pg.evaluate("__leaflet.markers[0].p.join()")=='33.3,44.4')
+        await pg.evaluate("__db.provider_locations[0].lat=33.31; __db.provider_locations[0].lng=44.41; __db.provider_locations[0].updated_at=Date.now()")
+        await pg.wait_for_timeout(6500)
+        check('map follows the moving provider', await pg.evaluate("__leaflet.markers[0].p.join()")=='33.31,44.41' and await pg.evaluate("__leaflet.maps")==1)
         await logout()
         # --- driver arrives, marks done
         await login('0780222')

@@ -2,8 +2,8 @@
 (function(){
   const now=Date.now();
   let saved=null; try{ saved=JSON.parse(sessionStorage.getItem('dbs')); }catch(e){}
-  const db=saved?saved.db:{users:[{id:'u-admin',phone:'admin1',name:'Chefen',role:'admin',profiles:[],created_at:now}],jobs:[],admin_notes:[],payments:[],app_settings:[{key:'payments_mode',value:'mock'}]};
-  db.payments=db.payments||[]; db.app_settings=db.app_settings||[{key:'payments_mode',value:'mock'}];
+  const db=saved?saved.db:{users:[{id:'u-admin',phone:'admin1',name:'Chefen',role:'admin',profiles:[],created_at:now}],jobs:[],admin_notes:[],payments:[],provider_locations:[],app_settings:[{key:'payments_mode',value:'mock'}]};
+  db.payments=db.payments||[]; db.provider_locations=db.provider_locations||[]; db.app_settings=db.app_settings||[{key:'payments_mode',value:'mock'}];
   const auth=saved?saved.auth:[{id:'u-admin',email:'diz.admin1@gmail.com',pw:'secret1'}];
   const persist=()=>sessionStorage.setItem('dbs',JSON.stringify({db,auth}));
   let session=null; try{ session=JSON.parse(sessionStorage.getItem('sess')); }catch(e){}
@@ -30,7 +30,7 @@
       if(st.op==='select'){ if(st.maybe) return {data:m[0]||null,error:null}; return {data:m,error:null}; }
       if(st.op==='insert'){ const r={id:'n'+Math.random().toString(16).slice(2),...st.payload}; T.push(r); return {data:st.single?r:[r],error:null}; }
       if(st.op==='upsert'){ const k=table==='admin_notes'?'job_id':'id'; const i=T.findIndex(r=>r[k]===st.payload[k]); if(i>=0) Object.assign(T[i],st.payload); else T.push(st.payload); return {error:null}; }
-      if(st.op==='update'){ m.forEach(r=>{ Object.assign(r,st.payload); if(table==='jobs') syncPayments(r); }); return {data:st.ret?m.map(r=>({id:r.id})):null,error:null}; }
+      if(st.op==='update'){ m.forEach(r=>{ Object.assign(r,st.payload); if(table==='jobs'){ syncPayments(r); if(r.arrived) db.provider_locations=db.provider_locations.filter(x=>x.job_id!==r.id); } }); return {data:st.ret?m.map(r=>({id:r.id})):null,error:null}; }
       if(st.op==='delete'){ m.forEach(r=>T.splice(T.indexOf(r),1)); return {error:null}; }
     }
     return q;
@@ -41,6 +41,13 @@
     channel(){const c={on(){return c;},subscribe(){return c;}};return c;}, removeChannel(){},
     rpc:async(fn,args)=>{
       const me=session&&db.users.find(u=>u.id===session.user.id);
+      if(fn==='share_location'){
+        const j=db.jobs.find(x=>x.id===args.p_job_id); if(!j||!me||j.accepted_by_phone!==me.phone||j.status!=='accepted'||j.arrived) return {error:{message:'forbidden'}};
+        db.provider_locations=db.provider_locations.filter(x=>x.job_id!==j.id);
+        db.provider_locations.push({job_id:j.id,provider_phone:j.accepted_by_phone,customer_phone:j.owner_phone,lat:args.p_lat,lng:args.p_lng,accuracy:args.p_accuracy,updated_at:Date.now()});
+        persist(); return {error:null};
+      }
+      if(fn==='stop_sharing'){ db.provider_locations=db.provider_locations.filter(x=>x.job_id!==args.p_job_id); persist(); return {error:null}; }
       if(fn==='create_payment'){
         const j=db.jobs.find(x=>x.id===args.p_job_id); if(!j||!me||j.owner_phone!==me.phone) return {error:{message:'forbidden'}};
         let prov,amt;

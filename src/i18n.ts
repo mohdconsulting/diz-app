@@ -2,6 +2,24 @@ import type { Lang, ServiceKey } from './types';
 
 const I18N_RAW = {
   sv: {
+    track:{
+      shareBtn:"📡 Dela min position med kunden",
+      stopShareBtn:"Sluta dela position",
+      shareNote:"Kunden ser var du är tills du markerar att du har anlänt. Delningen fungerar bara medan appen är öppen och skärmen är på.",
+      sharingNow:"📡 Du delar din position med kunden",
+      toastShareDenied:"Kunde inte hämta din position – tillåt platsåtkomst i webbläsaren",
+      toastShareStopped:"Du delar inte längre din position",
+      onTheWay:"🚚 Utföraren delar sin position",
+      ago:"uppdaterad för {t} sedan",
+      stale:"Positionen är gammal – utföraren kan ha tappat täckning",
+      notSharing:"Utföraren delar inte sin position ännu",
+      showMap:"Visa på kartan",
+      hideMap:"Dölj kartan",
+      mapFailed:"Kartan kunde inte laddas",
+      openProvider:"Öppna i Google Maps",
+      sec:"s",
+      min:"min"
+    },
     myLocationText:"Min position (GPS)",
     customerLocationText:"Kundens position (GPS)",
     useMyLocationBtn:"Använd min position", locationSavedNote:"Position sparad", removePinBtn:"Ta bort", toastLocationFailed:"Kunde inte hämta positionen – tillåt platsåtkomst i webbläsaren",
@@ -187,6 +205,24 @@ const I18N_RAW = {
     priceUnit:"IQD"
   },
   en: {
+    track:{
+      shareBtn:"📡 Share my location with the customer",
+      stopShareBtn:"Stop sharing location",
+      shareNote:"The customer sees where you are until you mark that you have arrived. Sharing only works while the app is open and the screen is on.",
+      sharingNow:"📡 You are sharing your location with the customer",
+      toastShareDenied:"Could not get your location — allow location access in the browser",
+      toastShareStopped:"You are no longer sharing your location",
+      onTheWay:"🚚 The provider is sharing their location",
+      ago:"updated {t} ago",
+      stale:"The position is old — the provider may have lost coverage",
+      notSharing:"The provider is not sharing their location yet",
+      showMap:"Show on map",
+      hideMap:"Hide map",
+      mapFailed:"The map could not be loaded",
+      openProvider:"Open in Google Maps",
+      sec:"s",
+      min:"min"
+    },
     myLocationText:"My location (GPS)",
     customerLocationText:"Customer's location (GPS)",
     useMyLocationBtn:"Use my location", locationSavedNote:"Location saved", removePinBtn:"Remove", toastLocationFailed:"Could not get your location — allow location access in the browser",
@@ -372,6 +408,24 @@ const I18N_RAW = {
     priceUnit:"IQD"
   },
   ar: {
+    track:{
+      shareBtn:"📡 شارك موقعي مع العميل",
+      stopShareBtn:"إيقاف مشاركة الموقع",
+      shareNote:"يرى العميل مكانك إلى أن تسجّل وصولك. تعمل المشاركة فقط أثناء فتح التطبيق وتشغيل الشاشة.",
+      sharingNow:"📡 أنت تشارك موقعك مع العميل",
+      toastShareDenied:"تعذّر تحديد موقعك — اسمح بالوصول إلى الموقع في المتصفح",
+      toastShareStopped:"لم تعد تشارك موقعك",
+      onTheWay:"🚚 مقدم الخدمة يشارك موقعه",
+      ago:"آخر تحديث منذ {t}",
+      stale:"الموقع قديم — ربما فقد مقدم الخدمة التغطية",
+      notSharing:"مقدم الخدمة لا يشارك موقعه بعد",
+      showMap:"عرض على الخريطة",
+      hideMap:"إخفاء الخريطة",
+      mapFailed:"تعذّر تحميل الخريطة",
+      openProvider:"افتح في خرائط Google",
+      sec:"ث",
+      min:"د"
+    },
     myLocationText:"موقعي (GPS)",
     customerLocationText:"موقع العميل (GPS)",
     useMyLocationBtn:"استخدم موقعي", locationSavedNote:"تم حفظ الموقع", removePinBtn:"إزالة", toastLocationFailed:"تعذّر تحديد موقعك — اسمح بالوصول إلى الموقع في المتصفح",

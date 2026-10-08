@@ -23,6 +23,7 @@ scripts/build.mjs   bundlar allt till EN fristående index.html (esbuild)
 index.html          GENERERAD fil – redigera inte, kör `npm run build`
 diz_supabase_schema.sql   databasschema med Supabase Auth, RLS och vakt-triggers
 diz_location.sql          valfri GPS-position på adresser (bara för befintlig databas; nya installationer får den via schemat)
+diz_tracking.sql          följ utförarens position på karta (kör efter schemat; idempotent)
 diz_payments.sql          betalningar/deposition (kör efter schemat; idempotent)
 supabase/functions/       Edge Function-skelett för riktig betalleverantör (Qi) – ej driftsatta
 tests/sql/                SQL-test för betalningslogiken (lokal Postgres)
@@ -46,6 +47,7 @@ Röktest: `npm run build && python3 tests/e2e/smoke.py` (kräver `pip install pl
 3. Kör `diz_supabase_schema.sql` i SQL Editor (OBS: återskapar tabellerna).
 4. Sätt `SUPABASE_URL` och `SUPABASE_ANON_KEY` i `src/db.ts`. (Anon/publishable-nyckeln är avsedd att vara publik – skyddet ligger i RLS.)
 5. Kör `diz_payments.sql` (betalningar, se nedan). Standardläget är `mock`; vill du inte ha betalning ännu: `update public.app_settings set value = 'off' where key = 'payments_mode';`
+   Vill du ha positionsdelning/livekarta: kör även `diz_tracking.sql`.
    Har du en databas från före GPS-positionerna: kör även `diz_location.sql` (idempotent).
 6. Registrera ett konto i appen och gör det till admin: `update public.users set role = 'admin' where phone = '…';`
 
@@ -74,3 +76,10 @@ Adresserna på korten är länkar till Google Maps (ingen API-nyckel behövs). K
 
 ### Adressförslag medan man skriver
 Adressfälten föreslår platser efter tre tecken (`src/place-search.ts`, `src/geocode.ts`). Tjänsten är Photon (OpenStreetMap, https://photon.komoot.io): gratis och utan API-nyckel, men **det kunden skriver skickas dit** och den har ingen servicegaranti. Väljer kunden ett förslag sparas även koordinaten som pin, så Maps-länken blir exakt; ändrar kunden texten efteråt släpps pinnen. Fungerar inte tjänsten kan man fortfarande skriva fritt. Vill du byta till Google Places eller en egen tjänst byter du bara ut `searchPlaces()` i `geocode.ts`.
+
+## Följ utföraren på kartan
+Utföraren trycker **Dela min position med kunden** på ett betalt uppdrag (webbläsaren frågar om platsåtkomst). Positionen skickas var 5:e sekund (`share_location`) och kunden ser den på en karta (Leaflet + OpenStreetMap, laddas först när kartan öppnas) tillsammans med sin egen adress om den har en pin.
+
+- **Integritet:** delningen startas av utföraren själv, per uppdrag. Bara den senaste positionen sparas (ingen historik) och bara kunden för uppdraget, utföraren och admin kan läsa den. Den raderas automatiskt när utföraren markerar ankomst, uppdraget avslutas/avbryts/återöppnas eller utföraren loggar ut.
+- **Begränsning:** en webbapp kan bara läsa position medan sidan är öppen. Släcks skärmen eller byter utföraren app stannar uppdateringarna (appen ber om att få hålla skärmen tänd, vilket stöds av de flesta moderna mobiler men inte alla). Kunden ser då "uppdaterad för X min sedan" och en varning när positionen är äldre än 3 minuter. Bakgrundsspårning kräver en riktig mobilapp.
+- **Kartplattor:** OpenStreetMaps publika kartserver är avsedd för måttlig användning; vid många användare bör ni byta till en betaltjänst eller egen tile-server (`TILE_URL` i `src/leaflet.ts`).

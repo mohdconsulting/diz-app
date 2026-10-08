@@ -1,3 +1,4 @@
+import { mountTrackingMap, syncSharing } from './tracking';
 import { $ } from './util';
 import { boot } from './auth';
 import { type Lang, type Job } from './types';
@@ -22,6 +23,7 @@ export function subscribeJobs(): () => void {
     setFirstSnapshotDone(true);
     refreshCurrentScreen();
     autoReleaseExpired();
+    syncSharing();
   }, err=>{ console.error('jobs snapshot error', err); });
 }
 
@@ -117,6 +119,7 @@ export function refreshCurrentScreen(){
   if(name==='admin') renderAdmin();
   if(name==='adminUsers') renderAdminUsers();
   updateBadges();
+  void mountTrackingMap();
 }
 
 
