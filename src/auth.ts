@@ -1,4 +1,5 @@
 import { startPayments, stopPayments } from './payments';
+import { startTracking, stopTracking } from './tracking';
 import { $ } from './util';
 import { createSupabaseDbShim, SUPABASE_URL, SUPABASE_ANON_KEY } from './db';
 import { type AppUser } from './types';
@@ -140,6 +141,7 @@ export function enterApp(){
   applyRoleUI();
   if(!unsubJobs) setUnsubJobs(subscribeJobs());
   void startPayments();
+  startTracking();
   if(role==='admin') loadAdminData();
   goTo(role==='admin' ? 'admin' : (role==='driver' ? 'jobs' : 'home'));
 }
@@ -156,6 +158,7 @@ export async function logout(){
   markShownSeen();
   if(unsubJobs){ unsubJobs(); setUnsubJobs(null); }
   stopPayments();
+  stopTracking();
   setJobs([]); setFirstSnapshotDone(false);
   setAdminUsersList([]); setAdminNotes({});
   try{ if(sbRef) await sb().auth.signOut(); }catch(e){}

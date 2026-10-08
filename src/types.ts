@@ -86,3 +86,14 @@ export interface Payment {
   refundedAt: number | null;
   payoutAt: number | null;
 }
+
+/** The provider's latest shared position for a job (table `provider_locations`; only the newest fix is kept). */
+export interface ProviderLocation {
+  jobId: string;
+  providerPhone: string;
+  customerPhone: string;
+  lat: number;
+  lng: number;
+  accuracy: number | null;
+  updatedAt: number;
+}
