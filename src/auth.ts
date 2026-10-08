@@ -45,6 +45,7 @@ export function renderAuth(){
   $('authProfileWrap').style.display = showProfiles ? 'block' : 'none';
   if(showProfiles){
     $('authProfileLabel').textContent = d.authProfileLabel;
+    $('authShareNote').textContent = d.authShareNote;
     $('authProfileChips').innerHTML = profileOptions().map(o=>
       `<div class="chip${authSelectedProfiles.has(o.key)?' on':''}" data-val="${o.key}">${o.label}</div>`
     ).join('');

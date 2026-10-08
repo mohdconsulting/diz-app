@@ -1,4 +1,4 @@
-import { toast } from './util';
+import { toast, safeGetLocal } from './util';
 import { t, sb, sbRef, role, currentUser, jobs, locations, setLocations } from './state';
 import { refreshCurrentScreen } from './shell';
 import { loadLeaflet, TILE_URL, TILE_ATTRIBUTION, type LMap, type LMarker } from './leaflet';
@@ -19,12 +19,25 @@ const POLL_INTERVAL_MS = 5000;   // how often the customer refreshes
 const STALE_MS = 3 * 60 * 1000;  // a position older than this is shown as old
 
 // ---------------- provider side ----------------
-let sharingJobId: string | null = null;
+/*
+ * Sharing is automatic: as soon as the provider has an assigned job (and the app is open) the position is sent to the
+ * customer until the provider marks arrival. The provider is told about this in three places: when registering as a
+ * provider, in a notice when sharing starts for a job, and on the job card for as long as it is active. The browser
+ * itself still asks for location permission the first time — that prompt cannot and should not be bypassed.
+ */
+let sharingIds = new Set<string>();
 let watchId: number | null = null;
 let lastSent = 0;
+let denied = false;       // the browser/OS refused location access
 let wakeLock: WakeLockSentinel | null = null;
 
-export const isSharing = (jobId: string) => sharingJobId === jobId;
+/** Jobs this provider is currently sharing position for: assigned to me, not yet arrived/done. */
+function eligibleJobIds(): Set<string> {
+  const ids = new Set<string>();
+  if(role !== 'driver' || !currentUser) return ids;
+  for(const j of jobs) if(j.status === 'accepted' && j.acceptedByPhone === currentUser.phone && !j.arrived && !j.markedDoneByProvider) ids.add(j.id);
+  return ids;
+}
 
 async function acquireWakeLock(){
   try{ if(navigator.wakeLock) wakeLock = await navigator.wakeLock.request('screen'); }catch(e){ /* optional */ }
@@ -34,56 +47,86 @@ function releaseWakeLock(){
   wakeLock = null;
 }
 document.addEventListener('visibilitychange', () => {
-  if(sharingJobId && document.visibilityState === 'visible') void acquireWakeLock();   // locks are released when the tab is hidden
+  if(sharingIds.size && document.visibilityState === 'visible') void acquireWakeLock();   // locks are released when the tab is hidden
 });
 
 async function send(pos: GeolocationPosition){
   const now = Date.now();
-  if(!sharingJobId || now - lastSent < SEND_INTERVAL_MS) return;
+  if(!sharingIds.size || now - lastSent < SEND_INTERVAL_MS) return;
   lastSent = now;
-  const { error } = await sb().rpc('share_location', {
-    p_job_id: sharingJobId, p_lat: pos.coords.latitude, p_lng: pos.coords.longitude, p_accuracy: pos.coords.accuracy ?? null,
-  });
-  if(error) void stopSharing();   // e.g. the job is no longer eligible
+  for(const id of [...sharingIds]){
+    const { error } = await sb().rpc('share_location', {
+      p_job_id: id, p_lat: pos.coords.latitude, p_lng: pos.coords.longitude, p_accuracy: pos.coords.accuracy ?? null,
+    });
+    if(error) dropSharing(id);   // e.g. the job is no longer eligible
+  }
 }
 
-export function toggleSharing(jobId: string){
-  if(sharingJobId === jobId){ void stopSharing(true); return; }
-  if(!navigator.geolocation){ toast(t().track.toastShareDenied); return; }
-  void stopSharing();
-  sharingJobId = jobId; lastSent = 0;
+function startWatch(){
+  if(watchId !== null || denied) return;
+  if(!navigator.geolocation){ denied = true; refreshCurrentScreen(); return; }
+  lastSent = 0;
   watchId = navigator.geolocation.watchPosition(
     p => { void send(p); },
-    () => { toast(t().track.toastShareDenied); void stopSharing(); },
-    { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 });
+    err => {
+      if(err.code === err.PERMISSION_DENIED){ denied = true; stopWatch(); toast(t().track.toastShareDenied); refreshCurrentScreen(); }
+      // other errors (no signal yet, timeout): keep watching, the browser retries
+    },
+    { enableHighAccuracy: true, maximumAge: 5000, timeout: 30000 });
   void acquireWakeLock();
+}
+function stopWatch(){
+  if(watchId !== null){ navigator.geolocation.clearWatch(watchId); watchId = null; }
+  releaseWakeLock();
+}
+
+/** Stop sharing for one job (e.g. on arrival); the watch ends when no job is left. */
+export function dropSharing(jobId: string){
+  if(!sharingIds.delete(jobId)) return;
+  if(sbRef) void Promise.resolve(sb().rpc('stop_sharing', { p_job_id: jobId })).catch(() => { /* the database also cleans up */ });
+  if(!sharingIds.size) stopWatch();
   refreshCurrentScreen();
 }
 
-export async function stopSharing(notify = false){
-  const id = sharingJobId;
-  if(watchId !== null){ navigator.geolocation.clearWatch(watchId); watchId = null; }
-  releaseWakeLock();
-  sharingJobId = null;
-  if(id && sbRef){ try{ await sb().rpc('stop_sharing', { p_job_id: id }); }catch(e){ /* the database also cleans up */ } }
-  if(notify) toast(t().track.toastShareStopped);
-  if(id) refreshCurrentScreen();
-}
-
-/** Called whenever jobs are reloaded: stop sharing if the job is no longer one we may share for. */
+/**
+ * Called whenever jobs are reloaded: start/stop sharing so it matches the provider's assigned jobs. A notice is shown
+ * the first time sharing starts for a job.
+ */
 export function syncSharing(){
-  if(!sharingJobId) return;
-  const j = jobs.find(x => x.id === sharingJobId);
-  if(!j || j.status !== 'accepted' || j.arrived || j.markedDoneByProvider) void stopSharing();
+  const want = eligibleJobIds();
+  for(const id of [...sharingIds]) if(!want.has(id)) dropSharing(id);
+  for(const id of want){
+    if(sharingIds.has(id)) continue;
+    sharingIds.add(id);
+    const key = 'diz_share_informed_' + id;
+    if(!safeGetLocal(key)){
+      toast(t().track.autoStarted);
+      try{ localStorage.setItem(key, '1'); }catch(e){ /* ignore */ }
+    }
+  }
+  if(sharingIds.size) startWatch(); else stopWatch();
 }
 
-/** Provider's controls on an accepted, funded, not-yet-arrived job card. */
+/** "Try again" after location access was refused (a tap is a user gesture, so the browser may ask again). */
+export function retrySharing(){
+  denied = false;
+  syncSharing();
+  refreshCurrentScreen();
+}
+
+/** Stops everything (sign-out). */
+export async function stopSharing(){
+  const ids = [...sharingIds];
+  sharingIds = new Set(); stopWatch(); denied = false;
+  if(sbRef) for(const id of ids){ try{ await sb().rpc('stop_sharing', { p_job_id: id }); }catch(e){ /* the database also cleans up */ } }
+}
+
+/** Provider's notice on an assigned job that has not been arrived at yet. */
 export function providerShareHTML(j: Job): string {
   const d = t().track;
   const sub = 'margin-top:6px;font-size:12.5px;color:var(--muted);';
-  return isSharing(j.id)
-    ? `<div style="${sub}">${d.sharingNow}</div><div class="action-row"><button class="secondary" onclick="toggleSharing('${j.id}')">${d.stopShareBtn}</button></div>`
-    : `<div style="${sub}">${d.shareNote}</div><div class="action-row"><button class="secondary" onclick="toggleSharing('${j.id}')">${d.shareBtn}</button></div>`;
+  if(denied) return `<div style="${sub}color:var(--danger);">${d.shareDenied}</div><div class="action-row"><button class="secondary" onclick="retrySharing()">${d.retryBtn}</button></div>`;
+  return sharingIds.has(j.id) ? `<div style="${sub}">${d.autoShareInfo}</div>` : '';
 }
 
 // ---------------- customer side ----------------

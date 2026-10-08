@@ -1,6 +1,6 @@
 import { toggleAuthMode, submitAuth, logout, saveProfile, saveAccountDetails } from './auth';
 import { goTo } from './shell';
-import { toggleSharing, toggleTrackMap } from './tracking';
+import { retrySharing, toggleTrackMap } from './tracking';
 import { startPayment, mockPay, cancelMockCheckout } from './payments';
 import {
   submitResponse, submitRequest, submitReport, submitOffer, submitCustomOffer, startReport, removePhoto,
@@ -18,5 +18,5 @@ export const handlers = {
   startReport, setAdminFilter, saveProfile, saveAdminNote, saveAccountDetails, removePhoto, providerMarkDone,
   providerArrive, logout, handlePhotoSelect, editJob, confirmDeleteRequest, completeJob, cancelReport, cancelDelete,
   assignJob, askDelete, useMyLocation, clearPin, adminDo, adminDeleteUser, adminAsk, adminAbort, setReportDraft, setRespondDraft,
-  setAdminQuery, setAdminNoteDraft, setAdminPendingUser, startPayment, mockPay, cancelMockCheckout, toggleSharing, toggleTrackMap,
+  setAdminQuery, setAdminNoteDraft, setAdminPendingUser, startPayment, mockPay, cancelMockCheckout, retrySharing, toggleTrackMap,
 };
