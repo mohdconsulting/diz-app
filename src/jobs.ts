@@ -32,7 +32,7 @@ export function useMyLocation(which: 'addr'|'to'){
     if(which === 'addr') addrPin = pin; else toPin = pin;
     // The address text is required; if it is empty, a pin alone is enough to fill it in.
     const input = $<HTMLInputElement>(which === 'addr' ? 'addrInput' : 'toAddrInput');
-    if(!input.value.trim()) input.value = t().customerLocationText;
+    if(!input.value.trim()) input.value = t().myLocationText;
     renderPins();
   }, ()=>toast(t().toastLocationFailed), { enableHighAccuracy: true, timeout: 15000 });
 }
@@ -283,8 +283,8 @@ export function editJob(id: string){
   } else {
     $('photoPreviewWrap').style.display = 'none';
   }
-  $<HTMLInputElement>('addrInput').value = j.addr === PIN_ADDR ? t().customerLocationText : (j.addr ?? '');
-  if($('toAddrInput')) $<HTMLInputElement>('toAddrInput').value = j.toAddr === PIN_ADDR ? t().customerLocationText : (j.toAddr || '');
+  $<HTMLInputElement>('addrInput').value = j.addr === PIN_ADDR ? t().myLocationText : (j.addr ?? '');
+  if($('toAddrInput')) $<HTMLInputElement>('toAddrInput').value = j.toAddr === PIN_ADDR ? t().myLocationText : (j.toAddr || '');
   addrPin = (j.addrLat != null && j.addrLng != null) ? { lat: j.addrLat, lng: j.addrLng } : null;
   toPin = (j.toLat != null && j.toLng != null) ? { lat: j.toLat, lng: j.toLng } : null;
   $('customPriceChip').classList.toggle('on', useCustomPrice);
@@ -296,7 +296,7 @@ export function editJob(id: string){
 
 /** The pin label typed/filled by "use my location" is stored as a language-neutral marker (translated when shown). */
 function storedAddr(text: string, pin: Pin): string {
-  const labels = Object.values(I18N).map(dict => dict.customerLocationText);
+  const labels = Object.values(I18N).flatMap(dict => [dict.myLocationText, dict.customerLocationText]);
   if(labels.includes(text)) return pin ? PIN_ADDR : '';   // label without a pin (pin removed) is not a real address
   return text;
 }
@@ -578,7 +578,7 @@ export function jobCardHTML(j: Job, courierView: boolean): string {
       <div class="price">${j.price} ${d.priceUnit}</div>
     </div>
     ${j.photo ? `<img src="${j.photo}" alt="" style="width:100%;max-height:160px;object-fit:cover;margin-top:10px;border:1px solid var(--line);">` : ''}
-    <p class="meta" style="margin-top:8px;">${routeLinksHTML(j, d.openInMaps, d.mapsRoute, d.customerLocationText)}</p>
+    <p class="meta" style="margin-top:8px;">${routeLinksHTML(j, d.openInMaps, d.mapsRoute, isMine ? d.myLocationText : d.customerLocationText)}</p>
     ${body}
   </div>`;
 }
