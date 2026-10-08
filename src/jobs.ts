@@ -1,8 +1,8 @@
 import { $ } from './util';
 import { priceFor } from './pricing';
-import { type Service } from './i18n';
+import { I18N, type Service } from './i18n';
 import { type Job, type ServiceKey } from './types';
-import { esc, toast, routeLinksHTML } from './util';
+import { esc, toast, routeLinksHTML, PIN_ADDR } from './util';
 import { role, paymentsMode, selectedService, setSelectedService, selectedCat, setSelectedCat, selectedSize, setSelectedSize, useCustomPrice, setUseCustomPrice, editingJobId, setEditingJobId, photoDataUrl, setPhotoDataUrl, jobs, dbRef, currentUser, t, me, db } from './state';
 import { seenSet, shownSigs, jobEvent } from './notifications';
 import { renderAccountEdit, renderProfileEdit } from './auth';
@@ -32,7 +32,7 @@ export function useMyLocation(which: 'addr'|'to'){
     if(which === 'addr') addrPin = pin; else toPin = pin;
     // The address text is required; if it is empty, a pin alone is enough to fill it in.
     const input = $<HTMLInputElement>(which === 'addr' ? 'addrInput' : 'toAddrInput');
-    if(!input.value.trim()) input.value = t().myLocationText;
+    if(!input.value.trim()) input.value = t().customerLocationText;
     renderPins();
   }, ()=>toast(t().toastLocationFailed), { enableHighAccuracy: true, timeout: 15000 });
 }
@@ -283,8 +283,8 @@ export function editJob(id: string){
   } else {
     $('photoPreviewWrap').style.display = 'none';
   }
-  $<HTMLInputElement>('addrInput').value = j.addr ?? '';
-  if($('toAddrInput')) $<HTMLInputElement>('toAddrInput').value = j.toAddr || '';
+  $<HTMLInputElement>('addrInput').value = j.addr === PIN_ADDR ? t().customerLocationText : (j.addr ?? '');
+  if($('toAddrInput')) $<HTMLInputElement>('toAddrInput').value = j.toAddr === PIN_ADDR ? t().customerLocationText : (j.toAddr || '');
   addrPin = (j.addrLat != null && j.addrLng != null) ? { lat: j.addrLat, lng: j.addrLng } : null;
   toPin = (j.toLat != null && j.toLng != null) ? { lat: j.toLat, lng: j.toLng } : null;
   $('customPriceChip').classList.toggle('on', useCustomPrice);
@@ -292,6 +292,13 @@ export function editJob(id: string){
   if(useCustomPrice) $<HTMLInputElement>('customPriceInput').value = String(j.price);
   updateEstimate();
   $('submitBtn').textContent = t().saveChangesBtn;
+}
+
+/** The pin label typed/filled by "use my location" is stored as a language-neutral marker (translated when shown). */
+function storedAddr(text: string, pin: Pin): string {
+  const labels = Object.values(I18N).map(dict => dict.customerLocationText);
+  if(labels.includes(text)) return pin ? PIN_ADDR : '';   // label without a pin (pin removed) is not a real address
+  return text;
 }
 
 function pinFields(toAddr: string | null) {
@@ -305,11 +312,11 @@ export async function submitRequest(){
   const d = t();
   if(!dbRef){ toast(d.toastDbUnavailable); return; }
   const desc = $<HTMLInputElement>('descInput').value.trim();
-  const addr = $<HTMLInputElement>('addrInput').value.trim();
+  const addr = storedAddr($<HTMLInputElement>('addrInput').value.trim(), addrPin);
   if(!selectedService){ toast(d.toastMissingFields); return; }
   const service: ServiceKey = selectedService;
   const svc = d.services[service];
-  const toAddr = svc.needsToAddr ? $<HTMLInputElement>('toAddrInput').value.trim() : null;
+  const toAddr = svc.needsToAddr ? storedAddr($<HTMLInputElement>('toAddrInput').value.trim(), toPin) : null;
   if(!selectedCat || !selectedSize){ toast(d.toastMissingCatSize); return; }
   if(!desc || !addr || (svc.needsToAddr && !toAddr)){ toast(d.toastMissingFields); return; }
   let price: number;
@@ -571,7 +578,7 @@ export function jobCardHTML(j: Job, courierView: boolean): string {
       <div class="price">${j.price} ${d.priceUnit}</div>
     </div>
     ${j.photo ? `<img src="${j.photo}" alt="" style="width:100%;max-height:160px;object-fit:cover;margin-top:10px;border:1px solid var(--line);">` : ''}
-    <p class="meta" style="margin-top:8px;">${routeLinksHTML(j, d.openInMaps, d.mapsRoute)}</p>
+    <p class="meta" style="margin-top:8px;">${routeLinksHTML(j, d.openInMaps, d.mapsRoute, d.customerLocationText)}</p>
     ${body}
   </div>`;
 }
