@@ -71,3 +71,6 @@ Flöde: kunden trycker **Tilldela & betala** på en sökande (ett enda steg) →
 
 ## Adresser och Google Maps
 Adresserna på korten är länkar till Google Maps (ingen API-nyckel behövs). Kunden kan i formuläret trycka **Använd min position** för att spara en GPS-pin (webbläsaren frågar om platsåtkomst); då öppnar länken exakt koordinat i stället för att söka på texten. Pinnen är valfri och sparas i `addr_lat/addr_lng/to_lat/to_lng`.
+
+### Adressförslag medan man skriver
+Adressfälten föreslår platser efter tre tecken (`src/place-search.ts`, `src/geocode.ts`). Tjänsten är Photon (OpenStreetMap, https://photon.komoot.io): gratis och utan API-nyckel, men **det kunden skriver skickas dit** och den har ingen servicegaranti. Väljer kunden ett förslag sparas även koordinaten som pin, så Maps-länken blir exakt; ändrar kunden texten efteråt släpps pinnen. Fungerar inte tjänsten kan man fortfarande skriva fritt. Vill du byta till Google Places eller en egen tjänst byter du bara ut `searchPlaces()` i `geocode.ts`.

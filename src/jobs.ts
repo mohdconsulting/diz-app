@@ -1,5 +1,6 @@
 import { $ } from './util';
 import { priceFor } from './pricing';
+import { attachPlaceSearch, closeSuggestions } from './place-search';
 import { I18N, type Service } from './i18n';
 import { type Job, type ServiceKey } from './types';
 import { esc, toast, routeLinksHTML, PIN_ADDR } from './util';
@@ -13,6 +14,8 @@ import { startPayment, openJobPaymentHTML, customerPaymentHTML, providerPaymentH
 /** GPS pins chosen in the request form (optional). Sent with the job so the driver's Maps link is exact. */
 type Pin = { lat: number; lng: number } | null;
 let addrPin: Pin = null, toPin: Pin = null;
+/** True while a pin came from a picked suggestion (it must be dropped if the text is edited afterwards). */
+let addrPinFromSearch = false, toPinFromSearch = false;
 const roundCoord = (n: number) => Math.round(n * 1e6) / 1e6;
 
 export function renderPins(){
@@ -29,7 +32,7 @@ export function useMyLocation(which: 'addr'|'to'){
   if(!navigator.geolocation){ toast(t().toastLocationFailed); return; }
   navigator.geolocation.getCurrentPosition(pos=>{
     const pin = { lat: roundCoord(pos.coords.latitude), lng: roundCoord(pos.coords.longitude) };
-    if(which === 'addr') addrPin = pin; else toPin = pin;
+    if(which === 'addr'){ addrPin = pin; addrPinFromSearch = false; } else { toPin = pin; toPinFromSearch = false; }
     // The address text is required; if it is empty, a pin alone is enough to fill it in.
     const input = $<HTMLInputElement>(which === 'addr' ? 'addrInput' : 'toAddrInput');
     if(!input.value.trim()) input.value = t().myLocationText;
@@ -37,9 +40,27 @@ export function useMyLocation(which: 'addr'|'to'){
   }, ()=>toast(t().toastLocationFailed), { enableHighAccuracy: true, timeout: 15000 });
 }
 export function clearPin(which: 'addr'|'to'){
-  if(which === 'addr') addrPin = null; else toPin = null;
+  if(which === 'addr'){ addrPin = null; addrPinFromSearch = false; } else { toPin = null; toPinFromSearch = false; }
   renderPins();
 }
+
+function setupPlaceSearch(){
+  const wire = (inputId: string, listId: string, which: 'addr'|'to') => attachPlaceSearch({
+    input: $<HTMLInputElement>(inputId), list: $(listId),
+    onPick: s => {
+      const pin = { lat: s.lat, lng: s.lng };
+      if(which === 'addr'){ addrPin = pin; addrPinFromSearch = true; } else { toPin = pin; toPinFromSearch = true; }
+      renderPins();
+    },
+    onEdit: () => {
+      if(which === 'addr' && addrPinFromSearch){ addrPin = null; addrPinFromSearch = false; renderPins(); }
+      if(which === 'to' && toPinFromSearch){ toPin = null; toPinFromSearch = false; renderPins(); }
+    },
+  });
+  wire('addrInput', 'addrSuggest', 'addr');
+  wire('toAddrInput', 'toSuggest', 'to');
+}
+setupPlaceSearch();
 
 export function renderRequestDetails(){
   const d = t();
@@ -109,7 +130,8 @@ export function resetNewRequestForm(){
   $<HTMLInputElement>('descInput').value = '';
   $<HTMLInputElement>('addrInput').value = '';
   if($('toAddrInput')) $<HTMLInputElement>('toAddrInput').value = '';
-  addrPin = null; toPin = null;
+  addrPin = null; toPin = null; addrPinFromSearch = false; toPinFromSearch = false;
+  closeSuggestions($('addrSuggest')); closeSuggestions($('toSuggest'));
   $('customPriceChip').classList.remove('on');
   $('customPriceWrap').style.display = 'none';
   $<HTMLInputElement>('customPriceInput').value = '';

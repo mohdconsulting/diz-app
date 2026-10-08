@@ -16,6 +16,11 @@ async def main():
         pg.on('console',lambda m: errs.append('CONSOLE '+m.text) if m.type=='error' and 'fonts' not in m.text and 'ERR_FAILED' not in m.text else None)
         await pg.route('**/@supabase/supabase-js@2',lambda r:r.fulfill(body=stub,content_type='application/javascript'))
         await pg.route('**/fonts.g*/**',lambda r:r.abort())
+        photon_calls=[]
+        async def photon(r):
+            photon_calls.append(r.request.url)
+            await r.fulfill(content_type='application/json',headers={'access-control-allow-origin':'*'},body='{"features":[{"geometry":{"coordinates":[44.43,33.30]},"properties":{"name":"Karrada","city":"Baghdad","countrycode":"IQ"}},{"geometry":{"coordinates":[44.5,33.4]},"properties":{"name":"Karrada Street","district":"Karrada","city":"Baghdad","countrycode":"IQ"}}]}')
+        await pg.route('**/photon.komoot.io/**',photon)
         await pg.goto(URL); await pg.wait_for_timeout(500)
         ok=True
         def check(label,cond):
@@ -41,7 +46,17 @@ async def main():
         check('customer lands on home', await screen()=='home')
         await pg.click('.tabbar button[data-tab=new]')
         await pg.click('#serviceChips .chip[data-val=junk]'); await pg.click('#catChips .chip >> nth=0'); await pg.click('#sizeChips .chip >> nth=0')
-        await pg.fill('#descInput','Gammal soffa'); await pg.fill('#addrInput','')
+        await pg.fill('#descInput','Gammal soffa')
+        # incremental address search: type, wait for suggestions, pick one
+        await pg.type('#addrInput','Kar'); await pg.wait_for_timeout(700)
+        check('suggestions shown', await pg.locator('#addrSuggest .suggest-item:visible').count()==2)
+        check('suggestion request biased to Iraq', len(photon_calls)>=1 and 'lat=33.3152' in photon_calls[-1])
+        await pg.locator('#addrSuggest .suggest-item').first.dispatch_event('mousedown')
+        check('suggestion fills the field', await pg.input_value('#addrInput')=='Karrada, Baghdad')
+        check('suggestion sets a pin', await pg.locator('#addrPinRow button[onclick^="clearPin("]').count()==1)
+        await pg.type('#addrInput','x'); await pg.wait_for_timeout(100)
+        check('editing the text drops the suggestion pin', await pg.locator('#addrPinRow button[onclick^="useMyLocation("]').count()==1)
+        await pg.fill('#addrInput','')
         await pg.click('button[onclick="useMyLocation(\'addr\')"]'); await pg.wait_for_timeout(500)
         check('address filled with translated label', await pg.input_value('#addrInput')=='Min position (GPS)')
         check('pin saved note shown', await pg.locator('#addrPinRow button[onclick^="clearPin("]').count()==1)
