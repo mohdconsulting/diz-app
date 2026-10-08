@@ -166,7 +166,6 @@ function mockPanelHTML(p: Payment, who: string): string {
     <div style="margin-top:4px;">${who ? d.payTo.replace('{name}', esc(who)) + ' · ' : ''}${money(p.amount)}</div>
     <div class="action-row">
       <button class="secondary" onclick="mockPay('${p.id}', true)">${d.mockPayBtn}</button>
-      <button class="secondary" onclick="mockPay('${p.id}', false)">${d.mockFailBtn}</button>
       <button class="secondary" onclick="cancelMockCheckout()">${d.mockCancelBtn}</button>
     </div></div>`;
 }
