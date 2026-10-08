@@ -2,13 +2,44 @@ import { $ } from './util';
 import { priceFor } from './pricing';
 import { type Service } from './i18n';
 import { type Job, type ServiceKey } from './types';
-import { esc, toast } from './util';
+import { esc, toast, routeLinksHTML } from './util';
 import { role, paymentsMode, selectedService, setSelectedService, selectedCat, setSelectedCat, selectedSize, setSelectedSize, useCustomPrice, setUseCustomPrice, editingJobId, setEditingJobId, photoDataUrl, setPhotoDataUrl, jobs, dbRef, currentUser, t, me, db } from './state';
 import { seenSet, shownSigs, jobEvent } from './notifications';
 import { renderAccountEdit, renderProfileEdit } from './auth';
 import { goTo, refreshCurrentScreen } from './shell';
 import { ad } from './admin';
 import { startPayment, openJobPaymentHTML, customerPaymentHTML, providerPaymentHTML, settledPaymentHTML, isFunded } from './payments';
+
+/** GPS pins chosen in the request form (optional). Sent with the job so the driver's Maps link is exact. */
+type Pin = { lat: number; lng: number } | null;
+let addrPin: Pin = null, toPin: Pin = null;
+const roundCoord = (n: number) => Math.round(n * 1e6) / 1e6;
+
+export function renderPins(){
+  const d = t();
+  const row = (id: string, pin: Pin, which: 'addr'|'to') => {
+    $(id).innerHTML = pin
+      ? `<span>📍 ${d.locationSavedNote} (${pin.lat.toFixed(4)}, ${pin.lng.toFixed(4)})</span><button type="button" class="secondary" onclick="clearPin('${which}')">${d.removePinBtn}</button>`
+      : `<button type="button" class="secondary" onclick="useMyLocation('${which}')">📍 ${d.useMyLocationBtn}</button>`;
+  };
+  row('addrPinRow', addrPin, 'addr');
+  row('toPinRow', toPin, 'to');
+}
+export function useMyLocation(which: 'addr'|'to'){
+  if(!navigator.geolocation){ toast(t().toastLocationFailed); return; }
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const pin = { lat: roundCoord(pos.coords.latitude), lng: roundCoord(pos.coords.longitude) };
+    if(which === 'addr') addrPin = pin; else toPin = pin;
+    // The address text is required; if it is empty, a pin alone is enough to fill it in.
+    const input = $<HTMLInputElement>(which === 'addr' ? 'addrInput' : 'toAddrInput');
+    if(!input.value.trim()) input.value = t().myLocationText;
+    renderPins();
+  }, ()=>toast(t().toastLocationFailed), { enableHighAccuracy: true, timeout: 15000 });
+}
+export function clearPin(which: 'addr'|'to'){
+  if(which === 'addr') addrPin = null; else toPin = null;
+  renderPins();
+}
 
 export function renderRequestDetails(){
   const d = t();
@@ -21,6 +52,7 @@ export function renderRequestDetails(){
   $('addrLabel').textContent = svc.addrLabel;
   $<HTMLInputElement>('addrInput').placeholder = svc.addrPlaceholder;
   $('toAddrWrap').style.display = svc.needsToAddr ? 'block' : 'none';
+  renderPins();
   if(svc.needsToAddr){
     $('toAddrLabel').textContent = svc.toAddrLabel ?? '';
     $<HTMLInputElement>('toAddrInput').placeholder = svc.toAddrPlaceholder ?? '';
@@ -77,6 +109,7 @@ export function resetNewRequestForm(){
   $<HTMLInputElement>('descInput').value = '';
   $<HTMLInputElement>('addrInput').value = '';
   if($('toAddrInput')) $<HTMLInputElement>('toAddrInput').value = '';
+  addrPin = null; toPin = null;
   $('customPriceChip').classList.remove('on');
   $('customPriceWrap').style.display = 'none';
   $<HTMLInputElement>('customPriceInput').value = '';
@@ -252,11 +285,20 @@ export function editJob(id: string){
   }
   $<HTMLInputElement>('addrInput').value = j.addr ?? '';
   if($('toAddrInput')) $<HTMLInputElement>('toAddrInput').value = j.toAddr || '';
+  addrPin = (j.addrLat != null && j.addrLng != null) ? { lat: j.addrLat, lng: j.addrLng } : null;
+  toPin = (j.toLat != null && j.toLng != null) ? { lat: j.toLat, lng: j.toLng } : null;
   $('customPriceChip').classList.toggle('on', useCustomPrice);
   $('customPriceWrap').style.display = useCustomPrice ? 'block' : 'none';
   if(useCustomPrice) $<HTMLInputElement>('customPriceInput').value = String(j.price);
   updateEstimate();
   $('submitBtn').textContent = t().saveChangesBtn;
+}
+
+function pinFields(toAddr: string | null) {
+  return {
+    addrLat: addrPin ? addrPin.lat : null, addrLng: addrPin ? addrPin.lng : null,
+    toLat: toAddr && toPin ? toPin.lat : null, toLng: toAddr && toPin ? toPin.lng : null,
+  };
 }
 
 export async function submitRequest(){
@@ -281,10 +323,10 @@ export async function submitRequest(){
   const wasEditing = !!editingJobId;
   try{
     if(wasEditing && editingJobId){
-      await db().job(editingJobId).update({service, cat:selectedCat, desc, addr, toAddr, size:selectedSize, price, photo: photoDataUrl || null});
+      await db().job(editingJobId).update({service, cat:selectedCat, desc, addr, toAddr, size:selectedSize, price, photo: photoDataUrl || null, ...pinFields(toAddr)});
     } else {
       await db().collection('jobs').add({
-        service, cat:selectedCat, desc, addr, toAddr, size:selectedSize, price,
+        service, cat:selectedCat, desc, addr, toAddr, size:selectedSize, price, ...pinFields(toAddr),
         photo: photoDataUrl || null,
         status:"open",
         ownerPhone: me().phone, acceptedByPhone:null, createdAt: Date.now()
@@ -512,7 +554,6 @@ export function jobCardHTML(j: Job, courierView: boolean): string {
       body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>`;
     }
   }
-  const route = j.toAddr ? `${j.addr} → ${j.toAddr}` : j.addr;
   const ev = jobEvent(j);
   let flagHtml = '';
   if(ev && !seenSet.has(ev.sig)){
@@ -530,7 +571,7 @@ export function jobCardHTML(j: Job, courierView: boolean): string {
       <div class="price">${j.price} ${d.priceUnit}</div>
     </div>
     ${j.photo ? `<img src="${j.photo}" alt="" style="width:100%;max-height:160px;object-fit:cover;margin-top:10px;border:1px solid var(--line);">` : ''}
-    <p class="meta" style="margin-top:8px;">${esc(route)}</p>
+    <p class="meta" style="margin-top:8px;">${routeLinksHTML(j, d.openInMaps, d.mapsRoute)}</p>
     ${body}
   </div>`;
 }

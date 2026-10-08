@@ -19,6 +19,11 @@ export interface Job {
   desc: string | null;
   addr: string | null;
   toAddr: string | null;
+  /** Optional GPS pin for the (pickup) address and the destination; makes the Maps link exact. */
+  addrLat: number | null;
+  addrLng: number | null;
+  toLat: number | null;
+  toLng: number | null;
   price: number;
   photo: string | null;
   status: JobStatus;

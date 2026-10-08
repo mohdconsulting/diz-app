@@ -2,6 +2,9 @@ import type { Lang, ServiceKey } from './types';
 
 const I18N_RAW = {
   sv: {
+    useMyLocationBtn:"Använd min position", locationSavedNote:"Position sparad", removePinBtn:"Ta bort", myLocationText:"Min position (GPS)", toastLocationFailed:"Kunde inte hämta positionen – tillåt platsåtkomst i webbläsaren",
+    openInMaps:"Öppna i Google Maps",
+    mapsRoute:"Visa rutten",
     pay:{
       assignPayBtn:"Tilldela & betala {amount}",
       payTo:"Betala till {name}",
@@ -182,6 +185,9 @@ const I18N_RAW = {
     priceUnit:"IQD"
   },
   en: {
+    useMyLocationBtn:"Use my location", locationSavedNote:"Location saved", removePinBtn:"Remove", myLocationText:"My location (GPS)", toastLocationFailed:"Could not get your location — allow location access in the browser",
+    openInMaps:"Open in Google Maps",
+    mapsRoute:"Show route",
     pay:{
       assignPayBtn:"Assign & pay {amount}",
       payTo:"Pay {name}",
@@ -362,6 +368,9 @@ const I18N_RAW = {
     priceUnit:"IQD"
   },
   ar: {
+    useMyLocationBtn:"استخدم موقعي", locationSavedNote:"تم حفظ الموقع", removePinBtn:"إزالة", myLocationText:"موقعي (GPS)", toastLocationFailed:"تعذّر تحديد موقعك — اسمح بالوصول إلى الموقع في المتصفح",
+    openInMaps:"افتح في خرائط Google",
+    mapsRoute:"عرض المسار",
     pay:{
       assignPayBtn:"تكليف ودفع {amount}",
       payTo:"الدفع إلى {name}",

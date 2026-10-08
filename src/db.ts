@@ -14,7 +14,8 @@ const JOBS_CAMEL_TO_SNAKE: Record<string, string> = {
   paymentReleased:'payment_released', completedAt:'completed_at', createdAt:'created_at',
   problemReported:'problem_reported', problemText:'problem_text', problemReportedAt:'problem_reported_at', autoReleased:'auto_released',
   providerResponse:'provider_response', providerResponseAt:'provider_response_at',
-  resolvedAt:'resolved_at'
+  resolvedAt:'resolved_at',
+  addrLat:'addr_lat', addrLng:'addr_lng', toLat:'to_lat', toLng:'to_lng'
 };
 const JOBS_SNAKE_TO_CAMEL: Record<string, string> =
   Object.fromEntries(Object.entries(JOBS_CAMEL_TO_SNAKE).map(([c, s]) => [s, c]));
