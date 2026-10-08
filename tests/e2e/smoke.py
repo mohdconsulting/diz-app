@@ -49,6 +49,8 @@ async def main():
         await reg('Ali','0780222','driver')
         check('driver lands on jobs', await screen()=='jobs')
         check('driver sees open job', await pg.locator('#jobsList .card').count()>=1)
+        href=await pg.locator('#jobsList a.maplink').first.get_attribute('href')
+        check('address links to Google Maps', href.startswith('https://www.google.com/maps/search/?api=1&query='))
         await click_btn('submitOffer')
         check('applicant stored', await pg.evaluate("__db.jobs[0].applicants.length")==1)
         await logout()

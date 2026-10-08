@@ -1,7 +1,7 @@
 import { adminPaymentHTML, paymentFor, adminSettlePayment, loadPayments } from './payments';
 import { $ } from './util';
 import { type Role, type Job, type JobPatch } from './types';
-import { esc, toast } from './util';
+import { esc, toast, routeLinksHTML } from './util';
 import { lang, role, jobs, setJobs, dbRef, t, db, sb, sbRef } from './state';
 import { refreshCurrentScreen } from './shell';
 import { catLabel, serviceLabel, statusLabel, statusClass } from './jobs';
@@ -161,7 +161,6 @@ export function renderAdminList(){
 export function adminJobCardHTML(j: Job): string {
   const a = ad(), d = t();
   const applicants = Array.isArray(j.applicants) ? j.applicants : [];
-  const route = j.toAddr ? `${j.addr} → ${j.toAddr}` : j.addr;
   const draft = adminNoteDrafts[j.id]!==undefined ? adminNoteDrafts[j.id] : (adminNotes[j.id]||'');
   const pend = (adminPending && adminPending.id===j.id) ? adminPending.type : null;
   const row = (label: string, val: string)=>`<div class="adm-row"><span>${label}</span><b>${val}</b></div>`;
@@ -201,7 +200,7 @@ export function adminJobCardHTML(j: Job): string {
     ${j.photo ? `<img src="${j.photo}" alt="" style="width:100%;max-height:140px;object-fit:cover;margin-top:10px;border:1px solid var(--line);">` : ''}
     <div style="margin-top:8px;">
       ${row(a.id, esc(j.id))}
-      ${row('📍', esc(route))}
+      ${row('📍', routeLinksHTML(j.addr, j.toAddr, d.openInMaps, d.mapsRoute))}
       ${row(a.customer, userLabel(j.ownerPhone))}
       ${row(a.provider, userLabel(j.acceptedByPhone))}
       ${row(a.applicants, appl)}

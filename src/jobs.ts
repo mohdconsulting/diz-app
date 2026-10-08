@@ -2,7 +2,7 @@ import { $ } from './util';
 import { priceFor } from './pricing';
 import { type Service } from './i18n';
 import { type Job, type ServiceKey } from './types';
-import { esc, toast } from './util';
+import { esc, toast, routeLinksHTML } from './util';
 import { role, paymentsMode, selectedService, setSelectedService, selectedCat, setSelectedCat, selectedSize, setSelectedSize, useCustomPrice, setUseCustomPrice, editingJobId, setEditingJobId, photoDataUrl, setPhotoDataUrl, jobs, dbRef, currentUser, t, me, db } from './state';
 import { seenSet, shownSigs, jobEvent } from './notifications';
 import { renderAccountEdit, renderProfileEdit } from './auth';
@@ -512,7 +512,6 @@ export function jobCardHTML(j: Job, courierView: boolean): string {
       body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>`;
     }
   }
-  const route = j.toAddr ? `${j.addr} → ${j.toAddr}` : j.addr;
   const ev = jobEvent(j);
   let flagHtml = '';
   if(ev && !seenSet.has(ev.sig)){
@@ -530,7 +529,7 @@ export function jobCardHTML(j: Job, courierView: boolean): string {
       <div class="price">${j.price} ${d.priceUnit}</div>
     </div>
     ${j.photo ? `<img src="${j.photo}" alt="" style="width:100%;max-height:160px;object-fit:cover;margin-top:10px;border:1px solid var(--line);">` : ''}
-    <p class="meta" style="margin-top:8px;">${esc(route)}</p>
+    <p class="meta" style="margin-top:8px;">${routeLinksHTML(j.addr, j.toAddr, d.openInMaps, d.mapsRoute)}</p>
     ${body}
   </div>`;
 }

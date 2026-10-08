@@ -93,6 +93,7 @@ body[dir="rtl"] .card.route::before{left:auto;right:0;}
 .card .top-row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
 .card .service-badge{font-size:11px;color:var(--teal-2);font-weight:600;margin-bottom:2px;}
 .card h3{margin:0 0 4px;font-size:15px;font-weight:600;}
+.maplink{color:inherit;text-decoration:underline;text-underline-offset:2px;word-break:break-word;}
 .card p.meta{margin:0;font-size:13px;color:var(--muted);}
 .card .price{font-weight:700;font-size:16px;white-space:nowrap;}
 

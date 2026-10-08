@@ -2,6 +2,8 @@ import type { Lang, ServiceKey } from './types';
 
 const I18N_RAW = {
   sv: {
+    openInMaps:"Öppna i Google Maps",
+    mapsRoute:"Visa rutten",
     pay:{
       assignPayBtn:"Tilldela & betala {amount}",
       payTo:"Betala till {name}",
@@ -182,6 +184,8 @@ const I18N_RAW = {
     priceUnit:"IQD"
   },
   en: {
+    openInMaps:"Open in Google Maps",
+    mapsRoute:"Show route",
     pay:{
       assignPayBtn:"Assign & pay {amount}",
       payTo:"Pay {name}",
@@ -362,6 +366,8 @@ const I18N_RAW = {
     priceUnit:"IQD"
   },
   ar: {
+    openInMaps:"افتح في خرائط Google",
+    mapsRoute:"عرض المسار",
     pay:{
       assignPayBtn:"تكليف ودفع {amount}",
       payTo:"الدفع إلى {name}",
