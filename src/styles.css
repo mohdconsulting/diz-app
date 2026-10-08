@@ -253,3 +253,6 @@ button.danger{background:#fff;color:var(--danger);border:1px solid var(--danger)
 @media (prefers-color-scheme: dark){
   body{background:#0e1210;}
 }
+
+.pin-row{margin-top:6px;font-size:12.5px;color:var(--muted);display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.pin-row button{padding:6px 10px;font-size:12.5px;}

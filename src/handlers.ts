@@ -4,7 +4,7 @@ import { startPayment, mockPay, cancelMockCheckout } from './payments';
 import {
   submitResponse, submitRequest, submitReport, submitOffer, submitCustomOffer, startReport, removePhoto,
   providerMarkDone, providerArrive, handlePhotoSelect, editJob, confirmDeleteRequest, completeJob, cancelReport,
-  cancelDelete, assignJob, askDelete, setReportDraft, setRespondDraft,
+  cancelDelete, assignJob, askDelete, useMyLocation, clearPin, setReportDraft, setRespondDraft,
 } from './jobs';
 import {
   setAdminFilter, saveAdminNote, adminDo, adminDeleteUser, adminAsk, adminAbort, setAdminQuery,
@@ -16,6 +16,6 @@ export const handlers = {
   goTo, toggleAuthMode, submitResponse, submitRequest, submitReport, submitOffer, submitCustomOffer, submitAuth,
   startReport, setAdminFilter, saveProfile, saveAdminNote, saveAccountDetails, removePhoto, providerMarkDone,
   providerArrive, logout, handlePhotoSelect, editJob, confirmDeleteRequest, completeJob, cancelReport, cancelDelete,
-  assignJob, askDelete, adminDo, adminDeleteUser, adminAsk, adminAbort, setReportDraft, setRespondDraft,
+  assignJob, askDelete, useMyLocation, clearPin, adminDo, adminDeleteUser, adminAsk, adminAbort, setReportDraft, setRespondDraft,
   setAdminQuery, setAdminNoteDraft, setAdminPendingUser, startPayment, mockPay, cancelMockCheckout,
 };

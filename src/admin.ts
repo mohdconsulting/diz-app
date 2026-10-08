@@ -200,7 +200,7 @@ export function adminJobCardHTML(j: Job): string {
     ${j.photo ? `<img src="${j.photo}" alt="" style="width:100%;max-height:140px;object-fit:cover;margin-top:10px;border:1px solid var(--line);">` : ''}
     <div style="margin-top:8px;">
       ${row(a.id, esc(j.id))}
-      ${row('📍', routeLinksHTML(j.addr, j.toAddr, d.openInMaps, d.mapsRoute))}
+      ${row('📍', routeLinksHTML(j, d.openInMaps, d.mapsRoute))}
       ${row(a.customer, userLabel(j.ownerPhone))}
       ${row(a.provider, userLabel(j.acceptedByPhone))}
       ${row(a.applicants, appl)}

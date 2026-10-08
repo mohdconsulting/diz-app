@@ -22,6 +22,7 @@ src/
 scripts/build.mjs   bundlar allt till EN fristående index.html (esbuild)
 index.html          GENERERAD fil – redigera inte, kör `npm run build`
 diz_supabase_schema.sql   databasschema med Supabase Auth, RLS och vakt-triggers
+diz_location.sql          valfri GPS-position på adresser (bara för befintlig databas; nya installationer får den via schemat)
 diz_payments.sql          betalningar/deposition (kör efter schemat; idempotent)
 supabase/functions/       Edge Function-skelett för riktig betalleverantör (Qi) – ej driftsatta
 tests/sql/                SQL-test för betalningslogiken (lokal Postgres)
@@ -45,6 +46,7 @@ Röktest: `npm run build && python3 tests/e2e/smoke.py` (kräver `pip install pl
 3. Kör `diz_supabase_schema.sql` i SQL Editor (OBS: återskapar tabellerna).
 4. Sätt `SUPABASE_URL` och `SUPABASE_ANON_KEY` i `src/db.ts`. (Anon/publishable-nyckeln är avsedd att vara publik – skyddet ligger i RLS.)
 5. Kör `diz_payments.sql` (betalningar, se nedan). Standardläget är `mock`; vill du inte ha betalning ännu: `update public.app_settings set value = 'off' where key = 'payments_mode';`
+   Har du en databas från före GPS-positionerna: kör även `diz_location.sql` (idempotent).
 6. Registrera ett konto i appen och gör det till admin: `update public.users set role = 'admin' where phone = '…';`
 
 ## Säkerhetsmodell
@@ -66,3 +68,6 @@ Flöde: kunden trycker **Tilldela & betala** på en sökande (ett enda steg) →
 - **Byta till Qi Card:** gör `supabase/functions/start-checkout` och `qi-webhook` riktiga (markerade `TODO(Qi)`: skapa betalning, verifiera webhook-signatur, kontrollera status), driftsätt dem, lägg hemligheterna med `supabase secrets set`, och sätt `payments_mode` till `live`. Appens kod (`src/payments.ts`) och databasen behöver inte ändras.
 - Utbetalning till utförare och återbetalning är idag **manuella** (admin trycker "Markera utbetald/återbetald" efter att ha flyttat pengarna). Automatisk utbetalning kräver att leverantören erbjuder det.
 - SQL-test: `tests/sql/` (kräver en lokal Postgres; se kommentarerna i filerna).
+
+## Adresser och Google Maps
+Adresserna på korten är länkar till Google Maps (ingen API-nyckel behövs). Kunden kan i formuläret trycka **Använd min position** för att spara en GPS-pin (webbläsaren frågar om platsåtkomst); då öppnar länken exakt koordinat i stället för att söka på texten. Pinnen är valfri och sparas i `addr_lat/addr_lng/to_lat/to_lng`.

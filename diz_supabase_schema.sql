@@ -34,6 +34,10 @@ create table public.jobs (
   desc_text text,
   addr text,
   to_addr text,
+  addr_lat double precision,       -- valfri GPS-position för adressen (visas som Google Maps-länk)
+  addr_lng double precision,
+  to_lat double precision,
+  to_lng double precision,
   price int,
   photo text,
   status text not null default 'open'
@@ -152,8 +156,8 @@ begin
   -- Kunden (ägaren)
   if not ok and old.owner_phone = me then
     if old.status = 'open' and new.status = 'open'
-       and (n - array['service','cat','size','desc_text','addr','to_addr','price','photo'])
-         = (o - array['service','cat','size','desc_text','addr','to_addr','price','photo'])
+       and (n - array['service','cat','size','desc_text','addr','to_addr','price','photo','addr_lat','addr_lng','to_lat','to_lng'])
+         = (o - array['service','cat','size','desc_text','addr','to_addr','price','photo','addr_lat','addr_lng','to_lat','to_lng'])
     then ok := true;                                           -- redigera öppet uppdrag
     elsif old.status = 'open' and new.status = 'accepted' then -- välj utförare bland sökande
       select v into appl from jsonb_array_elements(old.applicants) as e(v)

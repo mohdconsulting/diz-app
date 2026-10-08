@@ -25,23 +25,31 @@ export function rememberPhone(phone: string){ try{ localStorage.setItem('diz_las
 export function forgetPhone(){ try{ localStorage.removeItem('diz_last_phone'); }catch(e){} }
 export function safeGetLocal(k: string){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
 
-/** Google Maps URLs (no API key needed): a search for one address, or directions between two. */
-export function mapsSearchUrl(addr: string): string {
-  return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(addr);
+/** An address with an optional GPS pin. With a pin, Google Maps opens the exact spot; otherwise it searches the text. */
+export interface Place { text: string | null | undefined; lat?: number | null; lng?: number | null }
+const hasPin = (p: Place) => typeof p.lat === 'number' && typeof p.lng === 'number' && isFinite(p.lat) && isFinite(p.lng);
+const mapsTarget = (p: Place) => hasPin(p) ? `${p.lat},${p.lng}` : String(p.text ?? '').trim();
+
+/** Google Maps URLs (no API key needed): a search for one place, or directions between two. */
+export function mapsSearchUrl(p: Place): string {
+  return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(mapsTarget(p));
 }
-export function mapsRouteUrl(from: string, to: string): string {
-  return 'https://www.google.com/maps/dir/?api=1&origin=' + encodeURIComponent(from) + '&destination=' + encodeURIComponent(to);
+export function mapsRouteUrl(from: Place, to: Place): string {
+  return 'https://www.google.com/maps/dir/?api=1&origin=' + encodeURIComponent(mapsTarget(from)) + '&destination=' + encodeURIComponent(mapsTarget(to));
 }
-/** An address as a link that opens it in Google Maps (new tab / the Maps app on phones). */
-export function mapLink(addr: string | null | undefined, title: string): string {
-  const a = String(addr ?? '').trim();
-  if(!a) return '';
-  return `<a class="maplink" href="${esc(mapsSearchUrl(a))}" target="_blank" rel="noopener noreferrer" title="${esc(title)}">📍 ${esc(a)}</a>`;
+/** A place as a link that opens it in Google Maps (new tab / the Maps app on phones). */
+export function mapLink(p: Place, title: string): string {
+  const text = String(p.text ?? '').trim();
+  if(!text && !hasPin(p)) return '';
+  return `<a class="maplink" href="${esc(mapsSearchUrl(p))}" target="_blank" rel="noopener noreferrer" title="${esc(title)}">📍 ${esc(text || mapsTarget(p))}</a>`;
 }
-/** Pickup (and optional destination) addresses as Maps links, plus a directions link when there are two. */
-export function routeLinksHTML(addr: string | null, toAddr: string | null, openTitle: string, routeLabel: string): string {
-  const from = mapLink(addr, openTitle);
-  if(!toAddr) return from;
-  const dir = addr ? ` <a class="maplink" href="${esc(mapsRouteUrl(addr, toAddr))}" target="_blank" rel="noopener noreferrer">🧭 ${esc(routeLabel)}</a>` : '';
-  return `${from} → ${mapLink(toAddr, openTitle)}${dir}`;
+/** Pickup (and optional destination) as Maps links, plus a directions link when there are two. */
+export function routeLinksHTML(j: { addr: string | null; toAddr: string | null; addrLat?: number | null; addrLng?: number | null; toLat?: number | null; toLng?: number | null },
+                               openTitle: string, routeLabel: string): string {
+  const from: Place = { text: j.addr, lat: j.addrLat, lng: j.addrLng };
+  const to: Place = { text: j.toAddr, lat: j.toLat, lng: j.toLng };
+  if(!j.toAddr) return mapLink(from, openTitle);
+  const dir = (from.text || hasPin(from))
+    ? ` <a class="maplink" href="${esc(mapsRouteUrl(from, to))}" target="_blank" rel="noopener noreferrer">🧭 ${esc(routeLabel)}</a>` : '';
+  return `${mapLink(from, openTitle)} → ${mapLink(to, openTitle)}${dir}`;
 }

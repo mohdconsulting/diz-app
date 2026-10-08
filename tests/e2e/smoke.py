@@ -9,7 +9,8 @@ URL=(HERE/'../../index.html').resolve().as_uri()
 async def main():
     async with async_playwright() as p:
         b=await p.chromium.launch()
-        pg=await b.new_page(viewport={'width':420,'height':900})
+        ctx=await b.new_context(viewport={'width':420,'height':900},geolocation={'latitude':33.3152,'longitude':44.3661},permissions=['geolocation'])
+        pg=await ctx.new_page()
         errs=[]
         pg.on('pageerror',lambda e:errs.append('PAGEERR '+str(e)))
         pg.on('console',lambda m: errs.append('CONSOLE '+m.text) if m.type=='error' and 'fonts' not in m.text and 'ERR_FAILED' not in m.text else None)
@@ -41,8 +42,11 @@ async def main():
         await pg.click('.tabbar button[data-tab=new]')
         await pg.click('#serviceChips .chip[data-val=junk]'); await pg.click('#catChips .chip >> nth=0'); await pg.click('#sizeChips .chip >> nth=0')
         await pg.fill('#descInput','Gammal soffa'); await pg.fill('#addrInput','Karrada')
+        await pg.click('button[onclick="useMyLocation(\'addr\')"]'); await pg.wait_for_timeout(500)
+        check('pin saved note shown', await pg.locator('#addrPinRow button[onclick^="clearPin("]').count()==1)
         await pg.click('#submitBtn'); await pg.wait_for_timeout(800)
         check('job stored', await pg.evaluate("__db.jobs.length")==1)
+        check('pin stored with job', await pg.evaluate("__db.jobs[0].addr_lat")==33.3152 and await pg.evaluate("__db.jobs[0].addr_lng")==44.3661)
         check('back on home with card', await pg.locator('#homeList .card').count()==1)
         await logout()
         # --- driver registers, applies
@@ -51,6 +55,7 @@ async def main():
         check('driver sees open job', await pg.locator('#jobsList .card').count()>=1)
         href=await pg.locator('#jobsList a.maplink').first.get_attribute('href')
         check('address links to Google Maps', href.startswith('https://www.google.com/maps/search/?api=1&query='))
+        check('link uses the GPS pin', href.endswith('33.3152%2C44.3661'))
         await click_btn('submitOffer')
         check('applicant stored', await pg.evaluate("__db.jobs[0].applicants.length")==1)
         await logout()
