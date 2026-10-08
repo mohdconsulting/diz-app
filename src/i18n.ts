@@ -2,6 +2,7 @@ import type { Lang, ServiceKey } from './types';
 
 const I18N_RAW = {
   sv: {
+    myLocationText:"Min position (GPS)",
     customerLocationText:"Kundens position (GPS)",
     useMyLocationBtn:"Använd min position", locationSavedNote:"Position sparad", removePinBtn:"Ta bort", toastLocationFailed:"Kunde inte hämta positionen – tillåt platsåtkomst i webbläsaren",
     openInMaps:"Öppna i Google Maps",
@@ -186,6 +187,7 @@ const I18N_RAW = {
     priceUnit:"IQD"
   },
   en: {
+    myLocationText:"My location (GPS)",
     customerLocationText:"Customer's location (GPS)",
     useMyLocationBtn:"Use my location", locationSavedNote:"Location saved", removePinBtn:"Remove", toastLocationFailed:"Could not get your location — allow location access in the browser",
     openInMaps:"Open in Google Maps",
@@ -370,6 +372,7 @@ const I18N_RAW = {
     priceUnit:"IQD"
   },
   ar: {
+    myLocationText:"موقعي (GPS)",
     customerLocationText:"موقع العميل (GPS)",
     useMyLocationBtn:"استخدم موقعي", locationSavedNote:"تم حفظ الموقع", removePinBtn:"إزالة", toastLocationFailed:"تعذّر تحديد موقعك — اسمح بالوصول إلى الموقع في المتصفح",
     openInMaps:"افتح في خرائط Google",
