@@ -9,7 +9,7 @@ import { seenSet, shownSigs, jobEvent } from './notifications';
 import { renderAccountEdit, renderProfileEdit } from './auth';
 import { goTo, refreshCurrentScreen } from './shell';
 import { ad } from './admin';
-import { stopSharing, providerShareHTML, customerTrackingHTML } from './tracking';
+import { dropSharing, providerShareHTML, customerTrackingHTML } from './tracking';
 import { startPayment, openJobPaymentHTML, customerPaymentHTML, providerPaymentHTML, settledPaymentHTML, isFunded } from './payments';
 
 /** GPS pins chosen in the request form (optional). Sent with the job so the driver's Maps link is exact. */
@@ -195,8 +195,8 @@ export function updateEstimate(){
 export async function providerArrive(id: string){
   if(!dbRef) return;
   try{
-    await stopSharing();   // arrival ends position sharing (the database also removes the stored position)
     await db().job(id).update({arrived:true, arrivedAt:Date.now()});
+    dropSharing(id);   // arrival ends position sharing (the database also removes the stored position)
     toast(t().toastProviderArrived);
   }catch(e){ toast(t().toastSaveFailed); }
 }

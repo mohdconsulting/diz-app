@@ -96,13 +96,13 @@ async def main():
         check('payment held', await pg.evaluate("__db.payments.map(p=>p.status).join()")=='held')
         check('no pay button after assigning', await pg.locator('button[onclick^="startPayment("]:visible').count()==0)
         await logout()
-        # --- driver shares position; customer follows on the map
+        # --- position shared automatically on assignment; customer follows on the map
         await login('0780222')
         await pg.click('.tabbar button[data-tab=mine]'); await pg.wait_for_timeout(300)
-        check('driver sees share button', await pg.locator('button[onclick^="toggleSharing("]:visible').count()==1)
-        await click_btn('toggleSharing'); await pg.wait_for_timeout(800)
+        await pg.wait_for_timeout(1500)
         check('position shared to the database', await pg.evaluate("__db.provider_locations.length")==1 and await pg.evaluate("__db.provider_locations[0].lat")==33.3152)
-        check('driver can stop sharing', await pg.locator('button[onclick^="toggleSharing("]:visible').count()==1)
+        check('driver sees disclosure', 'delas automatiskt' in await pg.inner_text('#mineList'))
+        check('no manual share button', await pg.locator('button[onclick^="toggleSharing("]').count()==0)
         await logout()
         check('sign-out removes the shared position', await pg.evaluate("__db.provider_locations.length")==0)
         await pg.evaluate("__db.provider_locations.push({job_id:__db.jobs[0].id,provider_phone:'0780222',customer_phone:'0770111',lat:33.3,lng:44.4,accuracy:10,updated_at:Date.now()})")

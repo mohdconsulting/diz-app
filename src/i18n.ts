@@ -2,13 +2,13 @@ import type { Lang, ServiceKey } from './types';
 
 const I18N_RAW = {
   sv: {
+    authShareNote:"Som tjänsteleverantör delas din position automatiskt med kunden när du fått ett uppdrag – tills du markerar att du har anlänt. Du får information om det i appen.",
     track:{
-      shareBtn:"📡 Dela min position med kunden",
-      stopShareBtn:"Sluta dela position",
-      shareNote:"Kunden ser var du är tills du markerar att du har anlänt. Delningen fungerar bara medan appen är öppen och skärmen är på.",
-      sharingNow:"📡 Du delar din position med kunden",
+      autoShareInfo:"📡 Din position delas automatiskt med kunden tills du markerar att du har anlänt. Det fungerar bara medan appen är öppen och skärmen är på.",
+      autoStarted:"Din position delas nu med kunden tills du markerar att du har anlänt",
+      shareDenied:"Kunden kan inte följa dig eftersom platsåtkomst är nekad. Tillåt platsåtkomst för sidan i webbläsarens inställningar.",
+      retryBtn:"Försök igen",
       toastShareDenied:"Kunde inte hämta din position – tillåt platsåtkomst i webbläsaren",
-      toastShareStopped:"Du delar inte längre din position",
       onTheWay:"🚚 Utföraren delar sin position",
       ago:"uppdaterad för {t} sedan",
       stale:"Positionen är gammal – utföraren kan ha tappat täckning",
@@ -205,13 +205,13 @@ const I18N_RAW = {
     priceUnit:"IQD"
   },
   en: {
+    authShareNote:"As a service provider your location is shared automatically with the customer once you are assigned a job — until you mark that you have arrived. You will be told about it in the app.",
     track:{
-      shareBtn:"📡 Share my location with the customer",
-      stopShareBtn:"Stop sharing location",
-      shareNote:"The customer sees where you are until you mark that you have arrived. Sharing only works while the app is open and the screen is on.",
-      sharingNow:"📡 You are sharing your location with the customer",
+      autoShareInfo:"📡 Your location is shared with the customer automatically until you mark that you have arrived. It only works while the app is open and the screen is on.",
+      autoStarted:"Your location is now shared with the customer until you mark that you have arrived",
+      shareDenied:"The customer cannot follow you because location access is denied. Allow location access for this site in your browser settings.",
+      retryBtn:"Try again",
       toastShareDenied:"Could not get your location — allow location access in the browser",
-      toastShareStopped:"You are no longer sharing your location",
       onTheWay:"🚚 The provider is sharing their location",
       ago:"updated {t} ago",
       stale:"The position is old — the provider may have lost coverage",
@@ -408,13 +408,13 @@ const I18N_RAW = {
     priceUnit:"IQD"
   },
   ar: {
+    authShareNote:"بصفتك مقدم خدمة، تتم مشاركة موقعك تلقائيًا مع العميل عند تكليفك بمهمة — إلى أن تسجّل وصولك. سيتم إعلامك بذلك داخل التطبيق.",
     track:{
-      shareBtn:"📡 شارك موقعي مع العميل",
-      stopShareBtn:"إيقاف مشاركة الموقع",
-      shareNote:"يرى العميل مكانك إلى أن تسجّل وصولك. تعمل المشاركة فقط أثناء فتح التطبيق وتشغيل الشاشة.",
-      sharingNow:"📡 أنت تشارك موقعك مع العميل",
+      autoShareInfo:"📡 تتم مشاركة موقعك مع العميل تلقائيًا إلى أن تسجّل وصولك. تعمل المشاركة فقط أثناء فتح التطبيق وتشغيل الشاشة.",
+      autoStarted:"تتم الآن مشاركة موقعك مع العميل إلى أن تسجّل وصولك",
+      shareDenied:"لا يستطيع العميل متابعتك لأن الوصول إلى الموقع مرفوض. اسمح بالوصول إلى الموقع لهذا الموقع في إعدادات المتصفح.",
+      retryBtn:"حاول مرة أخرى",
       toastShareDenied:"تعذّر تحديد موقعك — اسمح بالوصول إلى الموقع في المتصفح",
-      toastShareStopped:"لم تعد تشارك موقعك",
       onTheWay:"🚚 مقدم الخدمة يشارك موقعه",
       ago:"آخر تحديث منذ {t}",
       stale:"الموقع قديم — ربما فقد مقدم الخدمة التغطية",
