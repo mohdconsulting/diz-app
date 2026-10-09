@@ -1,6 +1,7 @@
 import { startPayments, stopPayments } from './payments';
 import { startTracking, stopTracking } from './tracking';
 import { startChat, stopChat } from './chat';
+import { startCalls, stopCalls } from './call';
 import { $ } from './util';
 import { createSupabaseDbShim, SUPABASE_URL, SUPABASE_ANON_KEY } from './db';
 import { type AppUser } from './types';
@@ -145,6 +146,7 @@ export function enterApp(){
   void startPayments();
   startTracking();
   startChat();
+  startCalls();
   if(role==='admin') loadAdminData();
   goTo(role==='admin' ? 'admin' : (role==='driver' ? 'jobs' : 'home'));
 }
@@ -163,6 +165,7 @@ export async function logout(){
   stopPayments();
   stopTracking();
   stopChat();
+  stopCalls();
   setJobs([]); setFirstSnapshotDone(false);
   setAdminUsersList([]); setAdminNotes({});
   try{ if(sbRef) await sb().auth.signOut(); }catch(e){}

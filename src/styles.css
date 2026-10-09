@@ -283,3 +283,12 @@ button.danger{background:#fff;color:var(--danger);border:1px solid var(--danger)
 .chat-form{display:flex;gap:8px;padding:8px;border-top:1px solid var(--line);}
 .chat-form input{flex:1;min-width:0;}
 .chat-note{padding:0 10px 8px;font-size:11.5px;color:var(--muted);}
+
+/* voice call panel (floats above everything, independent of the screens) */
+.call-panel{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:60;
+  width:min(92vw,380px);background:var(--teal);color:#fff;padding:14px 16px;box-shadow:0 6px 24px rgba(0,0,0,.35);}
+.call-title{font-size:13px;opacity:.85;}
+.call-status{font-size:22px;font-weight:600;margin:6px 0 10px;font-variant-numeric:tabular-nums;}
+.call-actions{display:flex;gap:10px;flex-wrap:wrap;}
+.call-actions button{flex:1;min-width:110px;}
+.call-note{margin-top:10px;font-size:11px;opacity:.7;line-height:1.35;}

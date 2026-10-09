@@ -25,6 +25,7 @@ diz_supabase_schema.sql   databasschema med Supabase Auth, RLS och vakt-triggers
 diz_location.sql          valfri GPS-position på adresser (bara för befintlig databas; nya installationer får den via schemat)
 diz_tracking.sql          följ utförarens position på karta (kör efter schemat; idempotent)
 diz_chat.sql              chatt mellan kund och utförare (kör efter schemat; idempotent)
+diz_calls.sql             ljudsamtal (signalering för WebRTC; kör efter schemat; idempotent)
 diz_payments.sql          betalningar/deposition (kör efter schemat; idempotent)
 supabase/functions/       Edge Function-skelett för riktig betalleverantör (Qi) – ej driftsatta
 tests/sql/                SQL-test för betalningslogiken (lokal Postgres)
@@ -48,7 +49,7 @@ Röktest: `npm run build && python3 tests/e2e/smoke.py` (kräver `pip install pl
 3. Kör `diz_supabase_schema.sql` i SQL Editor (OBS: återskapar tabellerna).
 4. Sätt `SUPABASE_URL` och `SUPABASE_ANON_KEY` i `src/db.ts`. (Anon/publishable-nyckeln är avsedd att vara publik – skyddet ligger i RLS.)
 5. Kör `diz_payments.sql` (betalningar, se nedan). Standardläget är `mock`; vill du inte ha betalning ännu: `update public.app_settings set value = 'off' where key = 'payments_mode';`
-   Vill du ha positionsdelning/livekarta: kör även `diz_tracking.sql`. Vill du ha chatt: kör även `diz_chat.sql`.
+   Vill du ha positionsdelning/livekarta: kör även `diz_tracking.sql`. Vill du ha chatt: kör även `diz_chat.sql`. Vill du ha ljudsamtal: kör även `diz_calls.sql`.
    Har du en databas från före GPS-positionerna: kör även `diz_location.sql` (idempotent).
 6. Registrera ett konto i appen och gör det till admin: `update public.users set role = 'admin' where phone = '…';`
 
@@ -92,4 +93,12 @@ Så fort ett uppdrag är tilldelat (och betalt) får kund och utförare en knapp
 - **Admin kan läsa** konversationen (skrivskyddat, knapp på adminkortet) för att kunna utreda reklamationer. Användarna får veta det i en rad under chatten – ändra texten `chat.privacy` i `src/i18n.ts` om ni väljer en annan policy.
 - **Uppdatering:** realtid plus hämtning var 7:e sekund som säkerhetsnät. Inga pushnotiser – användaren ser nya meddelanden när appen är öppen.
 - **Begränsningar:** ingen bilddelning, ingen moderering/filtrering av innehåll, och telefonnummer döljs inte (parterna kan alltså byta kontaktuppgifter utanför appen).
+
+## Ljudsamtal (WebRTC)
+På ett tilldelat uppdrag finns en **📞 Ring**-knapp bredvid chatten. Mottagaren får en ringruta (Svara/Avvisa) och under samtalet finns tyst mikrofon och lägg på. Den som ringde lämnar en rad i chatten ("📞 Samtal (2:31)" eller "📞 Missat samtal"). Källa: `src/call.ts`, signalering i `diz_calls.sql` (kör den i Supabase SQL Editor).
+
+- **Hur:** ljudet går direkt mellan parternas webbläsare (WebRTC). Databasen bär bara signaleringen (erbjudande, svar, ICE, avslut) i tabellen `call_signals`: bara parterna i ett pågående uppdrag kan skicka, bara mottagaren kan läsa och bara i 90 sekunder. Max 5 samtalsförsök/minut per användare. Inget ljud lagras, admin kan inte lyssna, telefonnummer visas inte.
+- **STUN/TURN:** appen använder Googles gratis STUN-servrar för att hitta rätt adress. Det räcker för de flesta uppkopplingar, men inte när båda sidor sitter bakom vissa mobiloperatörers nät (uppskattningsvis 10–20 %). För dem behövs en TURN-relay: lägg in den i `TURN_SERVERS` överst i `src/call.ts` (Cloudflare, Twilio eller egen coturn; kostar pengar).
+- **Integritet:** motparten kan se den andras IP-adress (det ligger i hur WebRTC fungerar) och Googles STUN-server ser IP-adressen vid uppkoppling. Det står i ringrutan; nämn det även i era användarvillkor.
+- **Begränsningar:** man kan bara ta emot samtal medan appen är öppen (en webbsida kan inte ringa i bakgrunden; det kräver pushnotiser/PWA eller mobilapp). Mikrofonbehörighet krävs och sidan måste köras över https. Samtalen är bara testade här med simulerad WebRTC – prova med två riktiga telefoner, helst på olika mobilnät, innan ni lanserar.
 
