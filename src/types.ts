@@ -97,3 +97,14 @@ export interface ProviderLocation {
   accuracy: number | null;
   updatedAt: number;
 }
+
+/** One chat message about a job (table `messages`). Written only through rpc send_message. */
+export interface ChatMessage {
+  id: number;
+  jobId: string;
+  senderPhone: string;
+  recipientPhone: string;
+  body: string;
+  createdAt: number;
+  readAt: number | null;
+}

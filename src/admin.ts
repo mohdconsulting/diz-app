@@ -4,6 +4,7 @@ import { type Role, type Job, type JobPatch } from './types';
 import { esc, toast, routeLinksHTML } from './util';
 import { lang, role, jobs, setJobs, dbRef, t, db, sb, sbRef } from './state';
 import { refreshCurrentScreen } from './shell';
+import { chatHTML, mountChat } from './chat';
 import { catLabel, serviceLabel, statusLabel, statusClass } from './jobs';
 
 /* ---------- ADMIN PANEL ---------- */
@@ -156,6 +157,7 @@ export function renderAdminList(){
   $('adminList').innerHTML = list.length
     ? list.map(adminJobCardHTML).join('')
     : `<div class="empty">${a.noJobs}</div>`;
+  mountChat();
 }
 
 export function adminJobCardHTML(j: Job): string {
@@ -212,6 +214,7 @@ export function adminJobCardHTML(j: Job): string {
       ${j.resolution ? row(a.resolution, esc(a.res[j.resolution]||j.resolution) + (j.resolvedAt ? ' · '+fmtTime(j.resolvedAt) : '')) : ''}
     </div>
     ${problemBox}
+    ${j.acceptedByPhone ? chatHTML(j, true) : ''}
     <div style="margin-top:10px;font-size:12px;color:var(--muted);">${a.noteLabel}</div>
     <textarea id="admNote-${j.id}" placeholder="${a.notePh}" oninput="setAdminNoteDraft('${j.id}', this.value)">${esc(draft)}</textarea>
     <div class="action-row"><button class="secondary" onclick="saveAdminNote('${j.id}')">${a.saveNote}</button></div>

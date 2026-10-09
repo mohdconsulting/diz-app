@@ -1,3 +1,4 @@
+import { mountChat } from './chat';
 import { mountTrackingMap, syncSharing } from './tracking';
 import { $ } from './util';
 import { boot } from './auth';
@@ -120,6 +121,7 @@ export function refreshCurrentScreen(){
   if(name==='adminUsers') renderAdminUsers();
   updateBadges();
   void mountTrackingMap();
+  mountChat();
 }
 
 
