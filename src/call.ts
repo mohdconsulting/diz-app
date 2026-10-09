@@ -137,6 +137,7 @@ function newCall(id: string, jobId: string, peer: string, phase: Phase, outgoing
 function setPhase(p: Phase){
   if(!call) return;
   call.phase = p;
+  if(p === 'connecting' || p === 'active') stopRinging();   // the other side has answered: no more ringing, for caller and receiver alike
   if(p === 'active' && !call.startedAt) call.startedAt = Date.now();
   if(call.timer){ clearTimeout(call.timer); call.timer = null; }
   if(p === 'connecting') call.timer = setTimeout(() => { if(call && call.phase === 'connecting'){ toast(t().call.failed); void endCall(true, false); } }, CONNECT_TIMEOUT_MS);

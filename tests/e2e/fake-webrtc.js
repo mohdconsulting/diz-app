@@ -1,5 +1,7 @@
 // Stand-ins for the browser's microphone and WebRTC so call logic can be tested headlessly (no real audio).
 (function(){
+  window.__beeps=0;
+  window.AudioContext=function(){ this.currentTime=0; this.destination={}; this.createGain=()=>({gain:{value:0},connect(){}}); this.createOscillator=()=>({frequency:{value:0},connect(){},start(){window.__beeps++;},stop(){}}); };
   window.__tracks=[]; window.__pcs=[];
   navigator.mediaDevices.getUserMedia=async()=>{ const tr={enabled:true,stopped:false,stop(){this.stopped=true;}}; window.__tracks.push(tr); return {getTracks:()=>[tr],getAudioTracks:()=>[tr]}; };
   window.RTCPeerConnection=function(cfg){
