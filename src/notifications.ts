@@ -2,6 +2,7 @@ import { type Job, type EventType } from './types';
 import { toast, sanitizePhone } from './util';
 import { role, jobs, currentUser, t, me } from './state';
 import { adminCat } from './admin';
+import { unreadTotal } from './chat';
 
 /* ---------- NOTIFICATIONS (red flags) ---------- */
 export let seenSet = new Set<string>();      // event signatures the user has already seen
@@ -66,7 +67,7 @@ export function updateBadges(){
     const b = document.getElementById(id);
     if(b){ b.textContent = count>9 ? '9+' : String(count); b.classList.toggle('show', count>0); }
   };
-  setBadge('mineBadge', ev.filter(e=>e.type!=='paid' && e.type!=='cancelled').length);
+  setBadge('mineBadge', ev.filter(e=>e.type!=='paid' && e.type!=='cancelled').length + (currentUser ? unreadTotal() : 0));
   setBadge('historyBadge', ev.filter(e=>e.type==='paid' || e.type==='cancelled').length);
   setBadge('adminBadge', (role==='admin' && currentUser) ? jobs.filter(j=>adminCat(j)==='problem').length : 0);
   document.title = (n>0 ? '('+n+') ' : '') + 'Diz';

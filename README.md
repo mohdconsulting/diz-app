@@ -24,6 +24,7 @@ index.html          GENERERAD fil – redigera inte, kör `npm run build`
 diz_supabase_schema.sql   databasschema med Supabase Auth, RLS och vakt-triggers
 diz_location.sql          valfri GPS-position på adresser (bara för befintlig databas; nya installationer får den via schemat)
 diz_tracking.sql          följ utförarens position på karta (kör efter schemat; idempotent)
+diz_chat.sql              chatt mellan kund och utförare (kör efter schemat; idempotent)
 diz_payments.sql          betalningar/deposition (kör efter schemat; idempotent)
 supabase/functions/       Edge Function-skelett för riktig betalleverantör (Qi) – ej driftsatta
 tests/sql/                SQL-test för betalningslogiken (lokal Postgres)
@@ -47,7 +48,7 @@ Röktest: `npm run build && python3 tests/e2e/smoke.py` (kräver `pip install pl
 3. Kör `diz_supabase_schema.sql` i SQL Editor (OBS: återskapar tabellerna).
 4. Sätt `SUPABASE_URL` och `SUPABASE_ANON_KEY` i `src/db.ts`. (Anon/publishable-nyckeln är avsedd att vara publik – skyddet ligger i RLS.)
 5. Kör `diz_payments.sql` (betalningar, se nedan). Standardläget är `mock`; vill du inte ha betalning ännu: `update public.app_settings set value = 'off' where key = 'payments_mode';`
-   Vill du ha positionsdelning/livekarta: kör även `diz_tracking.sql`.
+   Vill du ha positionsdelning/livekarta: kör även `diz_tracking.sql`. Vill du ha chatt: kör även `diz_chat.sql`.
    Har du en databas från före GPS-positionerna: kör även `diz_location.sql` (idempotent).
 6. Registrera ett konto i appen och gör det till admin: `update public.users set role = 'admin' where phone = '…';`
 
@@ -83,3 +84,12 @@ Så fort utföraren tilldelats ett uppdrag (betalningen är genomförd) börjar 
 - **Integritet:** delningen startar automatiskt vid tilldelning och har ingen av/på-knapp (kan läggas till). Bara den senaste positionen sparas (ingen historik) och bara kunden för uppdraget, utföraren och admin kan läsa den. Den raderas automatiskt när utföraren markerar ankomst, uppdraget avslutas/avbryts/återöppnas eller utföraren loggar ut.
 - **Begränsning:** en webbapp kan bara läsa position medan sidan är öppen. Släcks skärmen eller byter utföraren app stannar uppdateringarna (appen ber om att få hålla skärmen tänd, vilket stöds av de flesta moderna mobiler men inte alla). Kunden ser då "uppdaterad för X min sedan" och en varning när positionen är äldre än 3 minuter. Bakgrundsspårning kräver en riktig mobilapp.
 - **Kartplattor:** OpenStreetMaps publika kartserver är avsedd för måttlig användning; vid många användare bör ni byta till en betaltjänst eller egen tile-server (`TILE_URL` i `src/leaflet.ts`).
+
+## Chatt mellan kund och utförare
+Så fort ett uppdrag är tilldelat (och betalt) får kund och utförare en knapp **Chatta** på uppdragskortet. Olästa meddelanden visas som antal på knappen och i fliken Profil, och en notis visas när ett nytt meddelande kommer in. Källa: `src/chat.ts`, regler i `diz_chat.sql` (kör den i Supabase SQL Editor – utan den fungerar resten av appen men chatten ger fel).
+
+- **Behörighet:** bara kunden och den tilldelade utföraren kan skriva (via `send_message`, högst 15 meddelanden/minut, 1–1000 tecken). Ingen kan ändra eller radera meddelanden från klienten. Chatten stängs när uppdraget avslutas eller avbryts; historiken finns kvar och raderas när uppdraget raderas.
+- **Admin kan läsa** konversationen (skrivskyddat, knapp på adminkortet) för att kunna utreda reklamationer. Användarna får veta det i en rad under chatten – ändra texten `chat.privacy` i `src/i18n.ts` om ni väljer en annan policy.
+- **Uppdatering:** realtid plus hämtning var 7:e sekund som säkerhetsnät. Inga pushnotiser – användaren ser nya meddelanden när appen är öppen.
+- **Begränsningar:** ingen bilddelning, ingen moderering/filtrering av innehåll, och telefonnummer döljs inte (parterna kan alltså byta kontaktuppgifter utanför appen).
+

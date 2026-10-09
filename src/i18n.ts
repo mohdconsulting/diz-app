@@ -2,6 +2,15 @@ import type { Lang, ServiceKey } from './types';
 
 const I18N_RAW = {
   sv: {
+    chat:{
+      openBtn:"Chatta", openUnreadBtn:"Chatta ({n} nya)", closeBtn:"Stäng chatten",
+      placeholder:"Skriv ett meddelande…", sendBtn:"Skicka", empty:"Inga meddelanden än. Skriv till varandra om tid, port­kod, vägbeskrivning med mera.",
+      you:"Du", customer:"Kunden", provider:"Utföraren",
+      privacy:"Chatten är bara synlig för er två. Admin kan läsa den om ett ärende behöver utredas.",
+      adminView:"Admin-läge: du läser konversationen (endast läsning).",
+      closed:"Uppdraget är avslutat – chatten är stängd, men historiken finns kvar.",
+      newToast:"💬 Nytt meddelande", failed:"Meddelandet kunde inte skickas. Försök igen.", tooMany:"Du skickar för många meddelanden. Vänta en stund.",
+    },
     authShareNote:"Som tjänsteleverantör delas din position automatiskt med kunden när du fått ett uppdrag – tills du markerar att du har anlänt. Du får information om det i appen.",
     track:{
       autoShareInfo:"📡 Din position delas automatiskt med kunden tills du markerar att du har anlänt. Det fungerar bara medan appen är öppen och skärmen är på.",
@@ -205,6 +214,15 @@ const I18N_RAW = {
     priceUnit:"IQD"
   },
   en: {
+    chat:{
+      openBtn:"Chat", openUnreadBtn:"Chat ({n} new)", closeBtn:"Close chat",
+      placeholder:"Write a message…", sendBtn:"Send", empty:"No messages yet. Use the chat to agree on timing, gate codes, directions and so on.",
+      you:"You", customer:"Customer", provider:"Provider",
+      privacy:"Only the two of you can see this chat. An admin can read it if a case has to be investigated.",
+      adminView:"Admin view: you are reading the conversation (read-only).",
+      closed:"The job is finished – the chat is closed, but the history is kept.",
+      newToast:"💬 New message", failed:"The message could not be sent. Please try again.", tooMany:"You are sending too many messages. Please wait a moment.",
+    },
     authShareNote:"As a service provider your location is shared automatically with the customer once you are assigned a job — until you mark that you have arrived. You will be told about it in the app.",
     track:{
       autoShareInfo:"📡 Your location is shared with the customer automatically until you mark that you have arrived. It only works while the app is open and the screen is on.",
@@ -408,6 +426,15 @@ const I18N_RAW = {
     priceUnit:"IQD"
   },
   ar: {
+    chat:{
+      openBtn:"محادثة", openUnreadBtn:"محادثة ({n} جديدة)", closeBtn:"إغلاق المحادثة",
+      placeholder:"اكتب رسالة…", sendBtn:"إرسال", empty:"لا توجد رسائل بعد. استخدم المحادثة للاتفاق على الموعد ورمز البوابة والاتجاهات وغير ذلك.",
+      you:"أنت", customer:"العميل", provider:"مقدم الخدمة",
+      privacy:"هذه المحادثة ظاهرة لكما فقط. يمكن للمشرف قراءتها إذا لزم التحقيق في حالة ما.",
+      adminView:"وضع المشرف: أنت تقرأ المحادثة (للقراءة فقط).",
+      closed:"انتهت المهمة – المحادثة مغلقة لكن السجل محفوظ.",
+      newToast:"💬 رسالة جديدة", failed:"تعذّر إرسال الرسالة. حاول مرة أخرى.", tooMany:"ترسل رسائل كثيرة. انتظر قليلًا.",
+    },
     authShareNote:"بصفتك مقدم خدمة، تتم مشاركة موقعك تلقائيًا مع العميل عند تكليفك بمهمة — إلى أن تسجّل وصولك. سيتم إعلامك بذلك داخل التطبيق.",
     track:{
       autoShareInfo:"📡 تتم مشاركة موقعك مع العميل تلقائيًا إلى أن تسجّل وصولك. تعمل المشاركة فقط أثناء فتح التطبيق وتشغيل الشاشة.",

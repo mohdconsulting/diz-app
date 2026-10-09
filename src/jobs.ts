@@ -9,6 +9,7 @@ import { seenSet, shownSigs, jobEvent } from './notifications';
 import { renderAccountEdit, renderProfileEdit } from './auth';
 import { goTo, refreshCurrentScreen } from './shell';
 import { ad } from './admin';
+import { chatHTML } from './chat';
 import { dropSharing, providerShareHTML, customerTrackingHTML } from './tracking';
 import { startPayment, openJobPaymentHTML, customerPaymentHTML, providerPaymentHTML, settledPaymentHTML, isFunded } from './payments';
 
@@ -528,6 +529,7 @@ export function jobCardHTML(j: Job, courierView: boolean): string {
       body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
       ${payBlock}
       ${funded ? customerTrackingHTML(j) : ''}
+      ${funded ? chatHTML(j) : ''}
       ${note}
       ${actions}`;
     } else if(j.status==='accepted' && role==='driver' && isMyAcceptedJob && providerPaymentHTML(j).blocking){
@@ -553,11 +555,13 @@ export function jobCardHTML(j: Job, courierView: boolean): string {
       if(j.markedDoneByProvider){
         body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
         ${problemNote}
+        ${chatHTML(j)}
         <div style="margin-top:6px;font-size:12px;color:var(--muted);">${d.waitingCustomerConfirmNote}</div>`;
       } else if(j.arrived){
         body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
         ${problemNote}
         <div style="margin-top:6px;font-size:12px;color:var(--muted);">${d.arrivedNoteProvider}</div>
+        ${chatHTML(j)}
         <div class="action-row">
           <button class="secondary" onclick="providerMarkDone('${j.id}')">${d.providerCompleteBtn}</button>
         </div>`;
@@ -565,6 +569,7 @@ export function jobCardHTML(j: Job, courierView: boolean): string {
         body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
         ${payLine}
         ${providerShareHTML(j)}
+        ${chatHTML(j)}
         <div class="action-row">
           <button class="secondary" onclick="providerArrive('${j.id}')">${d.providerArriveBtn}</button>
         </div>`;
