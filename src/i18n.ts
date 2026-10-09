@@ -11,6 +11,15 @@ const I18N_RAW = {
       closed:"Uppdraget är avslutat – chatten är stängd, men historiken finns kvar.",
       newToast:"💬 Nytt meddelande", failed:"Meddelandet kunde inte skickas. Försök igen.", tooMany:"Du skickar för många meddelanden. Vänta en stund.",
     },
+    call:{
+      btn:"Ring", title:"Samtal", calling:"Ringer…", incoming:"Inkommande samtal", connecting:"Kopplar…",
+      answer:"Svara", decline:"Avvisa", hangUp:"Lägg på", mute:"Stäng av mikrofon", unmute:"Slå på mikrofon",
+      ended:"Samtalet avslutades.", busy:"Personen är upptagen i ett annat samtal.", failed:"Samtalet kunde inte kopplas. Försök igen eller skriv i chatten.",
+      noAnswer:"Ingen svarade.", micDenied:"Mikrofonen är blockerad. Tillåt mikrofon för sidan i webbläsarens inställningar.",
+      noMic:"Hittar ingen mikrofon på enheten.", unsupported:"Din webbläsare stöder inte samtal i appen.", alreadyInCall:"Du är redan i ett samtal.",
+      ipNote:"Samtalet går direkt mellan era enheter och spelas inte in. Telefonnummer visas inte, men den andra enheten kan se din IP-adress.",
+      chatLog:"📞 Samtal ({t})", chatMissed:"📞 Missat samtal",
+    },
     authShareNote:"Som tjänsteleverantör delas din position automatiskt med kunden när du fått ett uppdrag – tills du markerar att du har anlänt. Du får information om det i appen.",
     track:{
       autoShareInfo:"📡 Din position delas automatiskt med kunden tills du markerar att du har anlänt. Det fungerar bara medan appen är öppen och skärmen är på.",
@@ -223,6 +232,15 @@ const I18N_RAW = {
       closed:"The job is finished – the chat is closed, but the history is kept.",
       newToast:"💬 New message", failed:"The message could not be sent. Please try again.", tooMany:"You are sending too many messages. Please wait a moment.",
     },
+    call:{
+      btn:"Call", title:"Call", calling:"Calling…", incoming:"Incoming call", connecting:"Connecting…",
+      answer:"Answer", decline:"Decline", hangUp:"Hang up", mute:"Mute microphone", unmute:"Unmute microphone",
+      ended:"The call ended.", busy:"The other person is in another call.", failed:"The call could not be connected. Try again or write in the chat.",
+      noAnswer:"No answer.", micDenied:"The microphone is blocked. Allow the microphone for this site in your browser settings.",
+      noMic:"No microphone found on this device.", unsupported:"Your browser does not support calls in the app.", alreadyInCall:"You are already in a call.",
+      ipNote:"The call goes directly between your devices and is not recorded. Phone numbers are not shown, but the other device can see your IP address.",
+      chatLog:"📞 Call ({t})", chatMissed:"📞 Missed call",
+    },
     authShareNote:"As a service provider your location is shared automatically with the customer once you are assigned a job — until you mark that you have arrived. You will be told about it in the app.",
     track:{
       autoShareInfo:"📡 Your location is shared with the customer automatically until you mark that you have arrived. It only works while the app is open and the screen is on.",
@@ -434,6 +452,15 @@ const I18N_RAW = {
       adminView:"وضع المشرف: أنت تقرأ المحادثة (للقراءة فقط).",
       closed:"انتهت المهمة – المحادثة مغلقة لكن السجل محفوظ.",
       newToast:"💬 رسالة جديدة", failed:"تعذّر إرسال الرسالة. حاول مرة أخرى.", tooMany:"ترسل رسائل كثيرة. انتظر قليلًا.",
+    },
+    call:{
+      btn:"اتصال", title:"مكالمة", calling:"جارٍ الاتصال…", incoming:"مكالمة واردة", connecting:"جارٍ الربط…",
+      answer:"رد", decline:"رفض", hangUp:"إنهاء", mute:"كتم الميكروفون", unmute:"تشغيل الميكروفون",
+      ended:"انتهت المكالمة.", busy:"الطرف الآخر في مكالمة أخرى.", failed:"تعذّر إجراء المكالمة. حاول مرة أخرى أو اكتب في المحادثة.",
+      noAnswer:"لا يوجد رد.", micDenied:"الميكروفون محظور. اسمح للموقع باستخدام الميكروفون من إعدادات المتصفح.",
+      noMic:"لم يُعثر على ميكروفون في الجهاز.", unsupported:"متصفحك لا يدعم المكالمات داخل التطبيق.", alreadyInCall:"أنت في مكالمة بالفعل.",
+      ipNote:"تتم المكالمة مباشرة بين جهازيكما ولا يتم تسجيلها. لا تُعرض أرقام الهواتف، لكن الجهاز الآخر قد يرى عنوان IP الخاص بك.",
+      chatLog:"📞 مكالمة ({t})", chatMissed:"📞 مكالمة فائتة",
     },
     authShareNote:"بصفتك مقدم خدمة، تتم مشاركة موقعك تلقائيًا مع العميل عند تكليفك بمهمة — إلى أن تسجّل وصولك. سيتم إعلامك بذلك داخل التطبيق.",
     track:{

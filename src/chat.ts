@@ -1,6 +1,7 @@
 import { toast, esc } from './util';
 import { t, sb, sbRef, role, currentUser, jobs } from './state';
 import { refreshCurrentScreen } from './shell';
+import { peerOf } from './call';
 import type { Job, ChatMessage } from './types';
 
 /*
@@ -116,6 +117,7 @@ export function chatHTML(j: Job, admin = false): string {
   const label = open ? d.closeBtn : (n ? d.openUnreadBtn.replace('{n}', String(n)) : d.openBtn);
   return `<div class="chat-block"><div class="action-row">
       <button class="secondary${n && !open ? ' has-unread' : ''}" onclick="${admin ? 'toggleAdminChat' : 'toggleChat'}('${j.id}')">💬 ${label}</button>
+      ${!admin && peerOf(j) ? `<button class="secondary" onclick="startCall('${j.id}')">📞 ${t().call.btn}</button>` : ''}
     </div>${open ? `<div class="chat-slot" id="chatSlot-${j.id}"></div>` : ''}</div>`;
 }
 
