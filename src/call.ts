@@ -271,10 +271,11 @@ function render(){
   if(!el){ el = document.createElement('div'); el.id = 'callPanel'; el.className = 'call-panel'; el.setAttribute('role', 'dialog'); document.body.appendChild(el); }
   el.dir = t().dir;
   const status = c.phase === 'calling' ? d.calling : c.phase === 'incoming' ? d.incoming : c.phase === 'connecting' ? d.connecting : '<span id="callClock">0:00</span>';
-  const btn = (id: string, label: string, cls = 'secondary') => `<button class="${cls}" id="${id}">${label}</button>`;
+  const btn = (id: string, label: string, cls = 'secondary') => `<button class="${cls}" id="${id}" aria-label="${label.replace(/<[^>]*>/g, '')}">${label}</button>`;
   const actions = c.phase === 'incoming'
-    ? btn('callAnswer', '📞 ' + d.answer) + btn('callDecline', d.decline, 'danger')
+    ? btn('callAnswer', '📞 ' + d.answer, 'call-answer') + btn('callDecline', '✖ ' + d.decline, 'call-decline')
     : (c.phase === 'active' ? btn('callMute', c.muted ? '🔇 ' + d.unmute : '🎙️ ' + d.mute) : '') + btn('callHang', d.hangUp, 'danger');
+  el.classList.toggle('incoming', c.phase === 'incoming');
   el.innerHTML = `<div class="call-title">📞 ${d.title} · ${peerName(c)}</div><div class="call-status">${status}</div>
     <div class="call-actions">${actions}</div><div class="call-note">${d.ipNote}</div>`;
   const on = (id: string, fn: () => void) => document.getElementById(id)?.addEventListener('click', fn);
