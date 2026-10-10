@@ -57,6 +57,7 @@
         persist(); return {data:db.messages.length,error:null};
       }
       if(fn==='send_call_signal'){
+        if(args.p_kind==='offer') await new Promise(r=>setTimeout(r,300));   // slow network: unordered sends would let candidates overtake the offer
         const j=db.jobs.find(x=>x.id===args.p_job_id); if(!j||!me||(j.owner_phone!==me.phone&&j.accepted_by_phone!==me.phone)||(args.p_kind!=='end'&&j.status!=='accepted')) return {error:{message:'forbidden'}};
         db.call_signals.push({id:db.call_signals.length+1,job_id:j.id,from_phone:me.phone,to_phone:me.phone===j.owner_phone?j.accepted_by_phone:j.owner_phone,call_id:args.p_call_id,kind:args.p_kind,payload:args.p_payload,created_at:Date.now()});
         persist(); return {error:null};

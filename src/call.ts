@@ -29,10 +29,12 @@ interface Call {
   id: string; jobId: string; peer: string; phase: Phase; outgoing: boolean;
   pc: RTCPeerConnection | null; local: MediaStream | null; muted: boolean;
   pendingOffer: string | null; pendingIce: string[]; startedAt: number | null; timer: ReturnType<typeof setTimeout> | null;
+  sendQueue: Promise<unknown>;   // signals of one call are sent strictly one after the other (offer/answer before candidates)
 }
 
 let call: Call | null = null;
-let lastId = 0;
+let seenIds = new Set<number>();   // signals already handled (rows can become visible out of id order, so a max id is not enough)
+const earlyIce = new Map<string, string[]>();   // candidates that arrived before their offer
 let pollTimer: ReturnType<typeof setTimeout> | null = null;
 let channel: ReturnType<ReturnType<typeof sb>['channel']> | null = null;
 let polling = false;
@@ -63,6 +65,13 @@ async function signal(jobId: string, callId: string, kind: Signal['kind'], paylo
   const { error } = await sb().rpc('send_call_signal', { p_job_id: jobId, p_call_id: callId, p_kind: kind, p_payload: payload });
   if(error) throw error;
 }
+/** Sends a signal after all earlier ones of the same call have been stored. Without this the candidates, which the browser
+ *  produces right after the offer, can overtake it on a slow network and reach the other side before the call exists. */
+function enqueue(c: Call, kind: Signal['kind'], payload: string | null): Promise<void> {
+  const run = c.sendQueue.then(() => signal(c.jobId, c.id, kind, payload));
+  c.sendQueue = run.catch(() => {});
+  return run;
+}
 const toSignal = (r: Row): Signal => ({ id: Number(r.id), jobId: r.job_id as string, from: r.from_phone as string, callId: r.call_id as string,
   kind: r.kind as Signal['kind'], payload: (r.payload as string | null) ?? null });
 
@@ -72,8 +81,10 @@ async function fetchSignals(){
   try{
     const { data, error } = await sb().from('call_signals').select('*');
     if(error) throw error;
-    const fresh = (data as Row[]).map(toSignal).filter(s => s.id > lastId).sort((a, b) => a.id - b.id);
-    for(const s of fresh){ lastId = s.id; await handleSignal(s); }
+    const all = (data as Row[]).map(toSignal);
+    const fresh = all.filter(s => !seenIds.has(s.id)).sort((a, b) => a.id - b.id);
+    for(const s of fresh){ seenIds.add(s.id); await handleSignal(s); }
+    seenIds = new Set([...seenIds].filter(id => all.some(s => s.id === id)));   // expired rows no longer need remembering
   }catch(e){ console.error('call signals failed', e); }
   finally{ polling = false; }
 }
@@ -93,7 +104,7 @@ export function stopCalls(){
   if(pollTimer){ clearTimeout(pollTimer); pollTimer = null; }
   if(channel && sbRef){ sb().removeChannel(channel); channel = null; }
   if(call) void endCall(true, false);
-  lastId = 0;
+  seenIds = new Set(); earlyIce.clear();
 }
 
 async function handleSignal(s: Signal){
@@ -107,8 +118,16 @@ async function handleSignal(s: Signal){
     if(!j || peerOf(j) !== s.from) return;
     call = newCall(s.callId, s.jobId, s.from, 'incoming', false);
     call.pendingOffer = s.payload;
+    call.pendingIce = earlyIce.get(s.callId) ?? []; earlyIce.delete(s.callId);
     call.timer = setTimeout(() => { if(call && call.phase === 'incoming') void endCall(false, false); }, RING_TIMEOUT_MS);
     startRinging(); render(); schedulePoll();
+    return;
+  }
+  if(s.kind === 'ice' && s.payload && (!call || call.id !== s.callId)){   // candidate for a call we have not seen the offer of (yet)
+    if(!wasHandled(s.callId)){
+      earlyIce.set(s.callId, [...(earlyIce.get(s.callId) ?? []), s.payload].slice(-40));
+      if(earlyIce.size > 10) earlyIce.delete(earlyIce.keys().next().value as string);
+    }
     return;
   }
   if(!call || call.id !== s.callId) return;
@@ -132,7 +151,7 @@ async function addIce(p: string){ try{ await call?.pc?.addIceCandidate(JSON.pars
 
 // ---------------- the call ----------------
 function newCall(id: string, jobId: string, peer: string, phase: Phase, outgoing: boolean): Call {
-  return { id, jobId, peer, phase, outgoing, pc: null, local: null, muted: false, pendingOffer: null, pendingIce: [], startedAt: null, timer: null };
+  return { id, jobId, peer, phase, outgoing, pc: null, local: null, muted: false, pendingOffer: null, pendingIce: [], startedAt: null, timer: null, sendQueue: Promise.resolve() };
 }
 function setPhase(p: Phase){
   if(!call) return;
@@ -149,7 +168,7 @@ async function buildPeer(c: Call){
   const pc = new RTCPeerConnection({ iceServers: [...STUN_SERVERS, ...TURN_SERVERS] });
   c.pc = pc;
   c.local.getTracks().forEach(tr => pc.addTrack(tr, c.local as MediaStream));
-  pc.onicecandidate = e => { if(e.candidate && call === c) void signal(c.jobId, c.id, 'ice', JSON.stringify(e.candidate)).catch(() => {}); };
+  pc.onicecandidate = e => { if(e.candidate && call === c) void enqueue(c, 'ice', JSON.stringify(e.candidate)).catch(() => {}); };
   pc.ontrack = e => { remoteAudio().srcObject = e.streams[0]; void remoteAudio().play().catch(() => {}); };
   pc.onconnectionstatechange = () => {
     if(call !== c) return;
@@ -172,7 +191,7 @@ export async function startCall(jobId: string){
     const pc = c.pc as RTCPeerConnection;
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
-    await signal(jobId, c.id, 'offer', JSON.stringify(pc.localDescription));
+    await enqueue(c, 'offer', JSON.stringify(pc.localDescription));
     c.timer = setTimeout(() => { if(call === c && c.phase === 'calling'){ toast(d.noAnswer); void endCall(true, true); } }, RING_TIMEOUT_MS);
     startRinging(true);
   }catch(e){
@@ -194,7 +213,7 @@ async function answerCall(){
     for(const x of c.pendingIce.splice(0)) await addIce(x);
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
-    await signal(c.jobId, c.id, 'answer', JSON.stringify(pc.localDescription));
+    await enqueue(c, 'answer', JSON.stringify(pc.localDescription));
     setPhase('connecting');
   }catch(e){
     console.error('answer failed', e);
@@ -211,7 +230,7 @@ async function endCall(tell: boolean, missed: boolean){
   const secs = c.startedAt ? Math.round((Date.now() - c.startedAt) / 1000) : 0;
   const wasCaller = c.outgoing;
   cleanup(); render();
-  if(tell) await signal(c.jobId, c.id, 'end', null).catch(() => {});
+  if(tell) await enqueue(c, 'end', null).catch(() => {});
   // the caller leaves a one-line trace in the chat ("missed call" / "call 2:31") so both sides can see it happened
   if(wasCaller && (secs > 0 || missed)){
     const d = t().call;
