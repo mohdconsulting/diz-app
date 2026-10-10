@@ -2,6 +2,7 @@ import { toggleAuthMode, submitAuth, logout, saveProfile, saveAccountDetails } f
 import { goTo } from './shell';
 import { dismissJob, restoreJob, toggleDismissed } from './dismissals';
 import { startCall } from './call';
+import { setReviewRating, setReviewComment, submitReview } from './reviews';
 import { toggleChat, toggleAdminChat } from './chat';
 import { retrySharing, toggleTrackMap } from './tracking';
 import { startPayment, mockPay, cancelMockCheckout } from './payments';
@@ -21,5 +22,5 @@ export const handlers = {
   startReport, setAdminFilter, saveProfile, saveAdminNote, saveAccountDetails, removePhoto, providerMarkDone,
   providerArrive, logout, handlePhotoSelect, editJob, confirmDeleteRequest, completeJob, cancelReport, cancelDelete,
   assignJob, askDelete, useMyLocation, clearPin, adminDo, adminDeleteUser, adminAsk, adminAbort, setReportDraft, setRespondDraft,
-  setAdminQuery, setAdminNoteDraft, setAdminPendingUser, startPayment, mockPay, cancelMockCheckout, retrySharing, toggleTrackMap, toggleChat, toggleAdminChat, startCall, dismissJob, restoreJob, toggleDismissed,
+  setAdminQuery, setAdminNoteDraft, setAdminPendingUser, startPayment, mockPay, cancelMockCheckout, retrySharing, toggleTrackMap, toggleChat, toggleAdminChat, startCall, dismissJob, restoreJob, toggleDismissed, setReviewRating, setReviewComment, submitReview,
 };

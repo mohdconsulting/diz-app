@@ -20,6 +20,12 @@ const I18N_RAW = {
       ipNote:"Samtalet går direkt mellan era enheter och spelas inte in. Telefonnummer visas inte, men den andra enheten kan se din IP-adress.",
       chatLog:"📞 Samtal ({t})", chatMissed:"📞 Missat samtal",
     },
+    review:{
+      prompt:"Hur gick det? Betygsätt utföraren", commentPlaceholder:"Skriv gärna en kommentar (valfritt)", sendBtn:"Skicka recension",
+      thanks:"Tack för din recension!", failed:"Kunde inte skicka recensionen. Försök igen.", yourReview:"Din recension", theirReview:"Kundens recension",
+      noReviewForYou:"Kunden har inte lämnat någon recension ännu.", noReviewsYet:"Ny – inga recensioner än", avgTitle:"Genomsnittligt betyg och antal recensioner",
+      yourRating:"Ditt betyg",
+    },
     dismiss:{
       btn:"Ignorera", toast:"Jobbet är dolt. Du hittar det under ”Visa ignorerade”.", failed:"Kunde inte spara. Försök igen.",
       showBtn:"Visa ignorerade jobb ({n})", hideBtn:"Dölj ignorerade jobb", restoreBtn:"Återställ", title:"Ignorerade jobb",
@@ -246,6 +252,12 @@ const I18N_RAW = {
       ipNote:"The call goes directly between your devices and is not recorded. Phone numbers are not shown, but the other device can see your IP address.",
       chatLog:"📞 Call ({t})", chatMissed:"📞 Missed call",
     },
+    review:{
+      prompt:"How did it go? Rate the provider", commentPlaceholder:"Add a comment (optional)", sendBtn:"Send review",
+      thanks:"Thanks for your review!", failed:"Could not send the review. Please try again.", yourReview:"Your review", theirReview:"The customer's review",
+      noReviewForYou:"The customer has not left a review yet.", noReviewsYet:"New – no reviews yet", avgTitle:"Average rating and number of reviews",
+      yourRating:"Your rating",
+    },
     dismiss:{
       btn:"Ignore", toast:"The job is hidden. You can find it under “Show ignored jobs”.", failed:"Could not save. Please try again.",
       showBtn:"Show ignored jobs ({n})", hideBtn:"Hide ignored jobs", restoreBtn:"Restore", title:"Ignored jobs",
@@ -471,6 +483,12 @@ const I18N_RAW = {
       noMic:"لم يُعثر على ميكروفون في الجهاز.", unsupported:"متصفحك لا يدعم المكالمات داخل التطبيق.", alreadyInCall:"أنت في مكالمة بالفعل.",
       ipNote:"تتم المكالمة مباشرة بين جهازيكما ولا يتم تسجيلها. لا تُعرض أرقام الهواتف، لكن الجهاز الآخر قد يرى عنوان IP الخاص بك.",
       chatLog:"📞 مكالمة ({t})", chatMissed:"📞 مكالمة فائتة",
+    },
+    review:{
+      prompt:"كيف كانت التجربة؟ قيّم مقدم الخدمة", commentPlaceholder:"أضف تعليقًا (اختياري)", sendBtn:"إرسال التقييم",
+      thanks:"شكرًا على تقييمك!", failed:"تعذّر إرسال التقييم. حاول مرة أخرى.", yourReview:"تقييمك", theirReview:"تقييم العميل",
+      noReviewForYou:"لم يترك العميل تقييمًا بعد.", noReviewsYet:"جديد – لا توجد تقييمات بعد", avgTitle:"متوسط التقييم وعدد التقييمات",
+      yourRating:"تقييمك",
     },
     dismiss:{
       btn:"تجاهل", toast:"تم إخفاء المهمة. يمكنك إيجادها ضمن «عرض المهام المتجاهلة».", failed:"تعذّر الحفظ. حاول مرة أخرى.",
