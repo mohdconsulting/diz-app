@@ -1,6 +1,7 @@
 import { toast, esc } from './util';
 import { t, sb, sbRef, currentUser, role, jobs } from './state';
 import { refreshCurrentScreen } from './shell';
+import { ad } from './admin';
 import type { Job } from './types';
 
 /*
@@ -10,7 +11,7 @@ import type { Job } from './types';
  * Without the SQL file everything here stays hidden and the app works as before.
  */
 const MAX_COMMENT = 500;
-export interface Review { jobId: string; providerPhone: string; rating: number; comment: string | null; createdAt: number }
+export interface Review { jobId: string; providerPhone: string; rating: number; comment: string | null; createdAt: number; hidden: boolean }
 interface Rating { avg: number; count: number }
 
 let available = true;
@@ -20,8 +21,9 @@ let comments: { rating: number; comment: string | null; createdAt: number }[] = 
 let loadedKey = '';
 let drafts: Record<string, { rating: number; comment: string }> = {};
 let sending = false;
+let pendingClear: string | null = null;           // admin: job id whose comment removal awaits confirmation
 
-export function clearReviews(){ reviews = new Map(); ratings = new Map(); comments = []; loadedKey = ''; drafts = {}; available = true; sending = false; }
+export function clearReviews(){ reviews = new Map(); ratings = new Map(); comments = []; loadedKey = ''; drafts = {}; available = true; sending = false; pendingClear = null; }
 
 const stars = (n: number) => '★'.repeat(n) + '☆'.repeat(5 - n);
 
@@ -41,9 +43,9 @@ function neededPhones(): string[] {
 
 /** Called after every jobs snapshot: fetches ratings/reviews when the set of providers or finished jobs changed. */
 export async function syncReviews(){
-  if(!sbRef || !currentUser || !available || role === 'admin') return;
-  const phones = neededPhones();
-  const doneCount = jobs.filter(j => j.status === 'done' && (j.ownerPhone === currentUser!.phone || j.acceptedByPhone === currentUser!.phone)).length;
+  if(!sbRef || !currentUser || !available) return;
+  const phones = role === 'admin' ? [] : neededPhones();
+  const doneCount = jobs.filter(j => j.status === 'done' && (role === 'admin' || j.ownerPhone === currentUser!.phone || j.acceptedByPhone === currentUser!.phone)).length;
   const key = phones.join(',') + '|' + doneCount;
   if(key === loadedKey) return;
   loadedKey = key;
@@ -52,7 +54,7 @@ export async function syncReviews(){
     if(mine.error) throw mine.error;
     reviews = new Map((mine.data as Record<string, unknown>[]).map(r => [r.job_id as string, {
       jobId: r.job_id as string, providerPhone: r.provider_phone as string, rating: Number(r.rating),
-      comment: (r.comment as string | null) ?? null, createdAt: Number(r.created_at) }]));
+      comment: (r.comment as string | null) ?? null, createdAt: Number(r.created_at), hidden: !!r.hidden }]));
     if(phones.length){
       const agg = await sb().rpc('provider_ratings', { p_phones: phones });
       if(agg.error) throw agg.error;
@@ -83,7 +85,8 @@ export function reviewBlockHTML(j: Job): string {
   if(rv){
     const who = role === 'driver' ? d.theirReview : d.yourReview;
     return `<div class="review-box"><div class="review-stars">${stars(rv.rating)}</div><div style="font-size:12px;color:var(--muted);">${who}</div>
-      ${rv.comment ? `<div style="margin-top:4px;font-size:13px;">“${esc(rv.comment)}”</div>` : ''}</div>`;
+      ${rv.comment ? `<div style="margin-top:4px;font-size:13px;">“${esc(rv.comment)}”</div>` : ''}
+      ${rv.hidden ? `<div style="margin-top:6px;font-size:12px;color:var(--danger);">${d.hiddenForYou}</div>` : ''}</div>`;
   }
   if(role !== 'customer' || j.ownerPhone !== currentUser.phone) return role === 'driver' ? `<div style="margin-top:8px;font-size:12px;color:var(--muted);">${d.noReviewForYou}</div>` : '';
   const dr = drafts[j.id] || { rating: 0, comment: '' };
@@ -121,4 +124,35 @@ export async function submitReview(jobId: string){
     await syncReviews(); refreshCurrentScreen();
   }catch(e){ console.warn('review failed', e); toast(t().review.failed); }
   finally{ sending = false; }
+}
+
+/** Admin card: the review of a finished job with moderation buttons (hide/show, remove comment). */
+export function adminReviewHTML(j: Job): string {
+  if(!available || role !== 'admin') return '';
+  const rv = reviews.get(j.id);
+  if(!rv) return '';
+  const d = t().review, a = ad();
+  const confirming = pendingClear === j.id;
+  return `<div class="review-box"><div style="font-size:12px;color:var(--muted);">${d.adminTitle}</div>
+    <div class="review-stars">${stars(rv.rating)}</div>
+    <div style="font-size:13px;">${rv.comment ? '“' + esc(rv.comment) + '”' : '<i>' + d.noComment + '</i>'}</div>
+    ${rv.hidden ? `<div style="margin-top:4px;font-size:12px;color:var(--danger);">${d.hiddenAdmin}</div>` : ''}
+    ${confirming ? `<div class="adm-confirm">${d.clearConfirm}<div class="action-row">
+        <button class="danger" onclick="moderateReview('${j.id}','clear_comment')">${a.yes}</button>
+        <button class="secondary" onclick="askClearComment(null)">${a.no}</button></div></div>`
+    : `<div class="action-row">
+        <button class="secondary" onclick="moderateReview('${j.id}','${rv.hidden ? 'show' : 'hide'}')">${rv.hidden ? d.showBtn : d.hideBtn}</button>
+        ${rv.comment ? `<button class="secondary" onclick="askClearComment('${j.id}')">${d.clearBtn}</button>` : ''}</div>`}
+  </div>`;
+}
+export function askClearComment(jobId: string | null){ pendingClear = jobId; refreshCurrentScreen(); }
+export async function moderateReview(jobId: string, action: 'hide' | 'show' | 'clear_comment'){
+  if(role !== 'admin') return;
+  try{
+    const { error } = await sb().rpc('moderate_review', { p_job_id: jobId, p_action: action });
+    if(error) throw error;
+    pendingClear = null; loadedKey = '';
+    toast(ad().done);
+    await syncReviews(); refreshCurrentScreen();
+  }catch(e){ console.warn('moderation failed', e); toast(t().toastSaveFailed); }
 }

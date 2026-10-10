@@ -24,6 +24,8 @@ const I18N_RAW = {
       prompt:"Hur gick det? Betygsätt utföraren", commentPlaceholder:"Skriv gärna en kommentar (valfritt)", sendBtn:"Skicka recension",
       thanks:"Tack för din recension!", failed:"Kunde inte skicka recensionen. Försök igen.", yourReview:"Din recension", theirReview:"Kundens recension",
       noReviewForYou:"Kunden har inte lämnat någon recension ännu.", noReviewsYet:"Ny – inga recensioner än", avgTitle:"Genomsnittligt betyg och antal recensioner",
+      adminTitle:"Kundens recension", noComment:"Ingen kommentar", hiddenAdmin:"Dold – syns inte för utföraren eller andra och räknas inte i betyget.", hiddenForYou:"Den här recensionen har dolts av administratör.",
+      hideBtn:"Dölj recension", showBtn:"Visa igen", clearBtn:"Ta bort kommentar", clearConfirm:"Ta bort kommentaren permanent? Betyget finns kvar.",
       yourRating:"Ditt betyg",
     },
     dismiss:{
@@ -256,6 +258,8 @@ const I18N_RAW = {
       prompt:"How did it go? Rate the provider", commentPlaceholder:"Add a comment (optional)", sendBtn:"Send review",
       thanks:"Thanks for your review!", failed:"Could not send the review. Please try again.", yourReview:"Your review", theirReview:"The customer's review",
       noReviewForYou:"The customer has not left a review yet.", noReviewsYet:"New – no reviews yet", avgTitle:"Average rating and number of reviews",
+      adminTitle:"Customer review", noComment:"No comment", hiddenAdmin:"Hidden – not visible to the provider or others, and not counted in the rating.", hiddenForYou:"This review has been hidden by an administrator.",
+      hideBtn:"Hide review", showBtn:"Show again", clearBtn:"Remove comment", clearConfirm:"Remove the comment permanently? The rating stays.",
       yourRating:"Your rating",
     },
     dismiss:{
@@ -488,6 +492,8 @@ const I18N_RAW = {
       prompt:"كيف كانت التجربة؟ قيّم مقدم الخدمة", commentPlaceholder:"أضف تعليقًا (اختياري)", sendBtn:"إرسال التقييم",
       thanks:"شكرًا على تقييمك!", failed:"تعذّر إرسال التقييم. حاول مرة أخرى.", yourReview:"تقييمك", theirReview:"تقييم العميل",
       noReviewForYou:"لم يترك العميل تقييمًا بعد.", noReviewsYet:"جديد – لا توجد تقييمات بعد", avgTitle:"متوسط التقييم وعدد التقييمات",
+      adminTitle:"تقييم العميل", noComment:"لا يوجد تعليق", hiddenAdmin:"مخفي – لا يظهر لمقدم الخدمة أو لغيره ولا يُحتسب في التقييم.", hiddenForYou:"قام المشرف بإخفاء هذا التقييم.",
+      hideBtn:"إخفاء التقييم", showBtn:"إظهار مجددًا", clearBtn:"حذف التعليق", clearConfirm:"حذف التعليق نهائيًا؟ يبقى التقييم.",
       yourRating:"تقييمك",
     },
     dismiss:{

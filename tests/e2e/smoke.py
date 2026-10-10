@@ -261,6 +261,26 @@ async def main():
         await pg.click('.tabbar button[data-tab=history]'); await pg.wait_for_timeout(300)
         check('history has job (plus the rating summary)', await pg.locator('#historyList .card').count()==2)
         check('provider sees own average and the comment', '4.0' in await pg.inner_text('#historyList') and '(1)' in await pg.inner_text('#historyList') and 'Snabb och trevlig' in await pg.inner_text('#historyList'))
+        # --- admin moderates the review: hide, show, remove comment
+        await logout(); await login('admin1')
+        check('admin sees the review on the job', 'Kundens recension' in await pg.inner_text('#adminList') and 'Snabb och trevlig' in await pg.inner_text('#adminList'))
+        await click_btn('moderateReview')   # hide
+        check('review hidden in the database', await pg.evaluate("__db.reviews[0].hidden")==True and 'Dold' in await pg.inner_text('#adminList'))
+        await logout(); await login('0770111')
+        await pg.click('.tabbar button[data-tab=history]'); await pg.wait_for_timeout(500)
+        check('customer is told the review was hidden', 'dolts av administratör' in await pg.inner_text('#historyList'))
+        await logout(); await login('0780222')
+        await pg.click('.tabbar button[data-tab=history]'); await pg.wait_for_timeout(500)
+        check('hidden review is gone for the provider', 'Snabb och trevlig' not in await pg.inner_text('#historyList') and '4.0' not in await pg.inner_text('#historyList') and 'Ny' in await pg.inner_text('#historyList'))
+        await logout(); await login('admin1')
+        await click_btn('moderateReview')   # show again
+        check('review shown again', await pg.evaluate("__db.reviews[0].hidden")==False)
+        await click_btn('askClearComment')
+        check('removing a comment asks for confirmation', 'permanent' in await pg.inner_text('#adminList') and await pg.evaluate("__db.reviews[0].comment")=='Snabb och trevlig')
+        await click_btn('moderateReview')   # confirm
+        check('comment removed, rating kept', await pg.evaluate("__db.reviews[0].comment")==None and await pg.evaluate("__db.reviews[0].rating")==4)
+        await logout(); await login('0780222')
+        await pg.click('.tabbar button[data-tab=history]'); await pg.wait_for_timeout(500)
         # language switch
         await pg.click('#langSwitch button[data-lang=ar]'); await pg.wait_for_timeout(300)
         check('rtl', await pg.evaluate("document.documentElement.dir")=='rtl')

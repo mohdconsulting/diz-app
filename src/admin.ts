@@ -5,6 +5,7 @@ import { esc, toast, routeLinksHTML } from './util';
 import { lang, role, jobs, setJobs, dbRef, t, db, sb, sbRef } from './state';
 import { refreshCurrentScreen } from './shell';
 import { chatHTML, mountChat } from './chat';
+import { adminReviewHTML } from './reviews';
 import { catLabel, serviceLabel, statusLabel, statusClass } from './jobs';
 
 /* ---------- ADMIN PANEL ---------- */
@@ -215,6 +216,7 @@ export function adminJobCardHTML(j: Job): string {
     </div>
     ${problemBox}
     ${j.acceptedByPhone ? chatHTML(j, true) : ''}
+    ${adminReviewHTML(j)}
     <div style="margin-top:10px;font-size:12px;color:var(--muted);">${a.noteLabel}</div>
     <textarea id="admNote-${j.id}" placeholder="${a.notePh}" oninput="setAdminNoteDraft('${j.id}', this.value)">${esc(draft)}</textarea>
     <div class="action-row"><button class="secondary" onclick="saveAdminNote('${j.id}')">${a.saveNote}</button></div>
