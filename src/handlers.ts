@@ -1,5 +1,6 @@
 import { toggleAuthMode, submitAuth, logout, saveProfile, saveAccountDetails } from './auth';
 import { goTo } from './shell';
+import { dismissJob, restoreJob, toggleDismissed } from './dismissals';
 import { startCall } from './call';
 import { toggleChat, toggleAdminChat } from './chat';
 import { retrySharing, toggleTrackMap } from './tracking';
@@ -20,5 +21,5 @@ export const handlers = {
   startReport, setAdminFilter, saveProfile, saveAdminNote, saveAccountDetails, removePhoto, providerMarkDone,
   providerArrive, logout, handlePhotoSelect, editJob, confirmDeleteRequest, completeJob, cancelReport, cancelDelete,
   assignJob, askDelete, useMyLocation, clearPin, adminDo, adminDeleteUser, adminAsk, adminAbort, setReportDraft, setRespondDraft,
-  setAdminQuery, setAdminNoteDraft, setAdminPendingUser, startPayment, mockPay, cancelMockCheckout, retrySharing, toggleTrackMap, toggleChat, toggleAdminChat, startCall,
+  setAdminQuery, setAdminNoteDraft, setAdminPendingUser, startPayment, mockPay, cancelMockCheckout, retrySharing, toggleTrackMap, toggleChat, toggleAdminChat, startCall, dismissJob, restoreJob, toggleDismissed,
 };

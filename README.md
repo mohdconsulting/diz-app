@@ -26,6 +26,7 @@ diz_location.sql          valfri GPS-position på adresser (bara för befintlig 
 diz_tracking.sql          följ utförarens position på karta (kör efter schemat; idempotent)
 diz_chat.sql              chatt mellan kund och utförare (kör efter schemat; idempotent)
 diz_calls.sql             ljudsamtal (signalering för WebRTC; kör efter schemat; idempotent)
+diz_dismissals.sql        leverantören kan ignorera jobb (kör efter schemat; idempotent)
 diz_payments.sql          betalningar/deposition (kör efter schemat; idempotent)
 supabase/functions/       Edge Function-skelett för riktig betalleverantör (Qi) – ej driftsatta
 tests/sql/                SQL-test för betalningslogiken (lokal Postgres)
@@ -49,7 +50,7 @@ Röktest: `npm run build && python3 tests/e2e/smoke.py` (kräver `pip install pl
 3. Kör `diz_supabase_schema.sql` i SQL Editor (OBS: återskapar tabellerna).
 4. Sätt `SUPABASE_URL` och `SUPABASE_ANON_KEY` i `src/db.ts`. (Anon/publishable-nyckeln är avsedd att vara publik – skyddet ligger i RLS.)
 5. Kör `diz_payments.sql` (betalningar, se nedan). Standardläget är `mock`; vill du inte ha betalning ännu: `update public.app_settings set value = 'off' where key = 'payments_mode';`
-   Vill du ha positionsdelning/livekarta: kör även `diz_tracking.sql`. Vill du ha chatt: kör även `diz_chat.sql`. Vill du ha ljudsamtal: kör även `diz_calls.sql`.
+   Vill du ha positionsdelning/livekarta: kör även `diz_tracking.sql`. Vill du ha chatt: kör även `diz_chat.sql`. Vill du ha ljudsamtal: kör även `diz_calls.sql`. Vill du att leverantörer kan ignorera jobb: kör även `diz_dismissals.sql`.
    Har du en databas från före GPS-positionerna: kör även `diz_location.sql` (idempotent).
 6. Registrera ett konto i appen och gör det till admin: `update public.users set role = 'admin' where phone = '…';`
 
@@ -101,4 +102,7 @@ På ett tilldelat uppdrag finns en **📞 Ring**-knapp bredvid chatten. Mottagar
 - **STUN/TURN:** appen använder Googles gratis STUN-servrar för att hitta rätt adress. Det räcker för de flesta uppkopplingar, men inte när båda sidor sitter bakom vissa mobiloperatörers nät (uppskattningsvis 10–20 %). För dem behövs en TURN-relay: lägg in den i `TURN_SERVERS` överst i `src/call.ts` (Cloudflare, Twilio eller egen coturn; kostar pengar).
 - **Integritet:** motparten kan se den andras IP-adress (det ligger i hur WebRTC fungerar) och Googles STUN-server ser IP-adressen vid uppkoppling. Det står i ringrutan; nämn det även i era användarvillkor.
 - **Begränsningar:** man kan bara ta emot samtal medan appen är öppen (en webbsida kan inte ringa i bakgrunden; det kräver pushnotiser/PWA eller mobilapp). Mikrofonbehörighet krävs och sidan måste köras över https. Samtalen är bara testade här med simulerad WebRTC – prova med två riktiga telefoner, helst på olika mobilnät, innan ni lanserar.
+
+## Ignorera jobb (leverantör)
+På varje öppet jobb finns en **Ignorera**-knapp bredvid "Ta jobbet". Jobbet försvinner då ur leverantörens lista – på alla hens enheter, eftersom valet sparas i `job_dismissals` (`diz_dismissals.sql`). Under listan finns **Visa ignorerade jobb (n)** där jobben kan återställas. Det påverkar varken kunden eller andra leverantörer. Man kan inte ignorera ett jobb man redan ansökt om. Utan SQL-filen fungerar knappen ändå, men valet gäller bara tills sidan laddas om.
 

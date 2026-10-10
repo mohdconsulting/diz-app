@@ -10,6 +10,7 @@ import { renderAccountEdit, renderProfileEdit } from './auth';
 import { goTo, refreshCurrentScreen } from './shell';
 import { ad } from './admin';
 import { chatHTML } from './chat';
+import { isDismissed, dismissedCount, showingDismissed } from './dismissals';
 import { dropSharing, providerShareHTML, customerTrackingHTML } from './tracking';
 import { startPayment, openJobPaymentHTML, customerPaymentHTML, providerPaymentHTML, settledPaymentHTML, isFunded } from './payments';
 
@@ -437,13 +438,16 @@ export async function assignJob(id: string, phone: string){
   }catch(e){ toast(t().toastSaveFailed); }
 }
 
-export function jobCardHTML(j: Job, courierView: boolean): string {
+export function jobCardHTML(j: Job, courierView: boolean, ignoredView = false): string {
   const d = t();
   const isMine = currentUser && j.ownerPhone === me().phone;
   const isMyAcceptedJob = currentUser && j.acceptedByPhone === me().phone;
   let body;
   const applicants = Array.isArray(j.applicants) ? j.applicants : [];
-  if(courierView){
+  if(courierView && ignoredView){
+    body = `<div style="margin-top:6px;font-size:12px;color:var(--muted);">${d.dismiss.note}</div>
+      <div class="action-row"><button class="secondary" onclick="restoreJob('${j.id}')">${d.dismiss.restoreBtn}</button></div>`;
+  } else if(courierView){
     if(j.status==='open'){
       const mine = applicants.find(a=>a.phone===currentUser?.phone);
       const note = mine
@@ -452,6 +456,7 @@ export function jobCardHTML(j: Job, courierView: boolean): string {
       body = `${note}
       <div class="action-row">
         <button class="secondary" onclick="submitOffer('${j.id}')">${d.takeJobBtn}</button>
+        ${mine ? '' : `<button class="secondary" onclick="dismissJob('${j.id}')">${d.dismiss.btn}</button>`}
       </div>
       <div class="offer-row">
         <input type="number" min="1" id="offerInput-${j.id}" value="${mine ? mine.price : j.price}">
@@ -639,7 +644,10 @@ export function providerCanTake(job: Job): boolean {
 }
 
 export function renderJobs(){
-  const open = jobs.filter(j=>j.status==="open" && providerCanTake(j));
+  const canSee = jobs.filter(j=>j.status==="open" && providerCanTake(j));
+  const mineApplied = (j: Job) => Array.isArray(j.applicants) && j.applicants.some(a=>a.phone===currentUser?.phone);
+  const open = canSee.filter(j=>!isDismissed(j.id) || mineApplied(j));
+  const ignored = canSee.filter(j=>isDismissed(j.id) && !mineApplied(j));
   const taken = jobs.filter(j=>j.status==="accepted" && j.acceptedByPhone===currentUser?.phone);
   const list = $('jobsList');
   let html = "";
@@ -647,6 +655,11 @@ export function renderJobs(){
     html += `<div class="empty">${t().emptyJobs}</div>`;
   } else {
     html += open.map(j=>jobCardHTML(j,true)).join('');
+  }
+  if(ignored.length){
+    const d = t().dismiss;
+    html += `<div class="action-row" style="margin-top:14px;"><button class="secondary" onclick="toggleDismissed()">${showingDismissed() ? d.hideBtn : d.showBtn.replace('{n}', String(dismissedCount(ignored.map(j=>j.id))))}</button></div>`;
+    if(showingDismissed()) html += `<p class="section-title" style="margin-top:12px;">${d.title}</p>` + ignored.map(j=>jobCardHTML(j,true,true)).join('');
   }
   if(taken.length){
     html += `<p class="section-title" style="margin-top:18px;">${t().takenTitle}</p>` + taken.map(j=>jobCardHTML(j,false)).join('');

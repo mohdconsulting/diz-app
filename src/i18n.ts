@@ -20,6 +20,11 @@ const I18N_RAW = {
       ipNote:"Samtalet går direkt mellan era enheter och spelas inte in. Telefonnummer visas inte, men den andra enheten kan se din IP-adress.",
       chatLog:"📞 Samtal ({t})", chatMissed:"📞 Missat samtal",
     },
+    dismiss:{
+      btn:"Ignorera", toast:"Jobbet är dolt. Du hittar det under ”Visa ignorerade”.", failed:"Kunde inte spara. Försök igen.",
+      showBtn:"Visa ignorerade jobb ({n})", hideBtn:"Dölj ignorerade jobb", restoreBtn:"Återställ", title:"Ignorerade jobb",
+      note:"Du har ignorerat det här jobbet. Det visas inte i din vanliga lista.",
+    },
     authShareNote:"Som tjänsteleverantör delas din position automatiskt med kunden när du fått ett uppdrag – tills du markerar att du har anlänt. Du får information om det i appen.",
     track:{
       autoShareInfo:"📡 Din position delas automatiskt med kunden tills du markerar att du har anlänt. Det fungerar bara medan appen är öppen och skärmen är på.",
@@ -241,6 +246,11 @@ const I18N_RAW = {
       ipNote:"The call goes directly between your devices and is not recorded. Phone numbers are not shown, but the other device can see your IP address.",
       chatLog:"📞 Call ({t})", chatMissed:"📞 Missed call",
     },
+    dismiss:{
+      btn:"Ignore", toast:"The job is hidden. You can find it under “Show ignored jobs”.", failed:"Could not save. Please try again.",
+      showBtn:"Show ignored jobs ({n})", hideBtn:"Hide ignored jobs", restoreBtn:"Restore", title:"Ignored jobs",
+      note:"You have ignored this job. It is not shown in your normal list.",
+    },
     authShareNote:"As a service provider your location is shared automatically with the customer once you are assigned a job — until you mark that you have arrived. You will be told about it in the app.",
     track:{
       autoShareInfo:"📡 Your location is shared with the customer automatically until you mark that you have arrived. It only works while the app is open and the screen is on.",
@@ -461,6 +471,11 @@ const I18N_RAW = {
       noMic:"لم يُعثر على ميكروفون في الجهاز.", unsupported:"متصفحك لا يدعم المكالمات داخل التطبيق.", alreadyInCall:"أنت في مكالمة بالفعل.",
       ipNote:"تتم المكالمة مباشرة بين جهازيكما ولا يتم تسجيلها. لا تُعرض أرقام الهواتف، لكن الجهاز الآخر قد يرى عنوان IP الخاص بك.",
       chatLog:"📞 مكالمة ({t})", chatMissed:"📞 مكالمة فائتة",
+    },
+    dismiss:{
+      btn:"تجاهل", toast:"تم إخفاء المهمة. يمكنك إيجادها ضمن «عرض المهام المتجاهلة».", failed:"تعذّر الحفظ. حاول مرة أخرى.",
+      showBtn:"عرض المهام المتجاهلة ({n})", hideBtn:"إخفاء المهام المتجاهلة", restoreBtn:"استعادة", title:"المهام المتجاهلة",
+      note:"لقد تجاهلت هذه المهمة. لا تظهر في قائمتك العادية.",
     },
     authShareNote:"بصفتك مقدم خدمة، تتم مشاركة موقعك تلقائيًا مع العميل عند تكليفك بمهمة — إلى أن تسجّل وصولك. سيتم إعلامك بذلك داخل التطبيق.",
     track:{
