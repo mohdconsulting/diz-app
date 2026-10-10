@@ -14,6 +14,7 @@ async def main():
         ctx=await b.new_context(viewport={'width':420,'height':900},geolocation={'latitude':33.3152,'longitude':44.3661},permissions=['geolocation'])
         pg=await ctx.new_page()
         await pg.add_init_script(webrtc_stub)
+        await pg.add_init_script("try{ if(!sessionStorage.getItem('dbs')) localStorage.setItem('diz_lang','sv'); }catch(e){}")   # the suite checks Swedish texts
         errs=[]
         pg.on('pageerror',lambda e:errs.append('PAGEERR '+str(e)))
         pg.on('console',lambda m: errs.append('CONSOLE '+m.text) if m.type=='error' and 'fonts' not in m.text and 'ERR_FAILED' not in m.text else None)
@@ -253,6 +254,15 @@ async def main():
         # session restore
         await pg.reload(); await pg.wait_for_timeout(800)
         check('session restored', await pg.evaluate("document.getElementById('authOverlay').style.display")=='none')
+        check('chosen language is remembered after reload', await pg.evaluate("document.documentElement.lang")=='ar')
+        await pg.click('#langSwitch button[data-lang=en]'); await pg.reload(); await pg.wait_for_timeout(800)
+        check('English choice is remembered too', await pg.evaluate("document.documentElement.lang")=='en' and await pg.evaluate("document.documentElement.dir")=='ltr')
+        # first visit with nothing stored: Arabic, right-to-left
+        ctx2=await b.new_context(viewport={'width':420,'height':900}); pg2=await ctx2.new_page()
+        await pg2.route('**/@supabase/supabase-js@2',lambda r:r.fulfill(body=stub,content_type='application/javascript'))
+        await pg2.route('**/fonts.g*/**',lambda r:r.abort())
+        await pg2.goto(URL); await pg2.wait_for_timeout(600)
+        check('default language is Arabic, right-to-left', await pg2.evaluate("document.documentElement.lang")=='ar' and await pg2.evaluate("document.documentElement.dir")=='rtl' and await pg2.evaluate("document.querySelector('#authLangSwitch button.on').dataset.lang")=='ar')
         print('ERRORS:', errs)
         await b.close()
         sys.exit(0 if ok and not errs else 1)

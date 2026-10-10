@@ -3,7 +3,8 @@ import { type DbShim } from './db';
 import { type SbClient } from './supabase';
 import { type Lang, type Role, type Job, type AppUser, type ServiceKey, type Payment, type PaymentsMode, type ProviderLocation } from './types';
 
-export let lang: Lang = "sv";
+/** Arabic is the default language; a language the user picked themselves is remembered (see shell.ts). */
+export let lang: Lang = "ar";
 export let role: Role = "customer";
 export let selectedService: ServiceKey | null = null;
 export let selectedCat: string | null = null;
