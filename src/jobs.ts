@@ -10,6 +10,7 @@ import { renderAccountEdit, renderProfileEdit } from './auth';
 import { goTo, refreshCurrentScreen } from './shell';
 import { ad } from './admin';
 import { chatHTML } from './chat';
+import { ratingBadgeHTML, reviewBlockHTML, ownRatingHTML } from './reviews';
 import { isDismissed, dismissedCount, showingDismissed } from './dismissals';
 import { dropSharing, providerShareHTML, customerTrackingHTML } from './tracking';
 import { startPayment, openJobPaymentHTML, customerPaymentHTML, providerPaymentHTML, settledPaymentHTML, isFunded } from './payments';
@@ -471,7 +472,7 @@ export function jobCardHTML(j: Job, courierView: boolean, ignoredView = false): 
         ? applicants.slice().sort((a,b)=>a.price-b.price).map(a=>`
           <div class="card" style="margin-bottom:8px;padding:10px 12px;">
             <div class="top-row">
-              <div><h3 style="font-size:14px;">${esc(a.name || a.phone)}</h3></div>
+              <div><h3 style="font-size:14px;">${esc(a.name || a.phone)}</h3>${ratingBadgeHTML(a.phone)}</div>
               <div class="price" style="font-size:14px;">${a.price} ${d.priceUnit}</div>
             </div>
             <div class="action-row">
@@ -586,7 +587,8 @@ export function jobCardHTML(j: Job, courierView: boolean, ignoredView = false): 
     } else if(j.status==='done'){
       body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
       <div style="margin-top:6px;font-size:12px;color:var(--muted);">${j.resolution==='released' ? ad().releasedNote : (j.autoReleased ? d.autoReleasedNote : d.paymentReleasedNote)}</div>
-      ${settledPaymentHTML(j, role==='driver')}`;
+      ${settledPaymentHTML(j, role==='driver')}
+      ${reviewBlockHTML(j)}`;
     } else if(j.status==='open' && isMine && role==='customer' && pendingDeleteId===j.id){
       body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
       <div style="margin-top:8px;font-size:13px;">${d.confirmDeleteInline}</div>
@@ -699,7 +701,7 @@ export function renderHistory(){
       list.innerHTML = `<div class="empty">${t().emptyHistoryDriver}</div>`;
       return;
     }
-    list.innerHTML = done.slice().sort((a,b)=>(b.completedAt||0)-(a.completedAt||0)).map(j=>jobCardHTML(j,false)).join('');
+    list.innerHTML = ownRatingHTML() + done.slice().sort((a,b)=>(b.completedAt||0)-(a.completedAt||0)).map(j=>jobCardHTML(j,false)).join('');
     return;
   }
   const done = jobs.filter(j=>j.ownerPhone===me().phone && isFinal(j));

@@ -2,8 +2,8 @@
 (function(){
   const now=Date.now();
   let saved=null; try{ saved=JSON.parse(sessionStorage.getItem('dbs')); }catch(e){}
-  const db=saved?saved.db:{users:[{id:'u-admin',phone:'admin1',name:'Chefen',role:'admin',profiles:[],created_at:now}],jobs:[],admin_notes:[],payments:[],provider_locations:[],messages:[],call_signals:[],job_dismissals:[],app_settings:[{key:'payments_mode',value:'mock'}]};
-  db.payments=db.payments||[]; db.provider_locations=db.provider_locations||[]; db.messages=db.messages||[]; db.call_signals=db.call_signals||[]; db.job_dismissals=db.job_dismissals||[]; db.app_settings=db.app_settings||[{key:'payments_mode',value:'mock'}];
+  const db=saved?saved.db:{users:[{id:'u-admin',phone:'admin1',name:'Chefen',role:'admin',profiles:[],created_at:now}],jobs:[],admin_notes:[],payments:[],provider_locations:[],messages:[],call_signals:[],job_dismissals:[],reviews:[],app_settings:[{key:'payments_mode',value:'mock'}]};
+  db.payments=db.payments||[]; db.provider_locations=db.provider_locations||[]; db.messages=db.messages||[]; db.call_signals=db.call_signals||[]; db.job_dismissals=db.job_dismissals||[]; db.reviews=db.reviews||[]; db.app_settings=db.app_settings||[{key:'payments_mode',value:'mock'}];
   const auth=saved?saved.auth:[{id:'u-admin',email:'diz.admin1@gmail.com',pw:'secret1'}];
   const persist=()=>sessionStorage.setItem('dbs',JSON.stringify({db,auth}));
   let session=null; try{ session=JSON.parse(sessionStorage.getItem('sess')); }catch(e){}
@@ -29,6 +29,7 @@
       const T=db[table]; let m=T.filter(r=>st.f.every(f=>f(r)));
       if(table==='call_signals'&&st.op==='select'){ const u=session&&db.users.find(x=>x.id===session.user.id); m=m.filter(r=>u&&r.to_phone===u.phone&&r.created_at>Date.now()-90000); }
       if(table==='job_dismissals'&&st.op==='select'){ const u=session&&db.users.find(x=>x.id===session.user.id); m=m.filter(r=>u&&r.provider_phone===u.phone); }
+      if(table==='reviews'&&st.op==='select'){ const u=session&&db.users.find(x=>x.id===session.user.id); m=m.filter(r=>u&&(u.role==='admin'||r.customer_phone===u.phone||(r.provider_phone===u.phone&&!r.hidden))); }
       if(table==='messages'&&st.op==='select'){ const u=session&&db.users.find(x=>x.id===session.user.id); m=m.filter(r=>u&&(u.role==='admin'||r.sender_phone===u.phone||r.recipient_phone===u.phone)); }
       if(st.op==='select'){ if(st.maybe) return {data:m[0]||null,error:null}; return {data:m,error:null}; }
       if(st.op==='insert'){ const r={id:'n'+Math.random().toString(16).slice(2),...st.payload}; T.push(r); return {data:st.single?r:[r],error:null}; }
@@ -62,6 +63,12 @@
         db.call_signals.push({id:db.call_signals.length+1,job_id:j.id,from_phone:me.phone,to_phone:me.phone===j.owner_phone?j.accepted_by_phone:j.owner_phone,call_id:args.p_call_id,kind:args.p_kind,payload:args.p_payload,created_at:Date.now()});
         persist(); return {error:null};
       }
+      if(fn==='submit_review'){ const j=db.jobs.find(x=>x.id===args.p_job_id); const c=(args.p_comment||'').trim()||null;
+        if(!j||!me||j.owner_phone!==me.phone||j.status!=='done'||!j.accepted_by_phone||db.reviews.some(r=>r.job_id===j.id)||!(args.p_rating>=1&&args.p_rating<=5)||(c&&c.length>500)) return {error:{message:'cannot review'}};
+        db.reviews.push({job_id:j.id,provider_phone:j.accepted_by_phone,customer_phone:me.phone,rating:args.p_rating,comment:c,created_at:Date.now()}); persist(); return {error:null}; }
+      if(fn==='moderate_review'){ const r=db.reviews.find(x=>x.job_id===args.p_job_id); if(!me||me.role!=='admin'||!r) return {error:{message:'not allowed'}}; if(args.p_action==='hide') r.hidden=true; else if(args.p_action==='show') r.hidden=false; else if(args.p_action==='clear_comment') r.comment=null; else return {error:{message:'unknown action'}}; persist(); return {error:null}; }
+      if(fn==='provider_ratings'){ if(!me) return {error:{message:'not authenticated'}}; const out=[]; for(const ph of args.p_phones){ const rs=db.reviews.filter(r=>r.provider_phone===ph&&!r.hidden); if(rs.length) out.push({provider_phone:ph,avg_rating:Math.round(rs.reduce((a,r)=>a+r.rating,0)/rs.length*10)/10,review_count:rs.length}); } return {data:out,error:null}; }
+      if(fn==='provider_reviews'){ if(!me) return {error:{message:'not authenticated'}}; return {data:db.reviews.filter(r=>r.provider_phone===args.p_phone&&!r.hidden).map(r=>({rating:r.rating,comment:r.comment,created_at:r.created_at})),error:null}; }
       if(fn==='dismiss_job'){ const j=db.jobs.find(x=>x.id===args.p_job_id); if(!j||!me||j.status!=='open'||j.owner_phone===me.phone||(j.applicants||[]).some(a=>a.phone===me.phone)) return {error:{message:'job cannot be ignored'}}; if(!db.job_dismissals.some(d=>d.job_id===j.id&&d.provider_phone===me.phone)) db.job_dismissals.push({provider_phone:me.phone,job_id:j.id,created_at:Date.now()}); persist(); return {error:null}; }
       if(fn==='restore_job'){ db.job_dismissals=db.job_dismissals.filter(d=>!(d.job_id===args.p_job_id&&me&&d.provider_phone===me.phone)); persist(); return {error:null}; }
       if(fn==='mark_messages_read'){ db.messages.forEach(m=>{ if(m.job_id===args.p_job_id&&me&&m.recipient_phone===me.phone&&m.read_at==null) m.read_at=Date.now(); }); persist(); return {error:null}; }

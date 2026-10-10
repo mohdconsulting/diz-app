@@ -27,6 +27,7 @@ diz_tracking.sql          följ utförarens position på karta (kör efter schem
 diz_chat.sql              chatt mellan kund och utförare (kör efter schemat; idempotent)
 diz_calls.sql             ljudsamtal (signalering för WebRTC; kör efter schemat; idempotent)
 diz_dismissals.sql        leverantören kan ignorera jobb (kör efter schemat; idempotent)
+diz_reviews.sql           kundrecensioner av utförare (kör efter schemat; idempotent)
 diz_payments.sql          betalningar/deposition (kör efter schemat; idempotent)
 supabase/functions/       Edge Function-skelett för riktig betalleverantör (Qi) – ej driftsatta
 tests/sql/                SQL-test för betalningslogiken (lokal Postgres)
@@ -50,7 +51,7 @@ Röktest: `npm run build && python3 tests/e2e/smoke.py` (kräver `pip install pl
 3. Kör `diz_supabase_schema.sql` i SQL Editor (OBS: återskapar tabellerna).
 4. Sätt `SUPABASE_URL` och `SUPABASE_ANON_KEY` i `src/db.ts`. (Anon/publishable-nyckeln är avsedd att vara publik – skyddet ligger i RLS.)
 5. Kör `diz_payments.sql` (betalningar, se nedan). Standardläget är `mock`; vill du inte ha betalning ännu: `update public.app_settings set value = 'off' where key = 'payments_mode';`
-   Vill du ha positionsdelning/livekarta: kör även `diz_tracking.sql`. Vill du ha chatt: kör även `diz_chat.sql`. Vill du ha ljudsamtal: kör även `diz_calls.sql`. Vill du att leverantörer kan ignorera jobb: kör även `diz_dismissals.sql`.
+   Vill du ha positionsdelning/livekarta: kör även `diz_tracking.sql`. Vill du ha chatt: kör även `diz_chat.sql`. Vill du ha ljudsamtal: kör även `diz_calls.sql`. Vill du att leverantörer kan ignorera jobb: kör även `diz_dismissals.sql`. Vill du ha kundrecensioner: kör även `diz_reviews.sql`.
    Har du en databas från före GPS-positionerna: kör även `diz_location.sql` (idempotent).
 6. Registrera ett konto i appen och gör det till admin: `update public.users set role = 'admin' where phone = '…';`
 
@@ -106,4 +107,7 @@ På ett tilldelat uppdrag finns en **📞 Ring**-knapp bredvid chatten. Mottagar
 
 ## Ignorera jobb (leverantör)
 På varje öppet jobb finns en **Ignorera**-knapp bredvid "Ta jobbet". Jobbet försvinner då ur leverantörens lista – på alla hens enheter, eftersom valet sparas i `job_dismissals` (`diz_dismissals.sql`). Under listan finns **Visa ignorerade jobb (n)** där jobben kan återställas. Det påverkar varken kunden eller andra leverantörer. Man kan inte ignorera ett jobb man redan ansökt om. Utan SQL-filen fungerar knappen ändå, men valet gäller bara tills sidan laddas om.
+
+## Kundrecensioner av utförare
+När ett jobb är avslutat kan kunden ge utföraren **1–5 stjärnor och en valfri kommentar** (högst 500 tecken), en gång per jobb och utan möjlighet att ändra efteråt. Recensionen skapas via `submit_review` (`diz_reviews.sql`), som kräver att anroparen är jobbets kund och att jobbet är avslutat. Alla inloggade ser en utförares snittbetyg och antal recensioner (`provider_ratings`), bland annat på ansökningskorten när kunden väljer utförare; kommentarer visas anonymt (`provider_reviews`). Själva recensionsraderna, som innehåller telefonnummer, kan bara läsas av kunden, utföraren och admin, och ingen kan skriva, ändra eller ta bort dem direkt. Utföraren ser sitt snitt och de senaste kommentarerna överst under Historik. Utan SQL-filen döljs allt i appen. **Moderering:** admin ser recensionen på jobbets kort och kan **dölja** den (syns då bara för kunden som skrev den, som får veta att den dolts, och räknas inte i snittet), **visa** den igen, eller **ta bort kommentaren** permanent (betyget finns kvar). Det sker via `moderate_review`, som bara admin får anropa. Test: `tests/sql/reviews_test.sql`.
 

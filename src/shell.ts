@@ -1,4 +1,5 @@
 import { mountChat } from './chat';
+import { syncReviews } from './reviews';
 import { mountTrackingMap, syncSharing } from './tracking';
 import { $, safeGetLocal } from './util';
 import { boot } from './auth';
@@ -25,6 +26,7 @@ export function subscribeJobs(): () => void {
     refreshCurrentScreen();
     autoReleaseExpired();
     syncSharing();
+    void syncReviews();
   }, err=>{ console.error('jobs snapshot error', err); });
 }
 

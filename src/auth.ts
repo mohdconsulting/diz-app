@@ -3,6 +3,7 @@ import { startTracking, stopTracking } from './tracking';
 import { startChat, stopChat } from './chat';
 import { startCalls, stopCalls } from './call';
 import { loadDismissals, clearDismissals } from './dismissals';
+import { clearReviews } from './reviews';
 import { $ } from './util';
 import { createSupabaseDbShim, SUPABASE_URL, SUPABASE_ANON_KEY } from './db';
 import { type AppUser } from './types';
@@ -169,6 +170,7 @@ export async function logout(){
   stopChat();
   stopCalls();
   clearDismissals();
+  clearReviews();
   setJobs([]); setFirstSnapshotDone(false);
   setAdminUsersList([]); setAdminNotes({});
   try{ if(sbRef) await sb().auth.signOut(); }catch(e){}
