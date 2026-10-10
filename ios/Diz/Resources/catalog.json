@@ -1,0 +1,91 @@
+[
+ {
+  "key": "junk",
+  "needsToAddr": false,
+  "categories": [
+   "furniture",
+   "appliances",
+   "bulky",
+   "electronics",
+   "leftover"
+  ],
+  "sizes": [
+   1,
+   2,
+   3
+  ]
+ },
+ {
+  "key": "moving",
+  "needsToAddr": true,
+  "categories": [
+   "studio",
+   "apartment",
+   "house"
+  ],
+  "sizes": [
+   1,
+   2,
+   3
+  ]
+ },
+ {
+  "key": "goods",
+  "needsToAddr": false,
+  "categories": [
+   "groceries",
+   "pharmacy",
+   "electronics",
+   "furniture"
+  ],
+  "sizes": [
+   1,
+   2
+  ]
+ },
+ {
+  "key": "pro",
+  "needsToAddr": false,
+  "categories": [
+   "electrician",
+   "plumber",
+   "gardener",
+   "painter",
+   "cleaner"
+  ],
+  "sizes": [
+   1,
+   2,
+   3
+  ]
+ },
+ {
+  "key": "towing",
+  "needsToAddr": true,
+  "categories": [
+   "breakdown",
+   "accident",
+   "flat",
+   "transport"
+  ],
+  "sizes": [
+   1,
+   2,
+   3
+  ]
+ },
+ {
+  "key": "deliver",
+  "needsToAddr": true,
+  "categories": [
+   "document",
+   "package",
+   "fragile",
+   "food"
+  ],
+  "sizes": [
+   1,
+   2
+  ]
+ }
+]

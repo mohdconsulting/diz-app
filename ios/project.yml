@@ -1,0 +1,37 @@
+# Xcode project description for XcodeGen (https://github.com/yonaskolb/XcodeGen).
+#   brew install xcodegen && cd ios && xcodegen generate && open Diz.xcodeproj
+name: Diz
+options:
+  bundleIdPrefix: app.diz
+  deploymentTarget:
+    iOS: "16.0"
+  developmentLanguage: ar
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    DEVELOPMENT_TEAM: ""          # set your Apple Developer team id here (or in Xcode: Signing & Capabilities)
+targets:
+  Diz:
+    type: application
+    platform: iOS
+    sources:
+      - path: Diz
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.diz.Diz
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: دز
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "Diz uses your location to share it with the customer while you are on the way to a job, and to fill in your address. دز يستخدم موقعك لمشاركته مع العميل أثناء توجهك إلى المهمة ولتعبئة عنوانك."
+  DizTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: DizTests
+    dependencies:
+      - target: Diz

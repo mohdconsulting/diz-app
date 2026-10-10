@@ -111,3 +111,6 @@ På varje öppet jobb finns en **Ignorera**-knapp bredvid "Ta jobbet". Jobbet f�
 ## Kundrecensioner av utförare
 När ett jobb är avslutat kan kunden ge utföraren **1–5 stjärnor och en valfri kommentar** (högst 500 tecken), en gång per jobb och utan möjlighet att ändra efteråt. Recensionen skapas via `submit_review` (`diz_reviews.sql`), som kräver att anroparen är jobbets kund och att jobbet är avslutat. Alla inloggade ser en utförares snittbetyg och antal recensioner (`provider_ratings`), bland annat på ansökningskorten när kunden väljer utförare; kommentarer visas anonymt (`provider_reviews`). Själva recensionsraderna, som innehåller telefonnummer, kan bara läsas av kunden, utföraren och admin, och ingen kan skriva, ändra eller ta bort dem direkt. Utföraren ser sitt snitt och de senaste kommentarerna överst under Historik. Utan SQL-filen döljs allt i appen. **Moderering:** admin ser recensionen på jobbets kort och kan **dölja** den (syns då bara för kunden som skrev den, som får veta att den dolts, och räknas inte i snittet), **visa** den igen, eller **ta bort kommentaren** permanent (betyget finns kvar). Det sker via `moderate_review`, som bara admin får anropa. Test: `tests/sql/reviews_test.sql`.
 
+
+## iPhone-app
+Native SwiftUI-app i `ios/` mot samma Supabase-backend. Se `ios/README.md` (bygg med XcodeGen på Mac; ej kompilerad i utvecklingsmiljön).
