@@ -2,8 +2,8 @@
 (function(){
   const now=Date.now();
   let saved=null; try{ saved=JSON.parse(sessionStorage.getItem('dbs')); }catch(e){}
-  const db=saved?saved.db:{users:[{id:'u-admin',phone:'admin1',name:'Chefen',role:'admin',profiles:[],created_at:now}],jobs:[],admin_notes:[],payments:[],provider_locations:[],messages:[],call_signals:[],app_settings:[{key:'payments_mode',value:'mock'}]};
-  db.payments=db.payments||[]; db.provider_locations=db.provider_locations||[]; db.messages=db.messages||[]; db.call_signals=db.call_signals||[]; db.app_settings=db.app_settings||[{key:'payments_mode',value:'mock'}];
+  const db=saved?saved.db:{users:[{id:'u-admin',phone:'admin1',name:'Chefen',role:'admin',profiles:[],created_at:now}],jobs:[],admin_notes:[],payments:[],provider_locations:[],messages:[],call_signals:[],job_dismissals:[],app_settings:[{key:'payments_mode',value:'mock'}]};
+  db.payments=db.payments||[]; db.provider_locations=db.provider_locations||[]; db.messages=db.messages||[]; db.call_signals=db.call_signals||[]; db.job_dismissals=db.job_dismissals||[]; db.app_settings=db.app_settings||[{key:'payments_mode',value:'mock'}];
   const auth=saved?saved.auth:[{id:'u-admin',email:'diz.admin1@gmail.com',pw:'secret1'}];
   const persist=()=>sessionStorage.setItem('dbs',JSON.stringify({db,auth}));
   let session=null; try{ session=JSON.parse(sessionStorage.getItem('sess')); }catch(e){}
@@ -28,6 +28,7 @@
     function run(){
       const T=db[table]; let m=T.filter(r=>st.f.every(f=>f(r)));
       if(table==='call_signals'&&st.op==='select'){ const u=session&&db.users.find(x=>x.id===session.user.id); m=m.filter(r=>u&&r.to_phone===u.phone&&r.created_at>Date.now()-90000); }
+      if(table==='job_dismissals'&&st.op==='select'){ const u=session&&db.users.find(x=>x.id===session.user.id); m=m.filter(r=>u&&r.provider_phone===u.phone); }
       if(table==='messages'&&st.op==='select'){ const u=session&&db.users.find(x=>x.id===session.user.id); m=m.filter(r=>u&&(u.role==='admin'||r.sender_phone===u.phone||r.recipient_phone===u.phone)); }
       if(st.op==='select'){ if(st.maybe) return {data:m[0]||null,error:null}; return {data:m,error:null}; }
       if(st.op==='insert'){ const r={id:'n'+Math.random().toString(16).slice(2),...st.payload}; T.push(r); return {data:st.single?r:[r],error:null}; }
@@ -60,6 +61,8 @@
         db.call_signals.push({id:db.call_signals.length+1,job_id:j.id,from_phone:me.phone,to_phone:me.phone===j.owner_phone?j.accepted_by_phone:j.owner_phone,call_id:args.p_call_id,kind:args.p_kind,payload:args.p_payload,created_at:Date.now()});
         persist(); return {error:null};
       }
+      if(fn==='dismiss_job'){ const j=db.jobs.find(x=>x.id===args.p_job_id); if(!j||!me||j.status!=='open'||j.owner_phone===me.phone||(j.applicants||[]).some(a=>a.phone===me.phone)) return {error:{message:'job cannot be ignored'}}; if(!db.job_dismissals.some(d=>d.job_id===j.id&&d.provider_phone===me.phone)) db.job_dismissals.push({provider_phone:me.phone,job_id:j.id,created_at:Date.now()}); persist(); return {error:null}; }
+      if(fn==='restore_job'){ db.job_dismissals=db.job_dismissals.filter(d=>!(d.job_id===args.p_job_id&&me&&d.provider_phone===me.phone)); persist(); return {error:null}; }
       if(fn==='mark_messages_read'){ db.messages.forEach(m=>{ if(m.job_id===args.p_job_id&&me&&m.recipient_phone===me.phone&&m.read_at==null) m.read_at=Date.now(); }); persist(); return {error:null}; }
       if(fn==='stop_sharing'){ db.provider_locations=db.provider_locations.filter(x=>x.job_id!==args.p_job_id); persist(); return {error:null}; }
       if(fn==='create_payment'){
