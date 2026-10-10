@@ -1,6 +1,6 @@
 import { mountChat } from './chat';
 import { mountTrackingMap, syncSharing } from './tracking';
-import { $ } from './util';
+import { $, safeGetLocal } from './util';
 import { boot } from './auth';
 import { type Lang, type Job } from './types';
 import { lang, setLangState, role, selectedService, setJobs, dbRef, currentUser, t, db } from './state';
@@ -82,8 +82,10 @@ export function applyRoleUI(){
   if(role==='customer' && cur==='jobs'){ goTo('home'); return; }
 }
 
+const LANG_KEY = 'diz_lang';
 export function setLang(newLang: Lang){
   setLangState(newLang);
+  try{ localStorage.setItem(LANG_KEY, newLang); }catch(e){ /* optional */ }
   applyStaticText();
   if(currentUser) applyRoleUI();
   refreshCurrentScreen();
@@ -135,6 +137,8 @@ $('authLangSwitch').addEventListener('click', e=>{
 });
 
 export function start(){
+  const saved = safeGetLocal(LANG_KEY);
+  if(saved === 'sv' || saved === 'en' || saved === 'ar') setLangState(saved);
   applyStaticText();
   void boot();
 }
