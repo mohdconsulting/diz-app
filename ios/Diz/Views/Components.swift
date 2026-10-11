@@ -2,7 +2,7 @@ import SwiftUI
 import UIKit
 
 extension Color {
-    static let dizBrand = Color(red: 0.05, green: 0.45, blue: 0.40)
+    static let dizBrand = Color(red: 0.17, green: 0.35, blue: 0.32)
     static let dizCard = Color(UIColor.secondarySystemBackground)
 }
 

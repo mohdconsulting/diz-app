@@ -23,5 +23,5 @@ Inga externa paket – egen `URLSession`-klient för Supabase Auth och PostgREST
 - Uppdatering var 5:e sekund + dra för att uppdatera
 
 ## Begränsningar (v1)
-Ljudsamtal (WebRTC), admin-gränssnitt, foton, riktiga betalningar (`live` – hänvisa till webben), pushnotiser och bakgrundsposition finns inte i iPhone-appen ännu. Appikon saknas (lägg en 1024×1024 PNG i `AppIcon.appiconset`).
+Ljudsamtal (WebRTC), admin-gränssnitt, foton, riktiga betalningar (`live` – hänvisa till webben), pushnotiser och bakgrundsposition finns inte i iPhone-appen ännu.
 För att publicera i App Store krävs Apple Developer-konto (99 USD/år).
