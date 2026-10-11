@@ -116,7 +116,7 @@ struct AuthField: View {
                 .clipShape(RoundedRectangle(cornerRadius: 10))
                 .onChange(of: text) { v in
                     guard keyboard == .phonePad else { return }
-                    let f = String(v.filter { $0.isASCII && ($0.isNumber || $0 == "+" || $0 == " ") })
+                    let f = String(v.asciiDigits.filter { $0.isASCII && ($0.isNumber || $0 == "+" || $0 == " ") })
                     if f != v { text = f }
                 }
         }

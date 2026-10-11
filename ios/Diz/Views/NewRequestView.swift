@@ -13,7 +13,7 @@ struct NewRequestView: View {
 
     private var info: ServiceInfo? { Strings.shared.service(service) }
     private var estimate: Int { Pricing.price(service: service, size: size, cat: cat) }
-    private var finalPrice: Int { custom ? (Int(customPrice.filter(\.isNumber)) ?? 0) : estimate }
+    private var finalPrice: Int { custom ? customPrice.intValue : estimate }
 
     var body: some View {
         Form {
@@ -61,7 +61,12 @@ struct NewRequestView: View {
             }
             Section(store.tr("estimateLabel")) {
                 if custom {
-                    TextField(store.tr("customPriceLabel"), text: $customPrice).keyboardType(.numberPad)
+                    TextField(store.tr("customPriceLabel"), text: $customPrice)
+                        .keyboardType(.numbersAndPunctuation)
+                        .onChange(of: customPrice) { v in
+                            let f = String(v.asciiDigits.filter { $0.isASCII && $0.isNumber })
+                            if f != v { customPrice = f }
+                        }
                     Text(store.tr("estimateSubCustom")).font(.footnote).foregroundColor(.secondary)
                 } else {
                     Text(store.money(estimate)).font(.title3.bold())

@@ -9,7 +9,6 @@ struct DizApp: App {
             RootView()
                 .environmentObject(store)
                 .environment(\.layoutDirection, store.lang.isRTL ? .rightToLeft : .leftToRight)
-                .environment(\.locale, store.lang.locale)
                 .task { await store.restore() }
         }
     }

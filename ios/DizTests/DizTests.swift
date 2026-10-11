@@ -42,3 +42,13 @@ final class DizTests: XCTestCase {
         XCTAssertEqual(u?.profiles, ["driver"])
     }
 }
+
+final class DigitTests: XCTestCase {
+    func testArabicIndicDigits() {
+        XCTAssertEqual("٠٧٧٠١٢٣".asciiDigits, "0770123")
+        XCTAssertEqual("۱۲۳".asciiDigits, "123")
+        XCTAssertEqual("٢٥٠٠٠".intValue, 25000)
+        XCTAssertEqual("25 000".intValue, 25000)
+        XCTAssertEqual(Config.authEmail(phone: "٠٧٧٠١٢٣"), "diz.0770123@gmail.com")
+    }
+}
