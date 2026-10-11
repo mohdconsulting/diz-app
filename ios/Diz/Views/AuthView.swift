@@ -30,7 +30,10 @@ struct AuthView: View {
                     field(store.tr("authPhoneLabel"), text: $phone, keyboard: .phonePad)
                     VStack(alignment: .leading, spacing: 4) {
                         Text(store.tr("authPassLabel")).font(.footnote).foregroundColor(.secondary)
-                        SecureField("", text: $password).textFieldStyle(.roundedBorder)
+                        SecureField(store.tr("authPassLabel"), text: $password)
+                            .padding(10).foregroundColor(.primary)
+                            .background(Color.dizCard).clipShape(RoundedRectangle(cornerRadius: 10))
+                            .environment(\.layoutDirection, .leftToRight)
                     }
 
                     if registering {
@@ -71,11 +74,7 @@ struct AuthView: View {
     }
 
     private func field(_ label: String, text: Binding<String>, keyboard: UIKeyboardType = .default) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(label).font(.footnote).foregroundColor(.secondary)
-            TextField("", text: text).keyboardType(keyboard).textFieldStyle(.roundedBorder)
-                .autocorrectionDisabled().textInputAutocapitalization(.never)
-        }
+        AuthField(label: label, text: text, keyboard: keyboard)
     }
 
     private func chip(_ key: String, _ title: String) -> some View {
@@ -91,5 +90,30 @@ struct AuthView: View {
             .background(Color.dizCard).clipShape(RoundedRectangle(cornerRadius: 10))
         }
         .buttonStyle(.plain)
+    }
+}
+
+/// Plain text field with explicit colors and left-to-right input, so digits and Latin text are always visible
+/// (also when the app UI is right-to-left).
+struct AuthField: View {
+    let label: String
+    @Binding var text: String
+    var keyboard: UIKeyboardType = .default
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label).font(.footnote).foregroundColor(.secondary)
+            TextField(label, text: $text)
+                .keyboardType(keyboard)
+                .textContentType(keyboard == .phonePad ? .telephoneNumber : nil)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.never)
+                .multilineTextAlignment(.leading)
+                .environment(\.layoutDirection, .leftToRight)
+                .foregroundColor(.primary)
+                .padding(10)
+                .background(Color.dizCard)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+        }
     }
 }
