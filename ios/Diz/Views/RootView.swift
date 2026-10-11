@@ -47,6 +47,7 @@ struct MainTabs: View {
 
 struct ProfileView: View {
     @EnvironmentObject var store: Store
+    @State private var confirmDelete = false
 
     var body: some View {
         Form {
@@ -70,9 +71,19 @@ struct ProfileView: View {
                 Section { Text(store.tr("track.shareDenied")).font(.footnote).foregroundColor(.red) }
             }
             Section {
+                Link(store.tr("account.privacy"), destination: Config.privacyURL)
+            }
+            Section {
                 Button(role: .destructive) { store.logout() } label: { Text(store.tr("logoutBtn")) }
+                Button(role: .destructive) { confirmDelete = true } label: { Text(store.tr("account.deleteBtn")) }
             }
         }
         .navigationTitle(store.tr("tabs.mine"))
+        .alert(store.tr("account.deleteTitle"), isPresented: $confirmDelete) {
+            Button(store.tr("account.deleteConfirm"), role: .destructive) { Task { _ = await store.deleteAccount() } }
+            Button(store.tr("cancelBtn"), role: .cancel) {}
+        } message: {
+            Text(store.tr("account.deleteMsg"))
+        }
     }
 }

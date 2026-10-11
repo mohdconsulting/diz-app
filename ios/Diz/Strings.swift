@@ -35,7 +35,7 @@ final class Strings {
 
     /// Looks up a text; `{name}` placeholders are replaced from `vars`. Falls back to Swedish, then to the key.
     func text(_ key: String, _ lang: Lang, _ vars: [String: String] = [:]) -> String {
-        var s = table[lang.rawValue]?[key] ?? table["sv"]?[key] ?? key
+        var s = Extra.table[key]?[lang] ?? table[lang.rawValue]?[key] ?? table["sv"]?[key] ?? Extra.table[key]?[.sv] ?? key
         for (k, v) in vars { s = s.replacingOccurrences(of: "{" + k + "}", with: v) }
         return s
     }

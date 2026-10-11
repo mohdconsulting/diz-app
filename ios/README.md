@@ -25,3 +25,7 @@ Inga externa paket – egen `URLSession`-klient för Supabase Auth och PostgREST
 ## Begränsningar (v1)
 Ljudsamtal (WebRTC), admin-gränssnitt, foton, riktiga betalningar (`live` – hänvisa till webben), pushnotiser och bakgrundsposition finns inte i iPhone-appen ännu.
 För att publicera i App Store krävs Apple Developer-konto (99 USD/år).
+
+## App Store
+Se `appstore/listing.md` (texter på ar/sv/en, App Privacy-svar, granskarnotering, checklista) och `appstore/privacy-policy.html`.
+Radera konto i appen kräver att `diz_account_delete.sql` körs i Supabase.

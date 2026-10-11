@@ -381,6 +381,22 @@ final class Store: ObservableObject {
         catch { dismissed.insert(id); toast("dismiss.failed") }
     }
 
+    // MARK: Account
+    /// Deletes the account on the server (rpc delete_my_account) and signs out. Returns false on failure.
+    func deleteAccount() async -> Bool {
+        busy = true; defer { busy = false }
+        do {
+            _ = try await api.rpc("delete_my_account")
+            logout()
+            toast("account.deleted")
+            return true
+        } catch let e as APIError where e.message.contains("active jobs") {
+            toast("account.deleteActive"); return false
+        } catch {
+            toast("account.deleteFailed"); return false
+        }
+    }
+
     // MARK: Chat
     func send(jobId: String, body: String) async -> Bool {
         let b = body.trimmingCharacters(in: .whitespacesAndNewlines)

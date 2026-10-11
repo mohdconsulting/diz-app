@@ -14,6 +14,9 @@ enum Config {
         return local.isEmpty ? "" : "diz." + local + "@gmail.com"
     }
 
+    /// Public URL of the privacy policy (host ios/appstore/privacy-policy.html and change this to its address).
+    static let privacyURL = URL(string: "https://mohdconsulting.github.io/diz-app/privacy-policy.html")!
+
     static let pollSeconds: UInt64 = 5
     static let locationSendSeconds: TimeInterval = 10
 }
