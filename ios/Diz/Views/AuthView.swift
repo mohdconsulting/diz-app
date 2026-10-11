@@ -33,7 +33,6 @@ struct AuthView: View {
                         SecureField(store.tr("authPassLabel"), text: $password)
                             .padding(10).foregroundColor(.primary)
                             .background(Color.dizCard).clipShape(RoundedRectangle(cornerRadius: 10))
-                            .environment(\.layoutDirection, .leftToRight)
                     }
 
                     if registering {
@@ -93,27 +92,33 @@ struct AuthView: View {
     }
 }
 
-/// Plain text field with explicit colors and left-to-right input, so digits and Latin text are always visible
-/// (also when the app UI is right-to-left).
+/// Plain text field. Phone numbers use the ordinary keyboard (not .phonePad, which has no return key and
+/// misbehaves with some simulator/keyboard setups) and are filtered to digits, "+" and spaces.
 struct AuthField: View {
     let label: String
     @Binding var text: String
     var keyboard: UIKeyboardType = .default
+    @FocusState private var focused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(label).font(.footnote).foregroundColor(.secondary)
             TextField(label, text: $text)
-                .keyboardType(keyboard)
-                .textContentType(keyboard == .phonePad ? .telephoneNumber : nil)
+                .focused($focused)
+                .keyboardType(keyboard == .phonePad ? .numbersAndPunctuation : keyboard)
+                .submitLabel(.done)
+                .onSubmit { focused = false }
                 .autocorrectionDisabled()
                 .textInputAutocapitalization(.never)
-                .multilineTextAlignment(.leading)
-                .environment(\.layoutDirection, .leftToRight)
                 .foregroundColor(.primary)
                 .padding(10)
                 .background(Color.dizCard)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
+                .onChange(of: text) { v in
+                    guard keyboard == .phonePad else { return }
+                    let f = String(v.filter { $0.isASCII && ($0.isNumber || $0 == "+" || $0 == " ") })
+                    if f != v { text = f }
+                }
         }
     }
 }
