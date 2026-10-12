@@ -111,7 +111,7 @@ struct ProposalBox: View {
                 Text(store.tr("sched.proposeNote")).font(.footnote).foregroundColor(.secondary)
                 TimeSlotPicker(selection: $selection)
                 DigitField(placeholder: store.tr("sched.priceLabel"), text: $price)
-                    .frame(height: 22).padding(8)
+                    .frame(maxWidth: .infinity).frame(height: 40)
                     .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.secondary.opacity(0.4)))
                 PrimaryButton(title: store.tr("sched.proposeSend"), disabled: selection.isEmpty) {
                     let p = price.intValue > 0 ? price.intValue : job.price

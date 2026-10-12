@@ -105,8 +105,7 @@ struct AuthField: View {
             Text(label).font(.footnote).foregroundColor(.secondary)
             if keyboard == .phonePad {
                 DigitField(placeholder: label, text: $text, allowPlusAndSpace: true)
-                    .frame(height: 22)
-                    .padding(10)
+                    .frame(maxWidth: .infinity).frame(height: 44)
                     .background(Color.dizCard)
                     .clipShape(RoundedRectangle(cornerRadius: 10))
             } else {

@@ -5,13 +5,23 @@ import UIKit
 /// RTL combinations (typed digits not shown, field cleared). This wrapper edits the text itself in
 /// shouldChangeCharactersIn, so every typed character is converted to ASCII right away (Arabic-Indic digits
 /// included) and unwanted characters are dropped before they ever reach the field.
+/// UITextField whose whole rectangle (including the padding) is tappable and edits text.
+final class PaddedField: UITextField {
+    var inset: CGFloat = 10
+    override func textRect(forBounds b: CGRect) -> CGRect { b.insetBy(dx: inset, dy: 0) }
+    override func editingRect(forBounds b: CGRect) -> CGRect { b.insetBy(dx: inset, dy: 0) }
+    override func placeholderRect(forBounds b: CGRect) -> CGRect { b.insetBy(dx: inset, dy: 0) }
+}
+
 struct DigitField: UIViewRepresentable {
     var placeholder: String
     @Binding var text: String
     var allowPlusAndSpace = false
+    var inset: CGFloat = 10
 
     func makeUIView(context: Context) -> UITextField {
-        let f = UITextField()
+        let f = PaddedField()
+        f.inset = inset
         f.delegate = context.coordinator
         f.placeholder = placeholder
         f.keyboardType = .numbersAndPunctuation
@@ -39,6 +49,11 @@ struct DigitField: UIViewRepresentable {
         context.coordinator.parent = self
         if f.text != text { f.text = text }
         f.placeholder = placeholder
+    }
+
+    /// Always as wide as the space offered (a bare UITextField would shrink to its placeholder and be hard to hit).
+    func sizeThatFits(_ proposal: ProposedViewSize, uiView: UITextField, context: Context) -> CGSize? {
+        CGSize(width: proposal.width ?? 200, height: 44)
     }
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }

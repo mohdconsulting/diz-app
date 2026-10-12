@@ -64,7 +64,7 @@ struct NewRequestView: View {
             Section(store.tr("estimateLabel")) {
                 if custom {
                     DigitField(placeholder: store.tr("customPriceLabel"), text: $customPrice)
-                        .frame(height: 22)
+                        .frame(maxWidth: .infinity).frame(height: 40)
                     Text(store.tr("estimateSubCustom")).font(.footnote).foregroundColor(.secondary)
                 } else {
                     Text(store.money(estimate)).font(.title3.bold())

@@ -182,7 +182,7 @@ struct JobCardView: View {
         if showOffer {
             HStack {
                 DigitField(placeholder: store.tr("customPriceLabel"), text: $offer)
-                    .frame(height: 22).padding(8)
+                    .frame(maxWidth: .infinity).frame(height: 40)
                     .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.secondary.opacity(0.4)))
                 Button(store.tr("proposePriceBtn")) {
                     Task { await store.apply(job, price: offer.intValue); showOffer = false }
