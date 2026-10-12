@@ -70,7 +70,7 @@ export function updateBadges(){
   setBadge('mineBadge', ev.filter(e=>e.type!=='paid' && e.type!=='cancelled').length + (currentUser ? unreadTotal() : 0));
   setBadge('historyBadge', ev.filter(e=>e.type==='paid' || e.type==='cancelled').length);
   setBadge('adminBadge', (role==='admin' && currentUser) ? jobs.filter(j=>adminCat(j)==='problem').length : 0);
-  document.title = (n>0 ? '('+n+') ' : '') + 'dizli';
+  document.title = (n>0 ? '('+n+') ' : '') + 'Diz';
 }
 export function notifyNewEvents(){
   if(!currentUser) return;
