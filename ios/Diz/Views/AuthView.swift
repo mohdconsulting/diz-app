@@ -15,7 +15,7 @@ struct AuthView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
-                    Text("dizli").font(.largeTitle.bold()).foregroundColor(.dizBrand)
+                    Text("دز  Diz").font(.largeTitle.bold()).foregroundColor(.dizBrand)
                     Text(store.tr(registering ? "authSubtitleRegister" : "authSubtitleLogin")).foregroundColor(.secondary)
 
                     Picker("", selection: $store.lang) {

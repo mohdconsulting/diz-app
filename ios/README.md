@@ -1,4 +1,4 @@
-# dizli för iPhone (SwiftUI)
+# Diz för iPhone (SwiftUI)
 
 Native iPhone-app mot **samma Supabase-backend** som webbappen – samma konton, samma uppdrag, samma texter (sv/en/ar, arabiska som standard med RTL).
 
