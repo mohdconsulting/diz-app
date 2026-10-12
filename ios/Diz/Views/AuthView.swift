@@ -103,6 +103,13 @@ struct AuthField: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(label).font(.footnote).foregroundColor(.secondary)
+            if keyboard == .phonePad {
+                DigitField(placeholder: label, text: $text, allowPlusAndSpace: true)
+                    .frame(height: 22)
+                    .padding(10)
+                    .background(Color.dizCard)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+            } else {
             TextField(label, text: $text)
                 .focused($focused)
                 .keyboardType(keyboard == .phonePad ? .numbersAndPunctuation : keyboard)
@@ -114,11 +121,7 @@ struct AuthField: View {
                 .padding(10)
                 .background(Color.dizCard)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
-                .onChange(of: text) { v in
-                    guard keyboard == .phonePad else { return }
-                    let f = String(v.asciiDigits.filter { $0.isASCII && ($0.isNumber || $0 == "+" || $0 == " ") })
-                    if f != v { text = f }
-                }
+            }
         }
     }
 }

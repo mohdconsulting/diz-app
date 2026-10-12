@@ -175,12 +175,9 @@ struct JobCardView: View {
     @ViewBuilder private var offerRow: some View {
         if showOffer {
             HStack {
-                TextField(store.tr("customPriceLabel"), text: $offer)
-                    .keyboardType(.numbersAndPunctuation).textFieldStyle(.roundedBorder)
-                    .onChange(of: offer) { v in
-                        let f = String(v.asciiDigits.filter { $0.isASCII && $0.isNumber })
-                        if f != v { offer = f }
-                    }
+                DigitField(placeholder: store.tr("customPriceLabel"), text: $offer)
+                    .frame(height: 22).padding(8)
+                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.secondary.opacity(0.4)))
                 Button(store.tr("proposePriceBtn")) {
                     Task { await store.apply(job, price: offer.intValue); showOffer = false }
                 }.buttonStyle(.borderedProminent).tint(.dizBrand)

@@ -63,12 +63,8 @@ struct NewRequestView: View {
             ScheduleSection(choice: $schedule)
             Section(store.tr("estimateLabel")) {
                 if custom {
-                    TextField(store.tr("customPriceLabel"), text: $customPrice)
-                        .keyboardType(.numbersAndPunctuation)
-                        .onChange(of: customPrice) { v in
-                            let f = String(v.asciiDigits.filter { $0.isASCII && $0.isNumber })
-                            if f != v { customPrice = f }
-                        }
+                    DigitField(placeholder: store.tr("customPriceLabel"), text: $customPrice)
+                        .frame(height: 22)
                     Text(store.tr("estimateSubCustom")).font(.footnote).foregroundColor(.secondary)
                 } else {
                     Text(store.money(estimate)).font(.title3.bold())

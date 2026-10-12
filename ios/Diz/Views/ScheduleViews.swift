@@ -110,12 +110,9 @@ struct ProposalBox: View {
             if open {
                 Text(store.tr("sched.proposeNote")).font(.footnote).foregroundColor(.secondary)
                 TimeSlotPicker(selection: $selection)
-                TextField(store.tr("sched.priceLabel"), text: $price)
-                    .keyboardType(.numbersAndPunctuation).textFieldStyle(.roundedBorder)
-                    .onChange(of: price) { v in
-                        let f = String(v.asciiDigits.filter { $0.isASCII && $0.isNumber })
-                        if f != v { price = f }
-                    }
+                DigitField(placeholder: store.tr("sched.priceLabel"), text: $price)
+                    .frame(height: 22).padding(8)
+                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.secondary.opacity(0.4)))
                 PrimaryButton(title: store.tr("sched.proposeSend"), disabled: selection.isEmpty) {
                     let p = price.intValue > 0 ? price.intValue : job.price
                     Task { await store.apply(job, price: p, proposal: selection); open = false }
