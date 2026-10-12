@@ -20,6 +20,13 @@ const I18N_RAW = {
       ipNote:"Samtalet går direkt mellan era enheter och spelas inte in. Telefonnummer visas inte, men den andra enheten kan se din IP-adress.",
       chatLog:"📞 Samtal ({t})", chatMissed:"📞 Missat samtal",
     },
+    sched:{
+      title:"När ska uppdraget utföras?", asap:"Omgående", asapLong:"Omgående – tidigast möjligt", pick:"Välj tid",
+      hint:"Varje ruta är en timme. Klicka på intilliggande timmar för längre tid.", noSlots:"Inga lediga tider den här dagen.",
+      chooseTime:"Välj dag och tid först", requested:"Önskad tid", agreed:"Överenskommen tid", proposed:"Föreslår", fitsRequested:"Passar önskad tid",
+      hours:"{n} tim", proposeBtn:"Föreslå annan tid", proposeSend:"Skicka förslag", proposeNote:"Kunden godkänner genom att välja dig.",
+      proposeClose:"Dölj", yourProposal:"Ditt förslag", priceLabel:"Pris",
+    },
     review:{
       prompt:"Hur gick det? Betygsätt utföraren", commentPlaceholder:"Skriv gärna en kommentar (valfritt)", sendBtn:"Skicka recension",
       thanks:"Tack för din recension!", failed:"Kunde inte skicka recensionen. Försök igen.", yourReview:"Din recension", theirReview:"Kundens recension",
@@ -254,6 +261,13 @@ const I18N_RAW = {
       ipNote:"The call goes directly between your devices and is not recorded. Phone numbers are not shown, but the other device can see your IP address.",
       chatLog:"📞 Call ({t})", chatMissed:"📞 Missed call",
     },
+    sched:{
+      title:"When should the job be done?", asap:"ASAP", asapLong:"As soon as possible", pick:"Pick a time",
+      hint:"Each box is one hour. Click neighbouring hours for a longer window.", noSlots:"No time slots left on this day.",
+      chooseTime:"Choose a day and time first", requested:"Requested time", agreed:"Agreed time", proposed:"Proposes", fitsRequested:"Fits the requested time",
+      hours:"{n} h", proposeBtn:"Propose another time", proposeSend:"Send proposal", proposeNote:"The customer accepts by choosing you.",
+      proposeClose:"Hide", yourProposal:"Your proposal", priceLabel:"Price",
+    },
     review:{
       prompt:"How did it go? Rate the provider", commentPlaceholder:"Add a comment (optional)", sendBtn:"Send review",
       thanks:"Thanks for your review!", failed:"Could not send the review. Please try again.", yourReview:"Your review", theirReview:"The customer's review",
@@ -487,6 +501,13 @@ const I18N_RAW = {
       noMic:"لم يُعثر على ميكروفون في الجهاز.", unsupported:"متصفحك لا يدعم المكالمات داخل التطبيق.", alreadyInCall:"أنت في مكالمة بالفعل.",
       ipNote:"تتم المكالمة مباشرة بين جهازيكما ولا يتم تسجيلها. لا تُعرض أرقام الهواتف، لكن الجهاز الآخر قد يرى عنوان IP الخاص بك.",
       chatLog:"📞 مكالمة ({t})", chatMissed:"📞 مكالمة فائتة",
+    },
+    sched:{
+      title:"متى يجب تنفيذ المهمة؟", asap:"فورًا", asapLong:"فورًا – في أقرب وقت ممكن", pick:"اختر وقتًا",
+      hint:"كل خانة ساعة واحدة. اضغط على الساعات المتجاورة لفترة أطول.", noSlots:"لا توجد أوقات متاحة في هذا اليوم.",
+      chooseTime:"اختر اليوم والوقت أولاً", requested:"الوقت المطلوب", agreed:"الوقت المتفق عليه", proposed:"يقترح", fitsRequested:"يناسب الوقت المطلوب",
+      hours:"{n} ساعة", proposeBtn:"اقترح وقتًا آخر", proposeSend:"إرسال الاقتراح", proposeNote:"يوافق العميل باختيارك.",
+      proposeClose:"إخفاء", yourProposal:"اقتراحك", priceLabel:"السعر",
     },
     review:{
       prompt:"كيف كانت التجربة؟ قيّم مقدم الخدمة", commentPlaceholder:"أضف تعليقًا (اختياري)", sendBtn:"إرسال التقييم",

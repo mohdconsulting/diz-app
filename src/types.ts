@@ -8,6 +8,9 @@ export interface Applicant {
   name: string;
   price: number;
   appliedAt?: number;
+  /** The provider's suggested time window (epoch ms) when it differs from the requested one. */
+  proposedStart?: number;
+  proposedEnd?: number;
 }
 
 /** A job as the app sees it (camelCase). Database columns are snake_case — see JOBS_CAMEL_TO_SNAKE in db.ts. */
@@ -45,6 +48,10 @@ export interface Job {
   resolution: 'released' | 'refunded' | 'cancelled' | 'reopened' | null;
   resolvedAt: number | null;
   createdAt: number;
+  /** Requested time (diz_scheduling.sql): 'slot' = slotStart–slotEnd (whole hours), 'asap' or null = as soon as possible. */
+  scheduleType: 'asap' | 'slot' | null;
+  slotStart: number | null;
+  slotEnd: number | null;
 }
 
 /** Fields the client writes when creating or updating a job. */

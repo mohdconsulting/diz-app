@@ -15,7 +15,8 @@ const JOBS_CAMEL_TO_SNAKE: Record<string, string> = {
   problemReported:'problem_reported', problemText:'problem_text', problemReportedAt:'problem_reported_at', autoReleased:'auto_released',
   providerResponse:'provider_response', providerResponseAt:'provider_response_at',
   resolvedAt:'resolved_at',
-  addrLat:'addr_lat', addrLng:'addr_lng', toLat:'to_lat', toLng:'to_lng'
+  addrLat:'addr_lat', addrLng:'addr_lng', toLat:'to_lat', toLng:'to_lng',
+  scheduleType:'schedule_type', slotStart:'slot_start', slotEnd:'slot_end'
 };
 const JOBS_SNAKE_TO_CAMEL: Record<string, string> =
   Object.fromEntries(Object.entries(JOBS_CAMEL_TO_SNAKE).map(([c, s]) => [s, c]));
