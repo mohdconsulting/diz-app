@@ -1,10 +1,10 @@
-# App Store-underlag för Diz (iOS)
+# App Store-underlag för dizli (iOS)
 
 Fyll i i App Store Connect. Gula fält i `privacy-policy.html` (bolagsnamn, e-post) måste ifyllas innan policyn publiceras.
 
 ## Grunddata
-- **Namn:** Diz (دز)
-- **Bundle ID:** ändra `app.diz.Diz` i `ios/project.yml` till ditt eget (t.ex. `com.dittbolag.diz`)
+- **Namn:** dizli
+- **Bundle ID:** ändra `app.diz.dizli` i `ios/project.yml` till ditt eget (t.ex. `com.dittbolag.diz`)
 - **Primärt språk:** arabiska (lägg även till svenska och engelska som lokalisering)
 - **Kategori:** Livsstil (sekundär: Verktyg)
 - **Åldersgräns:** 4+ (inget stötande innehåll; "användargenererat innehåll" = ja, eftersom chatt och recensioner finns, så svara att moderering finns: admin kan dölja recensioner)
@@ -14,7 +14,7 @@ Fyll i i App Store Connect. Gula fält i `privacy-policy.html` (bolagsnamn, e-po
 **Undertitel (max 30 tecken):** اطلب أي خدمة في العراق
 **Kampanjtext:** نقل، إزالة نفايات، توصيل، سحب سيارات وخدمات منزلية – بسعر واضح ومتابعة مباشرة.
 **Beskrivning:**
-دز (Diz) تربطك بمقدمي الخدمات القريبين منك في العراق.
+ديزلي (dizli) تربطك بمقدمي الخدمات القريبين منك في العراق.
 
 • اطلب: إزالة النفايات، نقل الأثاث، توصيل البضائع والطرود، سحب السيارات، كهربائي، سباك، بستاني، دهان وتنظيف
 • سعر مقترح واضح، أو حدّد سعرك بنفسك
@@ -31,7 +31,7 @@ Fyll i i App Store Connect. Gula fält i `privacy-policy.html` (bolagsnamn, e-po
 **Undertitel:** Beställ tjänster i Irak
 **Kampanjtext:** Flytt, skräpbortforsling, leverans, bärgning och hemtjänster – tydligt pris och live-spårning.
 **Beskrivning:**
-Diz kopplar ihop dig med utförare nära dig i Irak.
+dizli kopplar ihop dig med utförare nära dig i Irak.
 
 • Beställ skräpbortforsling, flytthjälp, varuleverans, bilbärgning, elektriker, rörmokare, trädgård, målning och städning
 • Tydligt prisförslag – eller sätt ditt eget pris
@@ -48,7 +48,7 @@ Diz kopplar ihop dig med utförare nära dig i Irak.
 **Subtitle:** Order services in Iraq
 **Promotional text:** Moving, junk removal, delivery, towing and home services – clear price and live tracking.
 **Description:**
-Diz connects you with service providers near you in Iraq.
+dizli connects you with service providers near you in Iraq.
 
 • Order junk removal, moving help, delivery of goods and parcels, car towing, electrician, plumber, gardener, painter and cleaning
 • A clear suggested price – or set your own
@@ -73,7 +73,7 @@ Svara att appen samlar in följande, **kopplat till användaren**, **inte** för
 Spårning: **Nej**.
 
 ## Anteckningar till granskaren (App Review Information)
-> Diz is a marketplace for real-world services in Iraq (moving, delivery, towing, home services). Payments are for physical services performed outside the app, so In-App Purchase does not apply (guideline 3.1.3(e)). Location is used only while the app is open, to let a customer follow a provider who is on the way to their job. Accounts can be deleted in the app under Profile → Delete my account.
+> dizli is a marketplace for real-world services in Iraq (moving, delivery, towing, home services). Payments are for physical services performed outside the app, so In-App Purchase does not apply (guideline 3.1.3(e)). Location is used only while the app is open, to let a customer follow a provider who is on the way to their job. Accounts can be deleted in the app under Profile → Delete my account.
 > Test accounts – Customer: phone `[...]` / password `[...]`. Provider: phone `[...]` / password `[...]`.
 (Skapa två riktiga testkonton i appen och skriv in dem. Låt dem ha ett exempeluppdrag så granskaren ser innehåll.)
 

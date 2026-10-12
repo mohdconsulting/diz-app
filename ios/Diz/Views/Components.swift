@@ -90,5 +90,5 @@ func openMaps(query: String) {
 }
 
 func openMaps(lat: Double, lng: Double) {
-    if let url = URL(string: "http://maps.apple.com/?ll=\(lat),\(lng)&q=Diz") { UIApplication.shared.open(url) }
+    if let url = URL(string: "http://maps.apple.com/?ll=\(lat),\(lng)&q=dizli") { UIApplication.shared.open(url) }
 }

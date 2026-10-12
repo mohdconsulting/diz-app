@@ -34,7 +34,7 @@ enum Extra {
         "sched.proposeClose": [.sv: "Dölj", .en: "Hide", .ar: "إخفاء"],
         "sched.yourProposal": [.sv: "Ditt förslag", .en: "Your proposal", .ar: "اقتراحك"],
         "sched.priceLabel": [.sv: "Pris", .en: "Price", .ar: "السعر"],
-        "call.micDenied": [.sv: "Mikrofonen är blockerad. Tillåt mikrofon för Diz i iPhonens Inställningar.", .en: "The microphone is blocked. Allow the microphone for Diz in iPhone Settings.", .ar: "الميكروفون محظور. اسمح لتطبيق دز باستخدام الميكروفون من إعدادات الآيفون."],
+        "call.micDenied": [.sv: "Mikrofonen är blockerad. Tillåt mikrofon för dizli i iPhonens Inställningar.", .en: "The microphone is blocked. Allow the microphone for dizli in iPhone Settings.", .ar: "الميكروفون محظور. اسمح لتطبيق ديزلي باستخدام الميكروفون من إعدادات الآيفون."],
         "call.speaker": [.sv: "Högtalare", .en: "Speaker", .ar: "مكبر الصوت"],
         "call.noMic": [.sv: "Hittar ingen mikrofon på enheten.", .en: "No microphone found on this device.", .ar: "لا يوجد ميكروفون في الجهاز."],
         "call.ipNote": [.sv: "Samtalet går direkt mellan era enheter och spelas inte in. Telefonnummer visas inte, men den andra enheten kan se din IP-adress. Samtal kan bara tas emot medan appen är öppen.", .en: "The call goes directly between your devices and is not recorded. Phone numbers are not shown, but the other device can see your IP address. Calls can only be received while the app is open.", .ar: "تتم المكالمة مباشرة بين جهازيكما ولا يتم تسجيلها. لا تظهر أرقام الهواتف، لكن الجهاز الآخر يمكنه رؤية عنوان IP الخاص بك. لا يمكن استقبال المكالمات إلا أثناء فتح التطبيق."],
