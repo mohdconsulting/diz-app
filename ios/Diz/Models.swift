@@ -5,6 +5,13 @@ struct Applicant: Codable, Hashable {
     var name: String
     var price: Int
     var appliedAt: Int64?
+    var proposedStart: Int64?     // provider's suggested time window (ms), if different from the requested one
+    var proposedEnd: Int64?
+
+    var proposedWindow: (start: Date, end: Date)? {
+        guard let s = proposedStart, let e = proposedEnd, e > s else { return nil }
+        return (Scheduling.date(ms: s), Scheduling.date(ms: e))
+    }
 }
 
 /// A row of the table `jobs` (snake_case columns, see diz_supabase_schema.sql).
@@ -37,6 +44,9 @@ struct Job: Decodable, Identifiable, Hashable {
     var autoReleased: Bool
     var resolution: String?
     var createdAt: Int64
+    var scheduleType: String?
+    var slotStart: Int64?
+    var slotEnd: Int64?
 
     enum CodingKeys: String, CodingKey {
         case id, service, cat, size, addr, price, status, applicants, arrived, resolution
@@ -46,6 +56,7 @@ struct Job: Decodable, Identifiable, Hashable {
         case paymentReleased = "payment_released", completedAt = "completed_at", problemReported = "problem_reported"
         case problemText = "problem_text", providerResponse = "provider_response", autoReleased = "auto_released"
         case createdAt = "created_at"
+        case scheduleType = "schedule_type", slotStart = "slot_start", slotEnd = "slot_end"
     }
 
     init(from decoder: Decoder) throws {
@@ -78,6 +89,22 @@ struct Job: Decodable, Identifiable, Hashable {
         autoReleased = try c.decodeIfPresent(Bool.self, forKey: .autoReleased) ?? false
         resolution = try c.decodeIfPresent(String.self, forKey: .resolution)
         createdAt = try c.decodeIfPresent(Int64.self, forKey: .createdAt) ?? 0
+        scheduleType = try c.decodeIfPresent(String.self, forKey: .scheduleType)
+        slotStart = try c.decodeIfPresent(Int64.self, forKey: .slotStart)
+        slotEnd = try c.decodeIfPresent(Int64.self, forKey: .slotEnd)
+    }
+
+    /// The window the customer asked for; nil means "as soon as possible".
+    var requestedWindow: (start: Date, end: Date)? {
+        guard scheduleType == "slot", let s = slotStart, let e = slotEnd, e > s else { return nil }
+        return (Scheduling.date(ms: s), Scheduling.date(ms: e))
+    }
+
+    /// The time that applies once a provider is chosen: their proposal if they made one, otherwise the requested window.
+    var agreedWindow: (start: Date, end: Date)? {
+        if let phone = acceptedByPhone,
+           let a = applicants.first(where: { $0.phone == phone }), let w = a.proposedWindow { return w }
+        return requestedWindow
     }
 
     /// Same mapping as effectiveStatusKey() in src/jobs.ts.

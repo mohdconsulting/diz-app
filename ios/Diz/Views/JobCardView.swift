@@ -47,6 +47,7 @@ struct JobCardView: View {
             if let c = job.cat { Text(store.tr("services.\(job.service).categories.\(c)")).font(.subheadline) }
             if let s = job.size { Text(store.tr("services.\(job.service).sizes.\(s)")).font(.subheadline).foregroundColor(.secondary) }
             if !job.desc.isEmpty { Text(job.desc).font(.subheadline) }
+            ScheduleLine(job: job)
             if !job.addr.isEmpty {
                 Button { openMaps(query: job.addr) } label: { Label(job.addr, systemImage: "mappin.and.ellipse").font(.footnote) }
             }
@@ -73,7 +74,16 @@ struct JobCardView: View {
             }
             ForEach(job.applicants, id: \.phone) { a in
                 HStack {
-                    VStack(alignment: .leading) { Text(a.name); RatingBadge(phone: a.phone) }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(a.name)
+                        RatingBadge(phone: a.phone)
+                        if let w = a.proposedWindow {
+                            Text(store.tr("sched.proposed") + ": " + Scheduling.windowText(start: w.start, end: w.end, store.lang))
+                                .font(.caption.bold()).foregroundColor(.orange)
+                        } else if job.requestedWindow != nil {
+                            Text(store.tr("sched.fitsRequested")).font(.caption).foregroundColor(.secondary)
+                        }
+                    }
                     Spacer()
                     Button(store.paymentsMode == "off" ? store.tr("assignBtn") : store.tr("pay.assignPayBtn", ["amount": store.money(a.price)])) {
                         Task { await store.assign(job, to: a) }
@@ -135,10 +145,16 @@ struct JobCardView: View {
                 Button(store.tr("dismiss.restoreBtn")) { Task { await store.restore(job.id) } }.buttonStyle(.bordered)
             } else if let mine = job.applicants.first(where: { $0.phone == store.myPhone }) {
                 Text(store.tr("yourApplicationNote", ["price": store.money(mine.price)])).font(.footnote)
+                if let w = mine.proposedWindow {
+                    Text(store.tr("sched.yourProposal") + ": " + Scheduling.windowText(start: w.start, end: w.end, store.lang))
+                        .font(.footnote.bold()).foregroundColor(.orange)
+                }
                 offerRow
+                ProposalBox(job: job)
             } else {
                 PrimaryButton(title: store.tr("takeJobBtn") + " " + store.money(job.price)) { Task { await store.apply(job, price: job.price) } }
                 offerRow
+                ProposalBox(job: job)
                 Button(store.tr("dismiss.btn")) { Task { await store.dismiss(job.id) } }.font(.footnote)
             }
         case "accepted":

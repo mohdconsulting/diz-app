@@ -255,7 +255,7 @@ final class Store: ObservableObject {
     }
 
     // MARK: Customer actions
-    func createJob(service: String, cat: String?, size: Int?, desc: String, addr: String, toAddr: String?, price: Int) async -> Bool {
+    func createJob(service: String, cat: String?, size: Int?, desc: String, addr: String, toAddr: String?, price: Int, schedule: ScheduleChoice) async -> Bool {
         let info = Strings.shared.service(service)
         let needsCat = !(info?.categories.isEmpty ?? true)
         if (needsCat && cat == nil) || (info?.sizes.isEmpty == false && size == nil) { toast("toastMissingCatSize"); return false }
@@ -263,19 +263,38 @@ final class Store: ObservableObject {
             toast("toastMissingFields"); return false
         }
         guard price > 0 else { toast("toastInvalidOffer"); return false }
+        if !schedule.asap && schedule.selection.isEmpty { toast("sched.chooseTime"); return false }
         var row: [String: Any] = [
             "service": service, "desc_text": desc, "addr": addr, "price": price, "status": "open",
             "owner_phone": myPhone, "applicants": [Any](), "created_at": Int64(Date().timeIntervalSince1970 * 1000),
         ]
+        if schedule.asap {
+            row["schedule_type"] = "asap"
+        } else if let a = schedule.selection.start, let b = schedule.selection.end {
+            row["schedule_type"] = "slot"
+            row["slot_start"] = Scheduling.ms(a)
+            row["slot_end"] = Scheduling.ms(b)
+        }
         if let cat = cat { row["cat"] = cat }
         if let size = size { row["size"] = size }
         if let t = toAddr, info?.needsToAddr == true, !t.isEmpty { row["to_addr"] = t }
         do {
-            try await api.insert("jobs", row)
+            try await insertJob(row, schedule: schedule)
             toast("toastSubmitted")
             await loadJobs()
             return true
         } catch { toast("toastSaveFailed"); return false }
+    }
+
+    /// If diz_scheduling.sql has not been run yet, "as soon as possible" requests are still saved (without the new columns);
+    /// requests with a chosen time fail instead of silently losing the time.
+    private func insertJob(_ row: [String: Any], schedule: ScheduleChoice) async throws {
+        do { try await api.insert("jobs", row) }
+        catch let e as APIError where schedule.asap && (e.message.contains("schedule_type") || e.message.contains("column")) {
+            var plain = row
+            plain.removeValue(forKey: "schedule_type")
+            try await api.insert("jobs", plain)
+        }
     }
 
     func deleteJob(_ id: String) async {
@@ -340,14 +359,19 @@ final class Store: ObservableObject {
     }
 
     // MARK: Provider actions
-    func apply(_ j: Job, price: Int) async {
+    func apply(_ j: Job, price: Int, proposal: SlotSelection? = nil) async {
         guard price > 0, let u = user else { toast("toastInvalidOffer"); return }
         var list = j.applicants
-        let entry = Applicant(phone: u.phone, name: u.name, price: price, appliedAt: Store.nowMs())
+        var entry = Applicant(phone: u.phone, name: u.name, price: price, appliedAt: Store.nowMs())
+        if let p = proposal, let a = p.start, let b = p.end {
+            entry.proposedStart = Scheduling.ms(a)
+            entry.proposedEnd = Scheduling.ms(b)
+        }
         if let i = list.firstIndex(where: { $0.phone == u.phone }) { list[i] = entry } else { list.append(entry) }
         let enc = list.map { a -> [String: Any] in
             var d: [String: Any] = ["phone": a.phone, "name": a.name, "price": a.price]
             if let t = a.appliedAt { d["appliedAt"] = t }
+            if let ps = a.proposedStart, let pe = a.proposedEnd { d["proposedStart"] = ps; d["proposedEnd"] = pe }
             return d
         }
         await patch(j.id, ["applicants": enc], ok: "toastApplied")

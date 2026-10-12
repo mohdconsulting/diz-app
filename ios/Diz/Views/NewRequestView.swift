@@ -10,6 +10,7 @@ struct NewRequestView: View {
     @State private var toAddr = ""
     @State private var custom = false
     @State private var customPrice = ""
+    @State private var schedule = ScheduleChoice()
 
     private var info: ServiceInfo? { Strings.shared.service(service) }
     private var estimate: Int { Pricing.price(service: service, size: size, cat: cat) }
@@ -59,6 +60,7 @@ struct NewRequestView: View {
                     }
                 }
             }
+            ScheduleSection(choice: $schedule)
             Section(store.tr("estimateLabel")) {
                 if custom {
                     TextField(store.tr("customPriceLabel"), text: $customPrice)
@@ -78,8 +80,8 @@ struct NewRequestView: View {
                 PrimaryButton(title: store.tr("submitBtn"), disabled: store.busy) {
                     Task {
                         let ok = await store.createJob(service: service, cat: cat, size: size, desc: desc, addr: addr,
-                                                       toAddr: toAddr, price: finalPrice)
-                        if ok { desc = ""; addr = ""; toAddr = ""; cat = nil; size = nil; custom = false; customPrice = "" }
+                                                       toAddr: toAddr, price: finalPrice, schedule: schedule)
+                        if ok { desc = ""; addr = ""; toAddr = ""; cat = nil; size = nil; custom = false; customPrice = ""; schedule = ScheduleChoice() }
                     }
                 }
             }

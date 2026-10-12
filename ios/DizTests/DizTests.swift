@@ -52,3 +52,43 @@ final class DigitTests: XCTestCase {
         XCTAssertEqual(Config.authEmail(phone: "٠٧٧٠١٢٣"), "diz.0770123@gmail.com")
     }
 }
+
+final class SchedulingTests: XCTestCase {
+    private let cal = Calendar.current
+    private func at(_ h: Int) -> Date { cal.date(bySettingHour: h, minute: 0, second: 0, of: Date(timeIntervalSince1970: 1_800_000_000))! }
+
+    func testSelectionExtendsAndShrinks() {
+        var s = SlotSelection()
+        s.tap(at(10)); XCTAssertEqual(s.hours, 1)
+        s.tap(at(11)); XCTAssertEqual(s.hours, 2)          // extend after
+        s.tap(at(9));  XCTAssertEqual(s.hours, 3)          // extend before
+        XCTAssertEqual(s.start, at(9)); XCTAssertEqual(s.end, at(12))
+        s.tap(at(9));  XCTAssertEqual(s.start, at(10))     // shrink from start
+        s.tap(at(11)); XCTAssertEqual(s.end, at(11))       // shrink from end
+        s.tap(at(10)); XCTAssertTrue(s.isEmpty)            // deselect the last hour
+        s.tap(at(10)); s.tap(at(15)); XCTAssertEqual(s.hours, 1)   // not adjacent: start over
+        XCTAssertEqual(s.start, at(15))
+    }
+
+    func testSlotsAreOneHourAndRespectNow() {
+        let day = at(8)
+        let now = at(8).addingTimeInterval(-86400)
+        let all = Scheduling.slots(on: day, now: now)
+        XCTAssertEqual(all.count, Scheduling.lastHour - Scheduling.firstHour + 1)
+        XCTAssertEqual(Scheduling.slotSeconds, 3600)
+        let later = Scheduling.slots(on: day, now: at(12))
+        XCTAssertEqual(later.first, at(13))                 // 12:00 + 30 min lead rules out 12:00 itself
+    }
+
+    func testApplicantProposalAndAgreedWindow() throws {
+        let json = """
+        {"id":"j","service":"junk","price":1,"status":"accepted","accepted_by_phone":"2","schedule_type":"slot",
+         "slot_start":1800000000000,"slot_end":1800003600000,
+         "applicants":[{"phone":"2","name":"A","price":1,"proposedStart":1800007200000,"proposedEnd":1800010800000}],
+         "created_at":1}
+        """.data(using: .utf8)!
+        let j = try JSONDecoder().decode(Job.self, from: json)
+        XCTAssertEqual(Scheduling.ms(j.requestedWindow!.start), 1800000000000)
+        XCTAssertEqual(Scheduling.ms(j.agreedWindow!.start), 1800007200000)
+    }
+}

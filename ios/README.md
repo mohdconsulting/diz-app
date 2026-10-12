@@ -20,6 +20,7 @@ Inga externa paket – egen `URLSession`-klient för Supabase Auth och PostgREST
 - Inloggning/registrering (kund, förare, bärgare, yrkesprofiler), session i Keychain
 - Kund: ny förfrågan med prisförslag/eget pris, ansökningar med betyg, tilldela (+ testbetalning i `mock`-läge), bekräfta/frisläpp, rapportera problem, ta bort, följ utföraren på karta, chatt, recension
 - Utförare: öppna jobb (profilfilter), ansök/föreslå pris, ignorera/återställ, anlänt/klart, svara på problem, chatt, positionsdelning (medan appen är öppen), eget betyg och kommentarer
+- Tider: kunden väljer omgående/tidigast möjligt eller dag + en eller flera intilliggande timmar (varje slot = 1 timme); utföraren kan föreslå annan tid vid ansökan, och kunden godkänner genom att tilldela. Kräver att `diz_scheduling.sql` körs i Supabase.
 - Uppdatering var 5:e sekund + dra för att uppdatera
 
 ## Begränsningar (v1)
@@ -28,4 +29,4 @@ För att publicera i App Store krävs Apple Developer-konto (99 USD/år).
 
 ## App Store
 Se `appstore/listing.md` (texter på ar/sv/en, App Privacy-svar, granskarnotering, checklista) och `appstore/privacy-policy.html`.
-Radera konto i appen kräver att `diz_account_delete.sql` körs i Supabase.
+Radera konto i appen kräver att `diz_account_delete.sql` körs i Supabase; tidsval kräver `diz_scheduling.sql`.
