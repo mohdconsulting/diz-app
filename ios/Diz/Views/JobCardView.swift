@@ -25,7 +25,13 @@ struct JobCardView: View {
             header
             details
             if store.isDriver { providerSection } else { customerSection }
-            if job.status == "accepted" && (isOwner || isMyAccepted) { chatButton }
+            if job.status == "accepted" && (isOwner || isMyAccepted) {
+                HStack {
+                    chatButton
+                    Button { store.calls.startCall(job: job) } label: { Label(store.tr("call.btn"), systemImage: "phone.fill") }
+                        .buttonStyle(.bordered).tint(.dizBrand)
+                }
+            }
         }
         .sheet(isPresented: $showChat) { ChatView(job: job) }
     }

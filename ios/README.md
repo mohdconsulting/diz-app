@@ -30,3 +30,11 @@ För att publicera i App Store krävs Apple Developer-konto (99 USD/år).
 ## App Store
 Se `appstore/listing.md` (texter på ar/sv/en, App Privacy-svar, granskarnotering, checklista) och `appstore/privacy-policy.html`.
 Radera konto i appen kräver att `diz_account_delete.sql` körs i Supabase; tidsval kräver `diz_scheduling.sql`.
+
+## Voice calls
+Customer and assigned provider can call each other from the job card or the chat (📞). It uses the same signalling as
+the web app (`diz_calls.sql`, must be run in Supabase), so iPhone ↔ iPhone and iPhone ↔ web calls work. The audio
+connection is WebKit's WebRTC in a hidden web view (`CallEngine.swift`); call logic is in `CallManager.swift`.
+Like the web app, calls ring only while the app is open (no push/CallKit), and only STUN is configured – add a TURN
+server in `CallEngine.swift` if calls fail on some mobile networks. iOS asks for microphone permission on the first call.
+Run `xcodegen generate` after pulling (new files and the microphone text in `project.yml`).

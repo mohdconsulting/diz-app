@@ -41,7 +41,15 @@ struct ChatView: View {
             }
             .navigationTitle(store.tr("services.\(job.service).label"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button(store.tr("chat.closeBtn")) { dismiss() } } }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button(store.tr("chat.closeBtn")) { dismiss() } }
+                if !closed && store.calls.peer(of: job) != nil {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button { store.calls.startCall(job: job) } label: { Image(systemName: "phone.fill") }
+                            .accessibilityLabel(store.tr("call.btn"))
+                    }
+                }
+            }
             .task { await store.markRead(jobId: job.id) }
             .onChange(of: msgs.count) { _ in Task { await store.markRead(jobId: job.id) } }
         }

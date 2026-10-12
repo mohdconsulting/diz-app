@@ -27,6 +27,7 @@ final class Store: ObservableObject {
 
     let api = API()
     let sharing = LocationSharing()
+    let calls = CallManager()
     private var pollTask: Task<Void, Never>?
     private var toastTask: Task<Void, Never>?
     private var ratingsKey = ""
@@ -39,6 +40,7 @@ final class Store: ObservableObject {
             return await self.sendFix(jobId: jobId, lat: lat, lng: lng, accuracy: acc)
         }
         sharing.onDenied = { [weak self] denied in self?.locationDenied = denied }
+        calls.attach(self)
     }
 
     // MARK: Helpers
@@ -127,6 +129,7 @@ final class Store: ObservableObject {
 
     func logout() {
         pollTask?.cancel(); pollTask = nil
+        calls.stop()
         sharing.stop()
         api.clearSession()
         user = nil; jobs = []; messages = []; locations = [:]; payments = [:]; dismissed = []
@@ -136,6 +139,7 @@ final class Store: ObservableObject {
     private func afterSignIn() async {
         await loadPaymentsMode()
         await refreshAll()
+        calls.start()
         pollTask?.cancel()
         pollTask = Task { [weak self] in
             while !Task.isCancelled {
