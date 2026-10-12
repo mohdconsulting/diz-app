@@ -2,7 +2,7 @@ import { $ } from './util';
 import { priceFor } from './pricing';
 import { attachPlaceSearch, closeSuggestions } from './place-search';
 import { I18N, type Service } from './i18n';
-import { type Job, type ServiceKey } from './types';
+import { type Job, type ServiceKey, type Applicant } from './types';
 import { esc, toast, routeLinksHTML, PIN_ADDR } from './util';
 import { role, paymentsMode, selectedService, setSelectedService, selectedCat, setSelectedCat, selectedSize, setSelectedSize, useCustomPrice, setUseCustomPrice, editingJobId, setEditingJobId, photoDataUrl, setPhotoDataUrl, jobs, dbRef, currentUser, t, me, db } from './state';
 import { seenSet, shownSigs, jobEvent } from './notifications';
@@ -12,6 +12,7 @@ import { ad } from './admin';
 import { chatHTML } from './chat';
 import { ratingBadgeHTML, reviewBlockHTML, ownRatingHTML } from './reviews';
 import { isDismissed, dismissedCount, showingDismissed } from './dismissals';
+import { renderScheduleForm, resetScheduleForm, loadScheduleFromJob, scheduleFieldsForSave, scheduleLineHTML, applicantTimeHTML, proposalHTML } from './schedule';
 import { dropSharing, providerShareHTML, customerTrackingHTML } from './tracking';
 import { startPayment, openJobPaymentHTML, customerPaymentHTML, providerPaymentHTML, settledPaymentHTML, isFunded } from './payments';
 
@@ -78,6 +79,7 @@ export function renderRequestDetails(){
   $<HTMLInputElement>('addrInput').placeholder = svc.addrPlaceholder;
   $('toAddrWrap').style.display = svc.needsToAddr ? 'block' : 'none';
   renderPins();
+  renderScheduleForm();
   if(svc.needsToAddr){
     $('toAddrLabel').textContent = svc.toAddrLabel ?? '';
     $<HTMLInputElement>('toAddrInput').placeholder = svc.toAddrPlaceholder ?? '';
@@ -140,6 +142,7 @@ export function resetNewRequestForm(){
   $('customPriceWrap').style.display = 'none';
   $<HTMLInputElement>('customPriceInput').value = '';
   $('submitBtn').textContent = t().submitBtn;
+  resetScheduleForm();
   updateEstimate();
 }
 
@@ -317,6 +320,7 @@ export function editJob(id: string){
   $('customPriceChip').classList.toggle('on', useCustomPrice);
   $('customPriceWrap').style.display = useCustomPrice ? 'block' : 'none';
   if(useCustomPrice) $<HTMLInputElement>('customPriceInput').value = String(j.price);
+  loadScheduleFromJob(j);
   updateEstimate();
   $('submitBtn').textContent = t().saveChangesBtn;
 }
@@ -354,14 +358,17 @@ export async function submitRequest(){
   } else {
     price = priceFor(service, selectedSize, selectedCat);
   }
+  const prevJob = editingJobId ? (jobs.find(x=>x.id===editingJobId) ?? null) : null;
+  const sched = scheduleFieldsForSave(prevJob);
+  if(!sched) return;
   const wasEditing = !!editingJobId;
   try{
     if(wasEditing && editingJobId){
-      await db().job(editingJobId).update({service, cat:selectedCat, desc, addr, toAddr, size:selectedSize, price, photo: photoDataUrl || null, ...pinFields(toAddr)});
+      await db().job(editingJobId).update({service, cat:selectedCat, desc, addr, toAddr, size:selectedSize, price, photo: photoDataUrl || null, ...pinFields(toAddr), ...sched});
     } else {
       await db().collection('jobs').add({
         service, cat:selectedCat, desc, addr, toAddr, size:selectedSize, price, ...pinFields(toAddr),
-        photo: photoDataUrl || null,
+        photo: photoDataUrl || null, ...sched,
         status:"open",
         ownerPhone: me().phone, acceptedByPhone:null, createdAt: Date.now()
       });
@@ -398,18 +405,21 @@ export function submitCustomOffer(id: string){
   applyToJob(id, val);
 }
 
-export async function applyToJob(id: string, price: number){
-  if(!dbRef || !currentUser) return;
+export async function applyToJob(id: string, price: number, proposal?: { start: number; end: number }): Promise<boolean>{
+  if(!dbRef || !currentUser) return false;
   const j = jobs.find(x=>x.id===id);
-  if(!j) return;
+  if(!j) return false;
   const applicants = Array.isArray(j.applicants) ? j.applicants.slice() : [];
   const idx = applicants.findIndex(a=>a.phone===me().phone);
-  const entry = {phone: me().phone, name: me().name, price, appliedAt: Date.now()};
+  const entry: Applicant = {phone: me().phone, name: me().name, price, appliedAt: Date.now()};
+  const keep = idx>=0 ? applicants[idx] : null;   // a price-only re-offer keeps an earlier time proposal
+  if(proposal){ entry.proposedStart = proposal.start; entry.proposedEnd = proposal.end; }
+  else if(keep && keep.proposedStart != null && keep.proposedEnd != null){ entry.proposedStart = keep.proposedStart; entry.proposedEnd = keep.proposedEnd; }
   if(idx>=0) applicants[idx] = entry; else applicants.push(entry);
   try{
     await db().job(id).update({applicants});
     toast(t().toastApplied);
-  }catch(e){ toast(t().toastSaveFailed); return; }
+  }catch(e){ toast(t().toastSaveFailed); return false; }
 
   if(!j.ownerPhone){
     setTimeout(async ()=>{
@@ -422,6 +432,7 @@ export async function applyToJob(id: string, price: number){
       }
     }, 1700);
   }
+  return true;
 }
 
 export async function assignJob(id: string, phone: string){
@@ -462,7 +473,8 @@ export function jobCardHTML(j: Job, courierView: boolean, ignoredView = false): 
       <div class="offer-row">
         <input type="number" min="1" id="offerInput-${j.id}" value="${mine ? mine.price : j.price}">
         <button class="secondary" onclick="submitCustomOffer('${j.id}')">${d.proposePriceBtn}</button>
-      </div>`;
+      </div>
+      ${proposalHTML(j)}`;
     } else {
       body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>`;
     }
@@ -472,7 +484,7 @@ export function jobCardHTML(j: Job, courierView: boolean, ignoredView = false): 
         ? applicants.slice().sort((a,b)=>a.price-b.price).map(a=>`
           <div class="card" style="margin-bottom:8px;padding:10px 12px;">
             <div class="top-row">
-              <div><h3 style="font-size:14px;">${esc(a.name || a.phone)}</h3>${ratingBadgeHTML(a.phone)}</div>
+              <div><h3 style="font-size:14px;">${esc(a.name || a.phone)}</h3>${ratingBadgeHTML(a.phone)}${applicantTimeHTML(j, a)}</div>
               <div class="price" style="font-size:14px;">${a.price} ${d.priceUnit}</div>
             </div>
             <div class="action-row">
@@ -613,6 +625,7 @@ export function jobCardHTML(j: Job, courierView: boolean, ignoredView = false): 
         <div class="service-badge">${serviceLabel(j.service)}</div>
         <h3>${catLabel(j.service, j.cat)}</h3>
         <p class="meta">${esc(j.desc)}</p>
+        ${scheduleLineHTML(j)}
       </div>
       <div class="price">${j.price} ${d.priceUnit}</div>
     </div>

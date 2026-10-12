@@ -3,6 +3,7 @@ import { goTo } from './shell';
 import { dismissJob, restoreJob, toggleDismissed } from './dismissals';
 import { startCall } from './call';
 import { setReviewRating, setReviewComment, submitReview, moderateReview, askClearComment } from './reviews';
+import { schedPickDay, schedTapSlot, schedSetAsap, schedToggleProposal, schedSetPrice, submitProposal } from './schedule';
 import { toggleChat, toggleAdminChat } from './chat';
 import { retrySharing, toggleTrackMap } from './tracking';
 import { startPayment, mockPay, cancelMockCheckout } from './payments';
@@ -23,4 +24,5 @@ export const handlers = {
   providerArrive, logout, handlePhotoSelect, editJob, confirmDeleteRequest, completeJob, cancelReport, cancelDelete,
   assignJob, askDelete, useMyLocation, clearPin, adminDo, adminDeleteUser, adminAsk, adminAbort, setReportDraft, setRespondDraft,
   setAdminQuery, setAdminNoteDraft, setAdminPendingUser, startPayment, mockPay, cancelMockCheckout, retrySharing, toggleTrackMap, toggleChat, toggleAdminChat, startCall, dismissJob, restoreJob, toggleDismissed, setReviewRating, setReviewComment, submitReview, moderateReview, askClearComment,
+  schedPickDay, schedTapSlot, schedSetAsap, schedToggleProposal, schedSetPrice, submitProposal,
 };
