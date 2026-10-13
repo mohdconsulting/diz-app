@@ -318,3 +318,8 @@ button.danger{background:#fff;color:var(--danger);border:1px solid var(--danger)
 .review-stars.pick{display:flex;gap:4px;margin:6px 0;}
 .review-stars .star{background:none;border:0;padding:0 2px;font-size:30px;line-height:1;color:#c98a00;cursor:pointer;min-height:44px;}
 .review-stars .star:not(.on){color:#b9b3a4;}
+
+.cash-note{margin-top:14px;padding:10px 12px;border:1px solid var(--teal);background:#eaf3f1;font-size:13px;line-height:1.4;}
+.cash-note b{display:block;margin-bottom:2px;}
+.cash-chip{margin-top:8px;font-size:12.5px;font-weight:600;color:var(--teal);}
+.cash-line{margin-top:8px;padding:8px 10px;border:1px solid var(--teal);background:#eaf3f1;font-size:13px;line-height:1.4;}
