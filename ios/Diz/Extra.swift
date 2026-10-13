@@ -38,6 +38,12 @@ enum Extra {
         "call.speaker": [.sv: "Högtalare", .en: "Speaker", .ar: "مكبر الصوت"],
         "call.noMic": [.sv: "Hittar ingen mikrofon på enheten.", .en: "No microphone found on this device.", .ar: "لا يوجد ميكروفون في الجهاز."],
         "call.ipNote": [.sv: "Samtalet går direkt mellan era enheter och spelas inte in. Telefonnummer visas inte, men den andra enheten kan se din IP-adress. Samtal kan bara tas emot medan appen är öppen.", .en: "The call goes directly between your devices and is not recorded. Phone numbers are not shown, but the other device can see your IP address. Calls can only be received while the app is open.", .ar: "تتم المكالمة مباشرة بين جهازيكما ولا يتم تسجيلها. لا تظهر أرقام الهواتف، لكن الجهاز الآخر يمكنه رؤية عنوان IP الخاص بك. لا يمكن استقبال المكالمات إلا أثناء فتح التطبيق."],
+        "cash.chip": [.sv: "💵 Kontant betalning direkt till utföraren", .en: "💵 Cash payment directly to the provider", .ar: "💵 الدفع نقدًا مباشرةً لمقدّم الخدمة"],
+        "cash.formTitle": [.sv: "Betalning sker kontant", .en: "Payment is in cash", .ar: "الدفع نقدًا"],
+        "cash.formText": [.sv: "Du betalar utföraren kontant direkt när jobbet är utfört. Ingen betalning sker i appen.", .en: "You pay the provider in cash directly when the job is done. No payment is made in the app.", .ar: "تدفع لمقدّم الخدمة نقدًا مباشرةً عند إنجاز العمل. لا يتم أي دفع داخل التطبيق."],
+        "cash.assignNote": [.sv: "Betalning sker kontant direkt till utföraren när jobbet är klart.", .en: "Payment is made in cash directly to the provider when the job is done.", .ar: "يتم الدفع نقدًا مباشرةً لمقدّم الخدمة عند إنجاز العمل."],
+        "cash.acceptedCustomer": [.sv: "💵 Betala {amount} kontant direkt till utföraren när jobbet är klart.", .en: "💵 Pay {amount} in cash directly to the provider when the job is done.", .ar: "💵 ادفع {amount} نقدًا مباشرةً لمقدّم الخدمة عند إنجاز العمل."],
+        "cash.acceptedProvider": [.sv: "💵 Kunden betalar {amount} kontant direkt till dig när jobbet är klart.", .en: "💵 The customer pays you {amount} in cash directly when the job is done.", .ar: "💵 سيدفع لك العميل {amount} نقدًا مباشرةً عند إنجاز العمل."],
         "account.privacy": [.sv: "Integritetspolicy", .en: "Privacy policy", .ar: "سياسة الخصوصية"],
     ]
 }

@@ -61,6 +61,10 @@ struct NewRequestView: View {
                 }
             }
             ScheduleSection(choice: $schedule)
+            Section {
+                CashBanner(text: store.tr("cash.formText"), title: store.tr("cash.formTitle"))
+                    .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+            }
             Section(store.tr("estimateLabel")) {
                 if custom {
                     DigitField(placeholder: store.tr("customPriceLabel"), text: $customPrice)

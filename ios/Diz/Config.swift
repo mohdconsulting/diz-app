@@ -35,6 +35,10 @@ enum Config {
     /// Public URL of the privacy policy (host ios/appstore/privacy-policy.html and change this to its address).
     static let privacyURL = URL(string: "https://mohdconsulting.github.io/diz-app/privacy-policy.html")!
 
+    /// First phase: all payment is cash, handed directly from the customer to the provider. The in-app payment flow
+    /// stays in the code but is hidden. Set to false (and set payments_mode in the database) to bring it back.
+    static let cashOnly = true
+
     static let pollSeconds: UInt64 = 5
     static let locationSendSeconds: TimeInterval = 10
 }

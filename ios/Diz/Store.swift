@@ -184,6 +184,7 @@ final class Store: ObservableObject {
     }
 
     func loadPaymentsMode() async {
+        if Config.cashOnly { paymentsMode = "off"; return }
         struct Row: Decodable { let value: String }
         let rows = try? await api.select("app_settings", Row.self, filters: [URLQueryItem(name: "key", value: "eq.payments_mode")])
         let v = rows?.first?.value

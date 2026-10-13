@@ -92,3 +92,20 @@ func openMaps(query: String) {
 func openMaps(lat: Double, lng: Double) {
     if let url = URL(string: "http://maps.apple.com/?ll=\(lat),\(lng)&q=Diz") { UIApplication.shared.open(url) }
 }
+
+/// Highlighted note: payment is cash, directly between customer and provider.
+struct CashBanner: View {
+    let text: String
+    var title: String? = nil
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            if let t = title { Text("💵 " + t).font(.subheadline.bold()) }
+            Text(text).font(.footnote)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(10)
+        .background(Color.dizBrand.opacity(0.12))
+        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.dizBrand, lineWidth: 1))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+}

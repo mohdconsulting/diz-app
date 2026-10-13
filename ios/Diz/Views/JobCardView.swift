@@ -45,6 +45,17 @@ struct JobCardView: View {
         }
     }
 
+    /// Payment is cash, directly from the customer to the provider.
+    @ViewBuilder private var cashLine: some View {
+        if !job.isFinal {
+            if job.status == "accepted" {
+                CashBanner(text: store.tr(isMyAccepted ? "cash.acceptedProvider" : "cash.acceptedCustomer", ["amount": store.money(job.price)]))
+            } else {
+                Text(store.tr("cash.chip")).font(.footnote.bold()).foregroundColor(.dizBrand)
+            }
+        }
+    }
+
     private var details: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(store.tr("status.\(job.statusKey)")).font(.caption.bold())
@@ -54,6 +65,7 @@ struct JobCardView: View {
             if let s = job.size { Text(store.tr("services.\(job.service).sizes.\(s)")).font(.subheadline).foregroundColor(.secondary) }
             if !job.desc.isEmpty { Text(job.desc).font(.subheadline) }
             ScheduleLine(job: job)
+            cashLine
             if !job.addr.isEmpty {
                 Button { openMaps(query: job.addr) } label: { Label(job.addr, systemImage: "mappin.and.ellipse").font(.footnote) }
             }
@@ -77,6 +89,8 @@ struct JobCardView: View {
             Text(store.tr("applicantsTitle")).font(.subheadline.bold())
             if job.applicants.isEmpty {
                 Text(store.tr("noApplicantsYet")).font(.footnote).foregroundColor(.secondary)
+            } else {
+                CashBanner(text: store.tr("cash.assignNote"))
             }
             ForEach(job.applicants, id: \.phone) { a in
                 HStack {
