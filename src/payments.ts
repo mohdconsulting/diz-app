@@ -60,7 +60,12 @@ function rowToPayment(r: Row): Payment {
   };
 }
 
+/** First phase: all payment is cash, handed directly from the customer to the provider. The in-app payment flow
+ *  (mock / Qi Card) stays in the code but is hidden. To bring it back, set payments_mode in the database and replace this line with `false`. */
+export const CASH_ONLY = !(window as unknown as { DIZ_ENABLE_PAYMENTS?: boolean }).DIZ_ENABLE_PAYMENTS;   // the flag exists for the automated tests only
+
 export async function loadPaymentsMode(){
+  if(CASH_ONLY){ setPaymentsMode('off'); return; }
   try{
     const { data, error } = await sb().from('app_settings').select('value').eq('key', 'payments_mode').maybeSingle();
     if(error) throw error;

@@ -186,6 +186,7 @@ export function updateEstimate(){
   const sub = $('estimateSub');
   if(!sub) return;
   sub.textContent = useCustomPrice ? t().estimateSubCustom : t().estimateSub;
+  const cn = $('cashNote'); if(cn) cn.innerHTML = `<b>💵 ${t().cash.formTitle}</b>${t().cash.formText}`;
   if(useCustomPrice){
     const val = parseInt($<HTMLInputElement>('customPriceInput').value, 10);
     el.textContent = (val>0) ? (val + " " + t().priceUnit) : "–";
@@ -450,6 +451,17 @@ export async function assignJob(id: string, phone: string){
   }catch(e){ toast(t().toastSaveFailed); }
 }
 
+/** Payment is cash, directly from the customer to the provider. Shown on every job that is not finished. */
+function cashLineHTML(j: Job): string {
+  const d = t();
+  if(isFinal(j)) return '';
+  if(j.status === 'accepted'){
+    const mineAsProvider = currentUser && j.acceptedByPhone === me().phone;
+    const amt = j.price + ' ' + d.priceUnit;
+    return `<div class="cash-line">${(mineAsProvider ? d.cash.acceptedProvider : d.cash.acceptedCustomer).replace('{amount}', amt)}</div>`;
+  }
+  return `<div class="cash-chip">${d.cash.chip}</div>`;
+}
 export function jobCardHTML(j: Job, courierView: boolean, ignoredView = false): string {
   const d = t();
   const isMine = currentUser && j.ownerPhone === me().phone;
@@ -495,6 +507,7 @@ export function jobCardHTML(j: Job, courierView: boolean, ignoredView = false): 
       const checkout = openJobPaymentHTML(j);
       body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
       ${checkout || `<div style="margin-top:10px;">
+        ${applicants.length ? `<div class="cash-line">💵 ${d.cash.assignNote}</div>` : ''}
         <p class="section-title" style="margin-bottom:8px;">${d.applicantsTitle}${applicants.length ? ' (' + applicants.length + ')' : ''}</p>
         ${applicantsHtml}
       </div>`}
@@ -630,6 +643,7 @@ export function jobCardHTML(j: Job, courierView: boolean, ignoredView = false): 
       <div class="price">${j.price} ${d.priceUnit}</div>
     </div>
     ${j.photo ? `<img src="${j.photo}" alt="" style="width:100%;max-height:160px;object-fit:cover;margin-top:10px;border:1px solid var(--line);">` : ''}
+    ${cashLineHTML(j)}
     <p class="meta" style="margin-top:8px;">${routeLinksHTML(j, d.openInMaps, d.mapsRoute, isMine ? d.myLocationText : d.customerLocationText)}</p>
     ${body}
   </div>`;

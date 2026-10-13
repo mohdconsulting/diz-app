@@ -14,6 +14,7 @@ async def main():
         ctx=await b.new_context(viewport={'width':420,'height':900},geolocation={'latitude':33.3152,'longitude':44.3661},permissions=['geolocation'])
         pg=await ctx.new_page()
         await pg.add_init_script(webrtc_stub)
+        await pg.add_init_script("window.DIZ_ENABLE_PAYMENTS=true;")   # the in-app payment flow is hidden in production (cash only); these tests still cover it
         await pg.add_init_script("try{ if(!sessionStorage.getItem('dbs')) localStorage.setItem('diz_lang','sv'); }catch(e){}")   # the suite checks Swedish texts
         errs=[]
         pg.on('pageerror',lambda e:errs.append('PAGEERR '+str(e)))
@@ -346,6 +347,43 @@ async def main():
         await pg2.route('**/fonts.g*/**',lambda r:r.abort())
         await pg2.goto(URL); await pg2.wait_for_timeout(600)
         check('default language is Arabic, right-to-left', await pg2.evaluate("document.documentElement.lang")=='ar' and await pg2.evaluate("document.documentElement.dir")=='rtl' and await pg2.evaluate("document.querySelector('#authLangSwitch button.on').dataset.lang")=='ar')
+
+        # --- first phase: cash only (no DIZ_ENABLE_PAYMENTS flag) -> payment flow hidden, cash messaging shown
+        ctx3=await b.new_context(viewport={'width':420,'height':900},geolocation={'latitude':33.3152,'longitude':44.3661},permissions=['geolocation'])
+        p3=await ctx3.new_page()
+        await p3.add_init_script("try{ localStorage.setItem('diz_lang','sv'); }catch(e){}")
+        for pat,body,ct in [('**/@supabase/supabase-js@2',stub,'application/javascript'),('**/leaflet@*/dist/leaflet.js',leaflet_stub,'application/javascript'),('**/leaflet@*/dist/leaflet.css','','text/css')]:
+            await p3.route(pat,(lambda body,ct:(lambda r:r.fulfill(body=body,content_type=ct)))(body,ct))
+        await p3.route('**/fonts.g*/**',lambda r:r.abort())
+        p3.on('pageerror',lambda e:errs.append('PAGEERR(cash) '+str(e)))
+        await p3.goto(URL); await p3.wait_for_timeout(500)
+        async def reg3(name,phone,role):
+            await p3.click('#authSwitchBtn'); await p3.fill('#authNameInput',name); await p3.fill('#authPhoneInput',phone); await p3.fill('#authPassInput','secret1')
+            await p3.click(f'#authRoleChips .chip[data-val={role}]')
+            if role=='driver': await p3.click('#authProfileChips .chip[data-val=driver]')
+            await p3.click('#authSubmitBtn'); await p3.wait_for_timeout(700)
+        async def out3():
+            await p3.click('#logoutBtn'); await p3.wait_for_timeout(300)
+        await reg3('Kund','0770999','customer')
+        await p3.click('.tabbar button[data-tab=new]')
+        await p3.click('#serviceChips .chip[data-val=junk]'); await p3.click('#catChips .chip >> nth=0'); await p3.click('#sizeChips .chip >> nth=0')
+        await p3.fill('#descInput','Soffa'); await p3.click('button[onclick="useMyLocation(\'addr\')"]'); await p3.wait_for_timeout(500)
+        check('cash note on the request form', 'kontant' in (await p3.inner_text('#cashNote')).lower() and 'Ingen betalning sker i appen' in await p3.inner_text('#cashNote'))
+        await p3.click('#submitBtn'); await p3.wait_for_timeout(800)
+        check('cash: no payment flow state', await p3.evaluate("__db.payments.length")==0)
+        await out3(); await reg3('Utförare','0790888','driver')
+        await p3.locator('button[onclick^="submitOffer("]:visible').first.click(); await p3.wait_for_timeout(700)
+        await out3(); await p3.fill('#authPhoneInput','0770999'); await p3.fill('#authPassInput','secret1'); await p3.click('#authSubmitBtn'); await p3.wait_for_timeout(700)
+        await p3.click('.tabbar button[data-tab=mine]'); await p3.wait_for_timeout(400)
+        mine=await p3.inner_text('#mineList')
+        check('cash line above applicants', 'direkt till utföraren' in mine)
+        check('assign button is plain, no pay wording', await p3.locator('button[onclick^="assignJob("]:visible').count()==1 and 'betala' not in (await p3.locator('button[onclick^="assignJob("]:visible').first.inner_text()).lower())
+        await p3.locator('button[onclick^="assignJob("]:visible').first.click(); await p3.wait_for_timeout(700)
+        check('cash: assigned without payment', await p3.evaluate("__db.jobs[0].status")=='accepted' and await p3.evaluate("__db.payments.length")==0)
+        check('customer told to pay cash directly to the provider', 'kontant direkt till utföraren' in await p3.inner_text('#mineList'))
+        await out3(); await p3.fill('#authPhoneInput','0790888'); await p3.fill('#authPassInput','secret1'); await p3.click('#authSubmitBtn'); await p3.wait_for_timeout(700)
+        await p3.click('.tabbar button[data-tab=mine]'); await p3.wait_for_timeout(400)
+        check('provider told the customer pays cash directly', 'kontant direkt till dig' in await p3.inner_text('#mineList'))
         print('ERRORS:', errs)
         await b.close()
         sys.exit(0 if ok and not errs else 1)

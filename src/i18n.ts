@@ -63,6 +63,14 @@ const I18N_RAW = {
     useMyLocationBtn:"Använd min position", locationSavedNote:"Position sparad", removePinBtn:"Ta bort", toastLocationFailed:"Kunde inte hämta positionen – tillåt platsåtkomst i webbläsaren",
     openInMaps:"Öppna i Google Maps",
     mapsRoute:"Visa rutten",
+    cash:{
+      chip:"💵 Kontant betalning direkt till utföraren",
+      formTitle:"Betalning sker kontant",
+      formText:"Du betalar utföraren kontant direkt när jobbet är utfört. Ingen betalning sker i appen.",
+      assignNote:"Betalning sker kontant direkt till utföraren när jobbet är klart.",
+      acceptedCustomer:"💵 Betala {amount} kontant direkt till utföraren när jobbet är klart.",
+      acceptedProvider:"💵 Kunden betalar {amount} kontant direkt till dig när jobbet är klart.",
+    },
     pay:{
       assignPayBtn:"Tilldela & betala {amount}",
       payTo:"Betala till {name}",
@@ -304,6 +312,14 @@ const I18N_RAW = {
     useMyLocationBtn:"Use my location", locationSavedNote:"Location saved", removePinBtn:"Remove", toastLocationFailed:"Could not get your location — allow location access in the browser",
     openInMaps:"Open in Google Maps",
     mapsRoute:"Show route",
+    cash:{
+      chip:"💵 Cash payment directly to the provider",
+      formTitle:"Payment is in cash",
+      formText:"You pay the provider in cash directly when the job is done. No payment is made in the app.",
+      assignNote:"Payment is made in cash directly to the provider when the job is done.",
+      acceptedCustomer:"💵 Pay {amount} in cash directly to the provider when the job is done.",
+      acceptedProvider:"💵 The customer pays you {amount} in cash directly when the job is done.",
+    },
     pay:{
       assignPayBtn:"Assign & pay {amount}",
       payTo:"Pay {name}",
@@ -545,6 +561,14 @@ const I18N_RAW = {
     useMyLocationBtn:"استخدم موقعي", locationSavedNote:"تم حفظ الموقع", removePinBtn:"إزالة", toastLocationFailed:"تعذّر تحديد موقعك — اسمح بالوصول إلى الموقع في المتصفح",
     openInMaps:"افتح في خرائط Google",
     mapsRoute:"عرض المسار",
+    cash:{
+      chip:"💵 الدفع نقدًا مباشرةً لمقدّم الخدمة",
+      formTitle:"الدفع نقدًا",
+      formText:"تدفع لمقدّم الخدمة نقدًا مباشرةً عند إنجاز العمل. لا يتم أي دفع داخل التطبيق.",
+      assignNote:"يتم الدفع نقدًا مباشرةً لمقدّم الخدمة عند إنجاز العمل.",
+      acceptedCustomer:"💵 ادفع {amount} نقدًا مباشرةً لمقدّم الخدمة عند إنجاز العمل.",
+      acceptedProvider:"💵 سيدفع لك العميل {amount} نقدًا مباشرةً عند إنجاز العمل.",
+    },
     pay:{
       assignPayBtn:"تكليف ودفع {amount}",
       payTo:"الدفع إلى {name}",
