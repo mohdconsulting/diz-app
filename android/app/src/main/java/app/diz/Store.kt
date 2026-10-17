@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 
-/** All app state plus every action. Mirrors what src/*.ts does in the web app and Store.swift in the iPhone app. */
+/** All app state plus every action. Mirrors what the src/ files does in the web app and Store.swift in the iPhone app. */
 class Store(app: Application) : AndroidViewModel(app) {
     // ---- observable state ----
     var lang by mutableStateOf(Lang.AR)
