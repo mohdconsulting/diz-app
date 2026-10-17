@@ -107,7 +107,7 @@ fun ProfileScreen(store: Store) {
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Lang.values().forEach { l -> Chip(l.title, store.lang == l) { store.setLang(l) } }
+            Lang.values().forEach { l -> Chip(l.title, store.lang == l) { store.changeLang(l) } }
         }
         if (store.isDriver && store.locationDenied) Footnote(store.tr("track.shareDenied"), DizDanger)
         LinkButton(store.tr("account.privacy")) { openUrl(context, Config.PRIVACY_URL) }

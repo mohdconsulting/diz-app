@@ -71,7 +71,7 @@ class Store(app: Application) : AndroidViewModel(app) {
         toastJob?.cancel()
         toastJob = viewModelScope.launch { delay(3000); toastText = null }
     }
-    fun setLang(l: Lang) { lang = l; prefs.edit().putString("lang", l.code).apply() }
+    fun changeLang(l: Lang) { lang = l; prefs.edit().putString("lang", l.code).apply() }
 
     val isDriver: Boolean get() = user?.isDriver ?: false
     val myPhone: String get() = user?.phone ?: ""

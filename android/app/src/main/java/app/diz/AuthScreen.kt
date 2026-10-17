@@ -47,7 +47,7 @@ fun AuthScreen(store: Store) {
         Text(store.tr(if (registering) "authSubtitleRegister" else "authSubtitleLogin"), color = Color.Gray)
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Lang.values().forEach { l -> Chip(l.title, store.lang == l) { store.setLang(l) } }
+            Lang.values().forEach { l -> Chip(l.title, store.lang == l) { store.changeLang(l) } }
         }
 
         Text(store.tr(if (registering) "authTitleRegister" else "authTitleLogin"), fontSize = 22.sp, fontWeight = FontWeight.Bold)
