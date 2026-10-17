@@ -1,0 +1,62 @@
+{
+ "account.deleteBtn": {
+  "sv": "Radera mitt konto",
+  "en": "Delete my account",
+  "ar": "حذف حسابي"
+ },
+ "account.deleteTitle": {
+  "sv": "Radera kontot?",
+  "en": "Delete account?",
+  "ar": "حذف الحساب؟"
+ },
+ "account.deleteMsg": {
+  "sv": "Ditt konto, dina öppna förfrågningar och dina meddelanden raderas permanent. Avslutade uppdrag och betalningsposter sparas anonymiserat. Det går inte att ångra.",
+  "en": "Your account, open requests and messages are deleted permanently. Completed jobs and payment records are kept anonymised. This cannot be undone.",
+  "ar": "سيتم حذف حسابك وطلباتك المفتوحة ورسائلك نهائيًا. تُحفظ المهام المكتملة وسجلات الدفع بشكل مجهول. لا يمكن التراجع عن ذلك."
+ },
+ "account.deleteConfirm": {
+  "sv": "Ja, radera",
+  "en": "Yes, delete",
+  "ar": "نعم، احذف"
+ },
+ "account.deleteActive": {
+  "sv": "Du har ett pågående uppdrag. Avsluta det innan du raderar kontot.",
+  "en": "You have an active job. Finish it before deleting your account.",
+  "ar": "لديك مهمة جارية. أنهِها قبل حذف حسابك."
+ },
+ "account.deleteFailed": {
+  "sv": "Kunde inte radera kontot. Försök igen.",
+  "en": "Could not delete the account. Try again.",
+  "ar": "تعذّر حذف الحساب. حاول مرة أخرى."
+ },
+ "account.deleted": {
+  "sv": "Kontot är raderat.",
+  "en": "Your account has been deleted.",
+  "ar": "تم حذف الحساب."
+ },
+ "call.micDenied": {
+  "sv": "Mikrofonen är blockerad. Tillåt mikrofon för Diz i iPhonens Inställningar.",
+  "en": "The microphone is blocked. Allow the microphone for Diz in iPhone Settings.",
+  "ar": "الميكروفون محظور. اسمح لتطبيق دز باستخدام الميكروفون من إعدادات الآيفون."
+ },
+ "call.speaker": {
+  "sv": "Högtalare",
+  "en": "Speaker",
+  "ar": "مكبر الصوت"
+ },
+ "call.noMic": {
+  "sv": "Hittar ingen mikrofon på enheten.",
+  "en": "No microphone found on this device.",
+  "ar": "لا يوجد ميكروفون في الجهاز."
+ },
+ "call.ipNote": {
+  "sv": "Samtalet går direkt mellan era enheter och spelas inte in. Telefonnummer visas inte, men den andra enheten kan se din IP-adress. Samtal kan bara tas emot medan appen är öppen.",
+  "en": "The call goes directly between your devices and is not recorded. Phone numbers are not shown, but the other device can see your IP address. Calls can only be received while the app is open.",
+  "ar": "تتم المكالمة مباشرة بين جهازيكما ولا يتم تسجيلها. لا تظهر أرقام الهواتف، لكن الجهاز الآخر يمكنه رؤية عنوان IP الخاص بك. لا يمكن استقبال المكالمات إلا أثناء فتح التطبيق."
+ },
+ "account.privacy": {
+  "sv": "Integritetspolicy",
+  "en": "Privacy policy",
+  "ar": "سياسة الخصوصية"
+ }
+}
