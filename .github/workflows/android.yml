@@ -4,6 +4,8 @@ on:
     branches: [develop-android]
     paths: ['android/**', '.github/workflows/android.yml']
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,7 +20,17 @@ jobs:
           java-version: 17
       - uses: gradle/actions/setup-gradle@v4
       - run: chmod +x gradlew
-      - run: ./gradlew --no-daemon :app:assembleDebug :app:testDebugUnitTest
+      - name: Build and test
+        run: set -o pipefail; ./gradlew --no-daemon :app:assembleDebug :app:testDebugUnitTest 2>&1 | tee ../build.log
+      - name: Publish build log to branch ci-logs
+        if: always()
+        working-directory: .
+        run: |
+          mkdir /tmp/logs && cp build.log /tmp/logs/android-build.log || true
+          cd /tmp/logs && git init -q && git checkout -q -b ci-logs
+          git config user.name ci && git config user.email ci@example.com
+          git add -A && git commit -q -m "android build log ${{ github.sha }}"
+          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" ci-logs
       - uses: actions/upload-artifact@v4
         with:
           name: dizli-debug-apk
