@@ -1,0 +1,76 @@
+Downloading https://services.gradle.org/distributions/gradle-8.11.1-bin.zip
+.............10%.............20%.............30%.............40%.............50%.............60%.............70%.............80%.............90%.............100%
+
+Welcome to Gradle 8.11.1!
+
+Here are the highlights of this release:
+ - Parallel load and store for Configuration Cache
+ - Java compilation errors at the end of the build output
+ - Consolidated report for warnings and deprecations
+
+For more details see https://docs.gradle.org/8.11.1/release-notes.html
+
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.11.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :app:checkKotlinGradlePluginConfigurationErrors
+> Task :app:generateDebugResValues
+> Task :app:checkDebugAarMetadata
+> Task :app:mapDebugSourceSetPaths
+> Task :app:generateDebugResources
+> Task :app:packageDebugResources
+> Task :app:mergeDebugResources
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksDebug
+> Task :app:parseDebugLocalResources
+> Task :app:processDebugMainManifest
+> Task :app:processDebugManifest
+> Task :app:javaPreCompileDebug
+> Task :app:mergeDebugShaders
+> Task :app:processDebugManifestForPackage
+> Task :app:compileDebugShaders NO-SOURCE
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :app:mergeDebugAssets
+> Task :app:compressDebugAssets
+> Task :app:desugarDebugFileDependencies
+> Task :app:processDebugResources
+> Task :app:checkDebugDuplicateClasses
+> Task :app:compileDebugKotlin
+> Task :app:mergeExtDexDebug
+
+> Task :app:compileDebugKotlin
+w: file:///home/runner/work/diz-app/diz-app/android/app/src/main/java/app/diz/Strings.kt:11:32 'constructor Locale(String!)' is deprecated. Deprecated in Java
+
+> Task :app:compileDebugJavaWithJavac NO-SOURCE
+> Task :app:dexBuilderDebug
+> Task :app:mergeDebugGlobalSynthetics
+> Task :app:processDebugJavaRes
+> Task :app:mergeLibDexDebug
+> Task :app:mergeDebugJniLibFolders
+> Task :app:mergeProjectDexDebug
+> Task :app:mergeDebugNativeLibs
+> Task :app:mergeDebugJavaResource
+> Task :app:validateSigningDebug
+> Task :app:writeDebugAppMetadata
+
+> Task :app:stripDebugDebugSymbols
+Unable to strip the following libraries, packaging them as they are: libandroidx.graphics.path.so.
+
+> Task :app:writeDebugSigningConfigVersions
+> Task :app:preDebugUnitTestBuild UP-TO-DATE
+> Task :app:javaPreCompileDebugUnitTest
+> Task :app:bundleDebugClassesToRuntimeJar
+> Task :app:bundleDebugClassesToCompileJar
+> Task :app:packageDebug
+> Task :app:createDebugApkListingFileRedirect
+> Task :app:assembleDebug
+> Task :app:compileDebugUnitTestKotlin
+> Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processDebugUnitTestJavaRes
+> Task :app:testDebugUnitTest
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1792439494084.json
+
+BUILD SUCCESSFUL in 2m 42s
+42 actionable tasks: 42 executed
