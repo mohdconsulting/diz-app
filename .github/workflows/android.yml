@@ -35,3 +35,19 @@ jobs:
         with:
           name: diz-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
+      - name: Signed release bundle (AAB)
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KS_B64" ]; then echo "No signing key configured - skipping AAB"; exit 0; fi
+          echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/diz-upload.jks"
+          export ANDROID_KEYSTORE_FILE="$RUNNER_TEMP/diz-upload.jks"
+          ./gradlew --no-daemon :app:bundleRelease
+      - uses: actions/upload-artifact@v4
+        with:
+          name: diz-release-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: ignore
