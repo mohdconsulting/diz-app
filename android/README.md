@@ -18,3 +18,4 @@ Same Supabase project as web/iOS. Run these in the SQL editor if not done yet:
 - Maps use osmdroid (OpenStreetMap, no API key); location uses the platform LocationManager.
 - Voice calls: signalling via `call_signals`/`send_call_signal`, WebRTC runs in a hidden WebView (STUN only). Calls ring only while the app is open.
 - Status: compiles and passes unit tests in CI; not yet tested on a physical device.
+- Release: add the 4 ANDROID_* secrets in GitHub, then re-run the Android workflow; artifact `diz-release-aab` is the signed AAB for Google Play.
