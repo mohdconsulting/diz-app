@@ -64,3 +64,6 @@ footer{background:var(--navy);color:#9fb7c4;font-size:14px;padding:22px 0}
 footer .wrap{display:flex;gap:8px 24px;justify-content:space-between;flex-wrap:wrap}
 @media (max-width:640px){.hero{padding:64px 0 48px}.sec{padding:56px 0}nav a:not(.btn){display:none}}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn{transition:none}}
+nav a.lang{border:1.5px solid var(--line);border-radius:8px;padding:3px 9px;font-size:13px;font-weight:700;letter-spacing:.05em;color:var(--ink)}
+nav a.lang:hover{background:var(--alt)}
+@media (max-width:640px){nav a.lang{display:inline-block}}
