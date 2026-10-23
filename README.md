@@ -10,4 +10,4 @@ Statisk, responsiv webbplats på svenska (ingen build, inga cookies, ingen spår
 Förhandsgranska: öppna `index.html` i en webbläsare, eller `python3 -m http.server`.
 Publicera: valfri statisk hosting (Netlify, GitHub Pages, Cloudflare Pages) – ladda upp mappens innehåll.
 
-**Att göra innan lansering:** kontrollera att `info@mohdconsulting.se` stämmer i `index.html` och `en/index.html` och lägg gärna till organisationsnummer i sidfoten.
+**Att göra innan lansering:** kontrollera att `mohamad@mohdconsulting.se` stämmer i `index.html` och `en/index.html` och lägg gärna till organisationsnummer i sidfoten.
