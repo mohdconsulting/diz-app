@@ -20,14 +20,14 @@ targets:
       - path: Diz
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: app.diz.Diz
+        PRODUCT_BUNDLE_IDENTIFIER: com.mohdconsulting.diz
+        TARGETED_DEVICE_FAMILY: "1"   # iPhone only (no iPad screenshots/layout required)
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: دز
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
-        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
         INFOPLIST_KEY_NSMicrophoneUsageDescription: "Diz uses the microphone for voice calls between customer and provider. دز يستخدم الميكروفون للمكالمات الصوتية بين العميل ومقدم الخدمة."
         INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "Diz uses your location to share it with the customer while you are on the way to a job, and to fill in your address. دز يستخدم موقعك لمشاركته مع العميل أثناء توجهك إلى المهمة ولتعبئة عنوانك."
