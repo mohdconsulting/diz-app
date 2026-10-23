@@ -30,8 +30,8 @@ struct AuthView: View {
                     field(store.tr("authPhoneLabel"), text: $phone, keyboard: .phonePad)
                     VStack(alignment: .leading, spacing: 4) {
                         Text(store.tr("authPassLabel")).font(.footnote).foregroundColor(.secondary)
-                        SecureField(store.tr("authPassLabel"), text: $password)
-                            .padding(10).foregroundColor(.primary)
+                        TextInputField(placeholder: store.tr("authPassLabel"), text: $password, secure: true)
+                            .frame(maxWidth: .infinity).frame(height: 44)
                             .background(Color.dizCard).clipShape(RoundedRectangle(cornerRadius: 10))
                     }
 
@@ -98,7 +98,6 @@ struct AuthField: View {
     let label: String
     @Binding var text: String
     var keyboard: UIKeyboardType = .default
-    @FocusState private var focused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -109,15 +108,8 @@ struct AuthField: View {
                     .background(Color.dizCard)
                     .clipShape(RoundedRectangle(cornerRadius: 10))
             } else {
-            TextField(label, text: $text)
-                .focused($focused)
-                .keyboardType(keyboard == .phonePad ? .numbersAndPunctuation : keyboard)
-                .submitLabel(.done)
-                .onSubmit { focused = false }
-                .autocorrectionDisabled()
-                .textInputAutocapitalization(.never)
-                .foregroundColor(.primary)
-                .padding(10)
+            TextInputField(placeholder: label, text: $text, capitalization: .words)
+                .frame(maxWidth: .infinity).frame(height: 44)
                 .background(Color.dizCard)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
             }

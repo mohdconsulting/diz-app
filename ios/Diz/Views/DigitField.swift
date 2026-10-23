@@ -85,3 +85,60 @@ struct DigitField: UIViewRepresentable {
         func textFieldShouldReturn(_ tf: UITextField) -> Bool { tf.resignFirstResponder(); return true }
     }
 }
+
+/// UIKit-backed text field for names and passwords (the same approach as DigitField). SwiftUI's TextField /
+/// SecureField dropped typed input in the forced-RTL environment, so the sign-in and sign-up forms use this instead.
+struct TextInputField: UIViewRepresentable {
+    var placeholder: String
+    @Binding var text: String
+    var secure = false
+    var capitalization: UITextAutocapitalizationType = .none
+    var inset: CGFloat = 10
+
+    func makeUIView(context: Context) -> UITextField {
+        let f = PaddedField()
+        f.inset = inset
+        f.delegate = context.coordinator
+        f.placeholder = placeholder
+        f.isSecureTextEntry = secure
+        f.keyboardType = .default
+        f.autocorrectionType = .no
+        f.spellCheckingType = .no
+        f.autocapitalizationType = secure ? .none : capitalization
+        f.textContentType = .none
+        f.textColor = .label
+        f.tintColor = UIColor(Color.dizBrand)
+        f.font = .preferredFont(forTextStyle: .body)
+        f.adjustsFontForContentSizeCategory = true
+        f.returnKeyType = .done
+        f.clearButtonMode = .never
+        f.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        f.addTarget(context.coordinator, action: #selector(Coordinator.changed(_:)), for: .editingChanged)
+        return f
+    }
+
+    func updateUIView(_ f: UITextField, context: Context) {
+        context.coordinator.parent = self
+        if f.text != text { f.text = text }
+        f.placeholder = placeholder
+        let rtl = context.environment.layoutDirection == .rightToLeft
+        f.semanticContentAttribute = rtl ? .forceRightToLeft : .forceLeftToRight
+        f.textAlignment = rtl ? .right : .left
+    }
+
+    func sizeThatFits(_ proposal: ProposedViewSize, uiView: UITextField, context: Context) -> CGSize? {
+        CGSize(width: proposal.width ?? 200, height: 44)
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    final class Coordinator: NSObject, UITextFieldDelegate {
+        var parent: TextInputField
+        init(_ p: TextInputField) { parent = p }
+        @objc func changed(_ tf: UITextField) {
+            let new = tf.text ?? ""
+            if parent.text != new { parent.text = new }
+        }
+        func textFieldShouldReturn(_ tf: UITextField) -> Bool { tf.resignFirstResponder(); return true }
+    }
+}
