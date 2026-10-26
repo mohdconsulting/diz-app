@@ -11,7 +11,7 @@ android {
         applicationId = "com.diz.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = (System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 0) + 100
+        versionCode = (System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 0) + 1000
         versionName = "0.1.0"
     }
 
