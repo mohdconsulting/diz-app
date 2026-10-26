@@ -8,7 +8,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "app.diz.android"
+        applicationId = "com.diz.app"
         minSdk = 26
         targetSdk = 36
         versionCode = (System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 0) + 100
