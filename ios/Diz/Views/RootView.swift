@@ -7,8 +7,6 @@ struct RootView: View {
         ZStack(alignment: .bottom) {
             if store.restoring {
                 ProgressView()
-            } else if store.user == nil {
-                AuthView()
             } else {
                 MainTabs()
             }
@@ -23,7 +21,13 @@ struct MainTabs: View {
 
     var body: some View {
         TabView {
-            if store.isDriver {
+            if store.user == nil {
+                // Guest: browse services and prices freely; an account is only needed to send an order.
+                NavigationStack { NewRequestView() }
+                    .tabItem { Label(store.tr("tabs.new"), systemImage: "plus.circle") }
+                NavigationStack { ProfileView() }
+                    .tabItem { Label(store.tr("tabs.mine"), systemImage: "person") }
+            } else if store.isDriver {
                 NavigationStack { OpenJobsView() }
                     .tabItem { Label(store.tr("tabs.jobs"), systemImage: "briefcase") }
                 NavigationStack { MyJobsView() }
@@ -36,10 +40,12 @@ struct MainTabs: View {
                     .tabItem { Label(store.tr("mineTitleCustomer"), systemImage: "list.bullet") }
                     .badge(store.messages.filter { $0.recipientPhone == store.myPhone && $0.readAt == nil }.count)
             }
-            NavigationStack { HistoryView() }
-                .tabItem { Label(store.tr("tabs.history"), systemImage: "clock") }
-            NavigationStack { ProfileView() }
-                .tabItem { Label(store.tr("tabs.mine"), systemImage: "person") }
+            if store.user != nil {
+                NavigationStack { HistoryView() }
+                    .tabItem { Label(store.tr("tabs.history"), systemImage: "clock") }
+                NavigationStack { ProfileView() }
+                    .tabItem { Label(store.tr("tabs.mine"), systemImage: "person") }
+            }
         }
         .tint(.dizBrand)
     }
@@ -48,9 +54,18 @@ struct MainTabs: View {
 struct ProfileView: View {
     @EnvironmentObject var store: Store
     @State private var confirmDelete = false
+    @State private var showAuth = false
 
     var body: some View {
         Form {
+            if store.user == nil {
+                Section {
+                    Text(store.tr("guest.hint")).font(.footnote).foregroundColor(.secondary)
+                    Button { showAuth = true } label: {
+                        Text(store.tr("guest.signIn")).bold().frame(maxWidth: .infinity)
+                    }
+                }
+            }
             if let u = store.user {
                 Section {
                     Text(u.name).font(.headline)
@@ -73,11 +88,14 @@ struct ProfileView: View {
             Section {
                 Link(store.tr("account.privacy"), destination: Config.privacyURL)
             }
-            Section {
-                Button(role: .destructive) { store.logout() } label: { Text(store.tr("logoutBtn")) }
-                Button(role: .destructive) { confirmDelete = true } label: { Text(store.tr("account.deleteBtn")) }
+            if store.user != nil {
+                Section {
+                    Button(role: .destructive) { store.logout() } label: { Text(store.tr("logoutBtn")) }
+                    Button(role: .destructive) { confirmDelete = true } label: { Text(store.tr("account.deleteBtn")) }
+                }
             }
         }
+        .sheet(isPresented: $showAuth) { AuthView(closable: true) }
         .navigationTitle(store.tr("tabs.mine"))
         .alert(store.tr("account.deleteTitle"), isPresented: $confirmDelete) {
             Button(store.tr("account.deleteConfirm"), role: .destructive) { Task { _ = await store.deleteAccount() } }

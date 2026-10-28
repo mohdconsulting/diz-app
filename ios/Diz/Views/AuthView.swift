@@ -2,6 +2,8 @@ import SwiftUI
 
 struct AuthView: View {
     @EnvironmentObject var store: Store
+    @Environment(\.dismiss) private var dismiss
+    var closable = false
     @State private var registering = false
     @State private var name = ""
     @State private var phone = ""
@@ -69,6 +71,12 @@ struct AuthView: View {
                 .padding(20)
             }
             .overlay(alignment: .bottom) { ToastView() }
+            .toolbar {
+                if closable {
+                    ToolbarItem(placement: .cancellationAction) { Button(store.tr("guest.close")) { dismiss() } }
+                }
+            }
+            .onChange(of: store.user?.id) { id in if id != nil { dismiss() } }
         }
     }
 

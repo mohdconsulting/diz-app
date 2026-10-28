@@ -11,6 +11,7 @@ struct NewRequestView: View {
     @State private var custom = false
     @State private var customPrice = ""
     @State private var schedule = ScheduleChoice()
+    @State private var showAuth = false
 
     private var info: ServiceInfo? { Strings.shared.service(service) }
     private var estimate: Int { Pricing.price(service: service, size: size, cat: cat) }
@@ -77,7 +78,8 @@ struct NewRequestView: View {
                 Toggle(store.tr("customPriceChipLabel"), isOn: $custom)
             }
             Section {
-                PrimaryButton(title: store.tr("submitBtn"), disabled: store.busy) {
+                PrimaryButton(title: store.tr(store.user == nil ? "guest.submit" : "submitBtn"), disabled: store.busy) {
+                    if store.user == nil { showAuth = true; return }
                     Task {
                         let ok = await store.createJob(service: service, cat: cat, size: size, desc: desc, addr: addr,
                                                        toAddr: toAddr, price: finalPrice, schedule: schedule)
@@ -88,5 +90,6 @@ struct NewRequestView: View {
             .listRowBackground(Color.clear)
         }
         .navigationTitle(store.tr("titles.new"))
+        .sheet(isPresented: $showAuth) { AuthView(closable: true) }
     }
 }

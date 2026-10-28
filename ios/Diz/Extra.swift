@@ -3,6 +3,10 @@ import Foundation
 /// Texts that only exist in the iPhone app (the shared texts come from strings.json, generated from the web app).
 enum Extra {
     static let table: [String: [Lang: String]] = [
+        "guest.signIn": [.sv: "Logga in / Skapa konto", .en: "Log in / Create account", .ar: "تسجيل الدخول / إنشاء حساب"],
+        "guest.submit": [.sv: "Logga in för att skicka beställningen", .en: "Log in to send the order", .ar: "سجّل الدخول لإرسال الطلب"],
+        "guest.hint": [.sv: "Du kan titta runt och se priser utan konto. Konto behövs först när du skickar en beställning.", .en: "You can look around and see prices without an account. You only need one when you send an order.", .ar: "يمكنك التصفح ومعرفة الأسعار بدون حساب. تحتاج إلى حساب فقط عند إرسال الطلب."],
+        "guest.close": [.sv: "Stäng", .en: "Close", .ar: "إغلاق"],
         "account.deleteBtn": [.sv: "Radera mitt konto", .en: "Delete my account", .ar: "حذف حسابي"],
         "account.deleteTitle": [.sv: "Radera kontot?", .en: "Delete account?", .ar: "حذف الحساب؟"],
         "account.deleteMsg": [
