@@ -92,6 +92,6 @@ struct LangPills: View {
                 }.buttonStyle(.plain)
             }
         }
-        .overlay(Rectangle().stroke(Color.white.opacity(0.35), lineWidth: 1))
+        .overlay(Rectangle().stroke(Color.white.opacity(0.35), lineWidth: 1).allowsHitTesting(false))
     }
 }

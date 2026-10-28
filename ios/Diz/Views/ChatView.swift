@@ -66,7 +66,7 @@ struct ChatView: View {
             }
             .padding(10)
             .background(mine ? Color.dizBrand : Color.dizPaper)
-            .overlay(Rectangle().stroke(mine ? Color.dizBrand : Color.dizLine, lineWidth: 1))
+            .overlay(Rectangle().stroke(mine ? Color.dizBrand : Color.dizLine, lineWidth: 1).allowsHitTesting(false))
             if !mine { Spacer(minLength: 40) }
         }
     }

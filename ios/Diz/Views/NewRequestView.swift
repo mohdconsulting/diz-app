@@ -46,7 +46,7 @@ struct NewRequestView: View {
                                     .allowsHitTesting(false)
                             }
                         }
-                        .background(Color.white).overlay(Rectangle().stroke(Color.dizLine, lineWidth: 1))
+                        .background(Color.white).overlay(Rectangle().stroke(Color.dizLine, lineWidth: 1).allowsHitTesting(false))
                     FieldLabel(text: store.tr("services.\(service).sizeLabel"))
                     FlowLayout(spacing: 8) {
                         ForEach(info.sizes, id: \.self) { n in
@@ -100,7 +100,7 @@ struct NewRequestView: View {
         }
         .padding(.horizontal, 14).padding(.vertical, 12)
         .background(Color(red: 0.933, green: 0.953, blue: 0.941))
-        .overlay(Rectangle().stroke(Color.dizBrand, lineWidth: 1))
+        .overlay(Rectangle().stroke(Color.dizBrand, lineWidth: 1).allowsHitTesting(false))
         .padding(.top, 4)
     }
 }

@@ -61,7 +61,7 @@ struct Card<Content: View>: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 16).padding(.vertical, 14)
             .background(Color.dizCard)
-            .overlay(Rectangle().stroke(Color.dizLine, lineWidth: 1))
+            .overlay(Rectangle().stroke(Color.dizLine, lineWidth: 1).allowsHitTesting(false))
     }
 }
 
@@ -76,7 +76,7 @@ struct PrimaryButton: View {
                 .foregroundColor(role == .destructive ? .dizDanger : .dizInk)
                 .frame(maxWidth: .infinity).padding(.vertical, 13)
                 .background(role == .destructive ? Color.white : Color.dizAmber)
-                .overlay(Rectangle().stroke(Color.dizDanger, lineWidth: role == .destructive ? 1 : 0))
+                .overlay(Rectangle().stroke(Color.dizDanger, lineWidth: role == .destructive ? 1 : 0).allowsHitTesting(false))
                 .opacity(disabled ? 0.5 : 1)
         }
         .buttonStyle(.plain)
@@ -157,7 +157,7 @@ struct CashBanner: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 12).padding(.vertical, 10)
         .background(Color.dizSoft)
-        .overlay(Rectangle().stroke(Color.dizBrand, lineWidth: 1))
+        .overlay(Rectangle().stroke(Color.dizBrand, lineWidth: 1).allowsHitTesting(false))
     }
 }
 
@@ -169,7 +169,7 @@ struct StatusBadge: View {
     var body: some View {
         Text(text).font(.system(size: 11.5)).foregroundColor(color)
             .padding(.horizontal, 8).padding(.vertical, 3)
-            .overlay(Rectangle().stroke(color, style: StrokeStyle(lineWidth: 1, dash: dashed ? [3, 2] : [])))
+            .overlay(Rectangle().stroke(color, style: StrokeStyle(lineWidth: 1, dash: dashed ? [3, 2] : [])).allowsHitTesting(false))
     }
 }
 
@@ -179,7 +179,7 @@ struct SecondaryButtonStyle: ButtonStyle {
         configuration.label
             .font(.system(size: 13, weight: .semibold)).foregroundColor(.dizBrand)
             .padding(.horizontal, 12).padding(.vertical, 9)
-            .overlay(Rectangle().stroke(Color.dizBrand, lineWidth: 1))
+            .overlay(Rectangle().stroke(Color.dizBrand, lineWidth: 1).allowsHitTesting(false))
             .opacity(configuration.isPressed ? 0.6 : 1)
     }
 }
@@ -188,7 +188,7 @@ struct SecondaryButtonStyle: ButtonStyle {
 struct DizInputBox: ViewModifier {
     func body(content: Content) -> some View {
         content.frame(maxWidth: .infinity).frame(height: 44)
-            .background(Color.white).overlay(Rectangle().stroke(Color.dizLine, lineWidth: 1))
+            .background(Color.white).overlay(Rectangle().stroke(Color.dizLine, lineWidth: 1).allowsHitTesting(false))
     }
 }
 extension View { func dizInput() -> some View { modifier(DizInputBox()) } }
@@ -199,7 +199,7 @@ struct EmptyBox: View {
     var body: some View {
         Text(text).font(.system(size: 14)).foregroundColor(.dizMuted).multilineTextAlignment(.center)
             .frame(maxWidth: .infinity).padding(.vertical, 26).padding(.horizontal, 18)
-            .overlay(Rectangle().stroke(Color.dizLine, style: StrokeStyle(lineWidth: 1, dash: [4, 3])))
+            .overlay(Rectangle().stroke(Color.dizLine, style: StrokeStyle(lineWidth: 1, dash: [4, 3])).allowsHitTesting(false))
     }
 }
 
@@ -225,7 +225,7 @@ struct Chip: View {
                 .foregroundColor(on ? .white : .dizInk)
                 .padding(.horizontal, 12).padding(.vertical, 7)
                 .background(on ? Color.dizBrand : Color.white)
-                .overlay(Rectangle().stroke(on ? Color.dizBrand : Color.dizLine, lineWidth: 1))
+                .overlay(Rectangle().stroke(on ? Color.dizBrand : Color.dizLine, lineWidth: 1).allowsHitTesting(false))
         }.buttonStyle(.plain)
     }
 }

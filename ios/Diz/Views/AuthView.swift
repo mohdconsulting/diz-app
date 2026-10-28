@@ -71,7 +71,7 @@ struct AuthView: View {
                     }.font(.subheadline)
                 }
                 .padding(22)
-                .background(Color.white).overlay(Rectangle().stroke(Color.dizLine, lineWidth: 1))
+                .background(Color.white).overlay(Rectangle().stroke(Color.dizLine, lineWidth: 1).allowsHitTesting(false))
                 .padding(20)
             }
             .background(Color.dizPaper.ignoresSafeArea())
@@ -101,7 +101,7 @@ struct AuthView: View {
             .padding(10)
             .background(profiles.contains(key) ? Color.dizBrand : Color.white)
             .foregroundColor(profiles.contains(key) ? .white : .dizInk)
-            .overlay(Rectangle().stroke(profiles.contains(key) ? Color.dizBrand : Color.dizLine, lineWidth: 1))
+            .overlay(Rectangle().stroke(profiles.contains(key) ? Color.dizBrand : Color.dizLine, lineWidth: 1).allowsHitTesting(false))
         }
         .buttonStyle(.plain)
     }
