@@ -17,14 +17,17 @@ struct AuthView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
-                    Text("دز  Diz").font(.largeTitle.bold()).foregroundColor(.dizBrand)
-                    Text(store.tr(registering ? "authSubtitleRegister" : "authSubtitleLogin")).foregroundColor(.secondary)
+                    HStack(spacing: 8) {
+                        Circle().fill(Color.dizAmber).frame(width: 7, height: 7)
+                        Text("دز  Diz").font(.system(size: 22, weight: .bold)).foregroundColor(.dizBrand)
+                    }
+                    Text(store.tr(registering ? "authSubtitleRegister" : "authSubtitleLogin")).font(.system(size: 13.5)).foregroundColor(.dizMuted)
 
                     Picker("", selection: $store.lang) {
                         ForEach(Lang.allCases) { Text($0.title).tag($0) }
-                    }.pickerStyle(.segmented)
+                    }.pickerStyle(.segmented).tint(.dizAmber)
 
-                    Text(store.tr(registering ? "authTitleRegister" : "authTitleLogin")).font(.title2.bold())
+                    Text(store.tr(registering ? "authTitleRegister" : "authTitleLogin")).font(.system(size: 21, weight: .semibold)).foregroundColor(.dizInk)
 
                     if registering {
                         field(store.tr("authNameLabel"), text: $name)
@@ -33,8 +36,7 @@ struct AuthView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(store.tr("authPassLabel")).font(.footnote).foregroundColor(.secondary)
                         TextInputField(placeholder: store.tr("authPassLabel"), text: $password, secure: true)
-                            .frame(maxWidth: .infinity).frame(height: 44)
-                            .background(Color.dizCard).clipShape(RoundedRectangle(cornerRadius: 10))
+                            .dizInput()
                     }
 
                     if registering {
@@ -65,11 +67,14 @@ struct AuthView: View {
 
                     HStack {
                         Text(store.tr(registering ? "authSwitchTextRegister" : "authSwitchTextLogin")).foregroundColor(.secondary)
-                        Button(store.tr(registering ? "authSwitchBtnRegister" : "authSwitchBtnLogin")) { registering.toggle() }
+                        Button(store.tr(registering ? "authSwitchBtnRegister" : "authSwitchBtnLogin")) { registering.toggle() }.foregroundColor(.dizTeal2).bold()
                     }.font(.subheadline)
                 }
+                .padding(22)
+                .background(Color.white).overlay(Rectangle().stroke(Color.dizLine, lineWidth: 1))
                 .padding(20)
             }
+            .background(Color.dizPaper.ignoresSafeArea())
             .overlay(alignment: .bottom) { ToastView() }
             .toolbar {
                 if closable {
@@ -94,7 +99,9 @@ struct AuthView: View {
                 Spacer()
             }
             .padding(10)
-            .background(Color.dizCard).clipShape(RoundedRectangle(cornerRadius: 10))
+            .background(profiles.contains(key) ? Color.dizBrand : Color.white)
+            .foregroundColor(profiles.contains(key) ? .white : .dizInk)
+            .overlay(Rectangle().stroke(profiles.contains(key) ? Color.dizBrand : Color.dizLine, lineWidth: 1))
         }
         .buttonStyle(.plain)
     }
@@ -109,17 +116,12 @@ struct AuthField: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(label).font(.footnote).foregroundColor(.secondary)
+            Text(label).font(.system(size: 12.5)).foregroundColor(.dizMuted)
             if keyboard == .phonePad {
                 DigitField(placeholder: label, text: $text, allowPlusAndSpace: true)
-                    .frame(maxWidth: .infinity).frame(height: 44)
-                    .background(Color.dizCard)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .dizInput()
             } else {
-            TextInputField(placeholder: label, text: $text, capitalization: .words)
-                .frame(maxWidth: .infinity).frame(height: 44)
-                .background(Color.dizCard)
-                .clipShape(RoundedRectangle(cornerRadius: 10))
+                TextInputField(placeholder: label, text: $text, capitalization: .words).dizInput()
             }
         }
     }

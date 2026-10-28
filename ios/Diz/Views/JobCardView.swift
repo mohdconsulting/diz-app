@@ -29,7 +29,7 @@ struct JobCardView: View {
                 HStack {
                     chatButton
                     Button { store.calls.startCall(job: job) } label: { Label(store.tr("call.btn"), systemImage: "phone.fill") }
-                        .buttonStyle(.bordered).tint(.dizBrand)
+                        .buttonStyle(SecondaryButtonStyle())
                 }
             }
         }
@@ -39,9 +39,9 @@ struct JobCardView: View {
     // MARK: Parts
     private var header: some View {
         HStack(alignment: .firstTextBaseline) {
-            Text(store.tr("services.\(job.service).label")).font(.headline)
+            Text(store.tr("services.\(job.service).label")).font(.system(size: 15, weight: .semibold))
             Spacer()
-            Text(store.money(job.price)).font(.subheadline.bold()).foregroundColor(.dizBrand)
+            Text(store.money(job.price)).font(.system(size: 16, weight: .bold)).foregroundColor(.dizInk)
         }
     }
 
@@ -58,9 +58,10 @@ struct JobCardView: View {
 
     private var details: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(store.tr("status.\(job.statusKey)")).font(.caption.bold())
-                .padding(.horizontal, 8).padding(.vertical, 3)
-                .background(Color.dizBrand.opacity(0.15)).clipShape(Capsule())
+            StatusBadge(text: store.tr("status.\(job.statusKey)"),
+                        color: job.status == "done" || job.status == "cancelled" ? .dizMuted
+                             : (job.status == "accepted" ? .dizTeal2 : Color(red: 0.54, green: 0.42, blue: 0.12)),
+                        dashed: job.status == "done" || job.status == "cancelled")
             if let c = job.cat { Text(store.tr("services.\(job.service).categories.\(c)")).font(.subheadline) }
             if let s = job.size { Text(store.tr("services.\(job.service).sizes.\(s)")).font(.subheadline).foregroundColor(.secondary) }
             if !job.desc.isEmpty { Text(job.desc).font(.subheadline) }
@@ -107,7 +108,7 @@ struct JobCardView: View {
                     Spacer()
                     Button(store.paymentsMode == "off" ? store.tr("assignBtn") : store.tr("pay.assignPayBtn", ["amount": store.money(a.price)])) {
                         Task { await store.assign(job, to: a) }
-                    }.buttonStyle(.borderedProminent).tint(.dizBrand)
+                    }.buttonStyle(AmberButtonStyle())
                 }
                 if store.paymentsMode == "off" { Text(store.money(a.price)).font(.footnote).foregroundColor(.secondary) }
             }
@@ -197,10 +198,10 @@ struct JobCardView: View {
             HStack {
                 DigitField(placeholder: store.tr("customPriceLabel"), text: $offer)
                     .frame(maxWidth: .infinity).frame(height: 40)
-                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.secondary.opacity(0.4)))
+                    .background(Color.white).overlay(Rectangle().stroke(Color.dizLine, lineWidth: 1))
                 Button(store.tr("proposePriceBtn")) {
                     Task { await store.apply(job, price: offer.intValue); showOffer = false }
-                }.buttonStyle(.borderedProminent).tint(.dizBrand)
+                }.buttonStyle(AmberButtonStyle())
             }
         } else {
             Button(store.tr("proposePriceBtn")) { showOffer = true }.font(.footnote)

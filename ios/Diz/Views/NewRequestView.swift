@@ -90,6 +90,7 @@ struct NewRequestView: View {
             .listRowBackground(Color.clear)
         }
         .navigationTitle(store.tr("titles.new"))
+        .dizScreen()
         .sheet(isPresented: $showAuth) { AuthView(closable: true) }
     }
 }

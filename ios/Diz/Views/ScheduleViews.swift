@@ -38,8 +38,8 @@ struct TimeSlotPicker: View {
             .font(.footnote.bold())
             .padding(.horizontal, 12).padding(.vertical, 8)
             .foregroundColor(on ? .white : .primary)
-            .background(on ? Color.dizBrand : Color(UIColor.tertiarySystemFill))
-            .clipShape(Capsule())
+            .background(on ? Color.dizBrand : Color.white)
+            .overlay(Rectangle().stroke(on ? Color.dizBrand : Color.dizLine, lineWidth: 1))
             .onTapGesture {
                 day = d
                 if let s = selection.start, !Calendar.current.isDate(s, inSameDayAs: d) { selection.clear() }
@@ -53,8 +53,8 @@ struct TimeSlotPicker: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 10)
             .foregroundColor(on ? .white : .primary)
-            .background(on ? Color.dizBrand : Color(UIColor.tertiarySystemFill))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .background(on ? Color.dizBrand : Color.white)
+            .overlay(Rectangle().stroke(on ? Color.dizBrand : Color.dizLine, lineWidth: 1))
             .onTapGesture { selection.tap(s) }
     }
 }
@@ -112,7 +112,7 @@ struct ProposalBox: View {
                 TimeSlotPicker(selection: $selection)
                 DigitField(placeholder: store.tr("sched.priceLabel"), text: $price)
                     .frame(maxWidth: .infinity).frame(height: 40)
-                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.secondary.opacity(0.4)))
+                    .background(Color.white).overlay(Rectangle().stroke(Color.dizLine, lineWidth: 1))
                 PrimaryButton(title: store.tr("sched.proposeSend"), disabled: selection.isEmpty) {
                     let p = price.intValue > 0 ? price.intValue : job.price
                     Task { await store.apply(job, price: p, proposal: selection); open = false }

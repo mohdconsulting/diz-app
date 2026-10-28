@@ -34,7 +34,7 @@ struct ChatView: View {
                             let t = text
                             Task { if await store.send(jobId: job.id, body: t) { text = "" } }
                         }
-                        .buttonStyle(.borderedProminent).tint(.dizBrand)
+                        .buttonStyle(AmberButtonStyle())
                         .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     }.padding(12)
                 }
@@ -65,8 +65,8 @@ struct ChatView: View {
                 Text(m.body).foregroundColor(mine ? .white : .primary)
             }
             .padding(10)
-            .background(mine ? Color.dizBrand : Color.dizCard)
-            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .background(mine ? Color.dizBrand : Color.dizPaper)
+            .overlay(Rectangle().stroke(mine ? Color.dizBrand : Color.dizLine, lineWidth: 1))
             if !mine { Spacer(minLength: 40) }
         }
     }

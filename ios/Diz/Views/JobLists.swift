@@ -11,8 +11,8 @@ struct OpenJobsView: View {
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 12) {
-                Text(store.tr("openJobsTitle")).font(.headline).frame(maxWidth: .infinity, alignment: .leading)
-                if visible.isEmpty { Text(store.tr("emptyJobs")).foregroundColor(.secondary).padding(.top, 20) }
+                Text(store.tr("openJobsTitle")).font(.system(size: 12.5, weight: .semibold)).foregroundColor(.dizMuted).frame(maxWidth: .infinity, alignment: .leading)
+                if visible.isEmpty { EmptyBox(text: store.tr("emptyJobs")) }
                 ForEach(visible) { JobCardView(job: $0) }
                 if !ignored.isEmpty {
                     Button(store.tr(showIgnored ? "dismiss.hideBtn" : "dismiss.showBtn", ["n": String(ignored.count)])) {
@@ -24,6 +24,7 @@ struct OpenJobsView: View {
             .padding(16)
         }
         .refreshable { await store.refreshAll() }
+        .dizScreen()
         .navigationTitle(store.tr("titles.jobs"))
     }
 }
@@ -44,14 +45,14 @@ struct MyJobsView: View {
         ScrollView {
             LazyVStack(spacing: 12) {
                 if mine.isEmpty {
-                    Text(store.tr(store.isDriver ? "emptyMineDriver" : "emptyMineCustomer"))
-                        .foregroundColor(.secondary).padding(.top, 20)
+                    EmptyBox(text: store.tr(store.isDriver ? "emptyMineDriver" : "emptyMineCustomer"))
                 }
                 ForEach(mine) { JobCardView(job: $0) }
             }
             .padding(16)
         }
         .refreshable { await store.refreshAll() }
+        .dizScreen()
         .navigationTitle(store.tr(store.isDriver ? "mineTitleDriver" : "mineTitleCustomer"))
     }
 }
@@ -70,14 +71,14 @@ struct HistoryView: View {
             LazyVStack(spacing: 12) {
                 if store.isDriver { OwnRatingCard() }
                 if done.isEmpty {
-                    Text(store.tr(store.isDriver ? "emptyHistoryDriver" : "emptyHistoryCustomer"))
-                        .foregroundColor(.secondary).padding(.top, 20)
+                    EmptyBox(text: store.tr(store.isDriver ? "emptyHistoryDriver" : "emptyHistoryCustomer"))
                 }
                 ForEach(done) { JobCardView(job: $0) }
             }
             .padding(16)
         }
         .refreshable { await store.refreshAll() }
+        .dizScreen()
         .navigationTitle(store.tr("titles.history"))
     }
 }

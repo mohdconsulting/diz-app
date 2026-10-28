@@ -4,6 +4,8 @@ import SwiftUI
 struct DizApp: App {
     @StateObject private var store = Store()
 
+    init() { DizTheme.apply() }
+
     var body: some Scene {
         WindowGroup {
             RootView()

@@ -18,36 +18,40 @@ struct RootView: View {
 
 struct MainTabs: View {
     @EnvironmentObject var store: Store
+    @State private var tab = "home"
+
+    private var unread: Int { store.messages.filter { $0.recipientPhone == store.myPhone && $0.readAt == nil }.count }
 
     var body: some View {
-        TabView {
+        TabView(selection: $tab) {
+            NavigationStack { HomeView(onStart: { tab = store.isDriver ? "open" : "new" }) }
+                .tabItem { Label(store.tr("tabs.home"), systemImage: "house") }.tag("home")
             if store.user == nil {
                 // Guest: browse services and prices freely; an account is only needed to send an order.
                 NavigationStack { NewRequestView() }
-                    .tabItem { Label(store.tr("tabs.new"), systemImage: "plus.circle") }
-                NavigationStack { ProfileView() }
-                    .tabItem { Label(store.tr("tabs.mine"), systemImage: "person") }
+                    .tabItem { Label(store.tr("tabs.new"), systemImage: "plus") }.tag("new")
             } else if store.isDriver {
                 NavigationStack { OpenJobsView() }
-                    .tabItem { Label(store.tr("tabs.jobs"), systemImage: "briefcase") }
+                    .tabItem { Label(store.tr("tabs.jobs"), systemImage: "briefcase") }.tag("open")
                 NavigationStack { MyJobsView() }
-                    .tabItem { Label(store.tr("mineTitleDriver"), systemImage: "checkmark.circle") }
-                    .badge(store.messages.filter { $0.recipientPhone == store.myPhone && $0.readAt == nil }.count)
+                    .tabItem { Label(store.tr("mineTitleDriver"), systemImage: "checkmark.circle") }.tag("mine")
+                    .badge(unread)
             } else {
                 NavigationStack { NewRequestView() }
-                    .tabItem { Label(store.tr("tabs.new"), systemImage: "plus.circle") }
+                    .tabItem { Label(store.tr("tabs.new"), systemImage: "plus") }.tag("new")
                 NavigationStack { MyJobsView() }
-                    .tabItem { Label(store.tr("mineTitleCustomer"), systemImage: "list.bullet") }
-                    .badge(store.messages.filter { $0.recipientPhone == store.myPhone && $0.readAt == nil }.count)
+                    .tabItem { Label(store.tr("mineTitleCustomer"), systemImage: "list.bullet") }.tag("mine")
+                    .badge(unread)
             }
             if store.user != nil {
                 NavigationStack { HistoryView() }
-                    .tabItem { Label(store.tr("tabs.history"), systemImage: "clock") }
-                NavigationStack { ProfileView() }
-                    .tabItem { Label(store.tr("tabs.mine"), systemImage: "person") }
+                    .tabItem { Label(store.tr("tabs.history"), systemImage: "clock") }.tag("history")
             }
+            NavigationStack { ProfileView() }
+                .tabItem { Label(store.tr("tabs.mine"), systemImage: "person") }.tag("profile")
         }
         .tint(.dizBrand)
+        .onChange(of: store.user?.id) { _ in tab = "home" }
     }
 }
 
@@ -61,9 +65,7 @@ struct ProfileView: View {
             if store.user == nil {
                 Section {
                     Text(store.tr("guest.hint")).font(.footnote).foregroundColor(.secondary)
-                    Button { showAuth = true } label: {
-                        Text(store.tr("guest.signIn")).bold().frame(maxWidth: .infinity)
-                    }
+                    PrimaryButton(title: store.tr("guest.signIn")) { showAuth = true }
                 }
             }
             if let u = store.user {
@@ -90,13 +92,14 @@ struct ProfileView: View {
             }
             if store.user != nil {
                 Section {
-                    Button(role: .destructive) { store.logout() } label: { Text(store.tr("logoutBtn")) }
-                    Button(role: .destructive) { confirmDelete = true } label: { Text(store.tr("account.deleteBtn")) }
+                    PrimaryButton(title: store.tr("logoutBtn"), role: .destructive) { store.logout() }
+                    PrimaryButton(title: store.tr("account.deleteBtn"), role: .destructive) { confirmDelete = true }
                 }
             }
         }
         .sheet(isPresented: $showAuth) { AuthView(closable: true) }
         .navigationTitle(store.tr("tabs.mine"))
+        .dizScreen()
         .alert(store.tr("account.deleteTitle"), isPresented: $confirmDelete) {
             Button(store.tr("account.deleteConfirm"), role: .destructive) { Task { _ = await store.deleteAccount() } }
             Button(store.tr("cancelBtn"), role: .cancel) {}
