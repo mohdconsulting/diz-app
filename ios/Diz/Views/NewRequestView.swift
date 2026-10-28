@@ -12,85 +12,95 @@ struct NewRequestView: View {
     @State private var customPrice = ""
     @State private var schedule = ScheduleChoice()
     @State private var showAuth = false
+    @State private var picked = false
 
     private var info: ServiceInfo? { Strings.shared.service(service) }
     private var estimate: Int { Pricing.price(service: service, size: size, cat: cat) }
     private var finalPrice: Int { custom ? customPrice.intValue : estimate }
 
     var body: some View {
-        Form {
-            Section(store.tr("serviceSelectTitle")) {
-                ForEach(Strings.shared.services) { s in
-                    Button {
-                        service = s.key; cat = nil; size = nil
-                    } label: {
-                        HStack {
-                            Text(store.tr("services.\(s.key).label")).foregroundColor(.primary)
-                            Spacer()
-                            if s.key == service { Image(systemName: "checkmark").foregroundColor(.dizBrand) }
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                Text(store.tr("serviceSelectTitle")).font(.system(size: 12.5, weight: .semibold)).foregroundColor(.dizMuted)
+                FlowLayout(spacing: 8) {
+                    ForEach(Strings.shared.services) { s in
+                        Chip(title: store.tr("services.\(s.key).label"), on: picked && s.key == service) {
+                            service = s.key; cat = nil; size = nil; picked = true
                         }
                     }
                 }
-            }
-            if let info = info {
-                Section(store.tr("services.\(service).categoryLabel")) {
-                    Picker("", selection: $cat) {
-                        Text("—").tag(String?.none)
+                if picked, let info = info {
+                    FieldLabel(text: store.tr("services.\(service).categoryLabel")).padding(.top, 4)
+                    FlowLayout(spacing: 8) {
                         ForEach(info.categories, id: \.self) { c in
-                            Text(store.tr("services.\(service).categories.\(c)")).tag(String?.some(c))
+                            Chip(title: store.tr("services.\(service).categories.\(c)"), on: cat == c) { cat = (cat == c ? nil : c) }
                         }
-                    }.pickerStyle(.menu)
-                }
-                Section(store.tr("services.\(service).sizeLabel")) {
-                    Picker("", selection: $size) {
-                        Text("—").tag(Int?.none)
+                    }
+                    TextEditor(text: $desc)
+                        .scrollContentBackground(.hidden)
+                        .frame(minHeight: 80).padding(4)
+                        .overlay(alignment: .topLeading) {
+                            if desc.isEmpty {
+                                Text(store.tr("services.\(service).descPlaceholder")).font(.system(size: 14))
+                                    .foregroundColor(.dizMuted.opacity(0.7)).padding(.horizontal, 9).padding(.vertical, 12)
+                                    .allowsHitTesting(false)
+                            }
+                        }
+                        .background(Color.white).overlay(Rectangle().stroke(Color.dizLine, lineWidth: 1))
+                    FieldLabel(text: store.tr("services.\(service).sizeLabel"))
+                    FlowLayout(spacing: 8) {
                         ForEach(info.sizes, id: \.self) { n in
-                            Text(store.tr("services.\(service).sizes.\(n)")).tag(Int?.some(n))
+                            Chip(title: store.tr("services.\(service).sizes.\(n)"), on: size == n) { size = (size == n ? nil : n) }
                         }
-                    }.pickerStyle(.menu)
-                }
-                Section {
-                    TextField(store.tr("services.\(service).descPlaceholder"), text: $desc, axis: .vertical).lineLimit(3...6)
-                }
-                Section(store.tr("services.\(service).addrLabel")) {
-                    TextField(store.tr("services.\(service).addrPlaceholder"), text: $addr)
-                }
-                if info.needsToAddr {
-                    Section(store.tr("services.\(service).toAddrLabel")) {
-                        TextField(store.tr("services.\(service).toAddrPlaceholder"), text: $toAddr)
                     }
-                }
-            }
-            ScheduleSection(choice: $schedule)
-            Section {
-                CashBanner(text: store.tr("cash.formText"), title: store.tr("cash.formTitle"))
-                    .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
-            }
-            Section(store.tr("estimateLabel")) {
-                if custom {
-                    DigitField(placeholder: store.tr("customPriceLabel"), text: $customPrice)
-                        .frame(maxWidth: .infinity).frame(height: 40)
-                    Text(store.tr("estimateSubCustom")).font(.footnote).foregroundColor(.secondary)
-                } else {
-                    Text(store.money(estimate)).font(.title3.bold())
-                    Text(store.tr("estimateSub")).font(.footnote).foregroundColor(.secondary)
-                }
-                Toggle(store.tr("customPriceChipLabel"), isOn: $custom)
-            }
-            Section {
-                PrimaryButton(title: store.tr(store.user == nil ? "guest.submit" : "submitBtn"), disabled: store.busy) {
-                    if store.user == nil { showAuth = true; return }
-                    Task {
-                        let ok = await store.createJob(service: service, cat: cat, size: size, desc: desc, addr: addr,
-                                                       toAddr: toAddr, price: finalPrice, schedule: schedule)
-                        if ok { desc = ""; addr = ""; toAddr = ""; cat = nil; size = nil; custom = false; customPrice = ""; schedule = ScheduleChoice() }
+                    FieldLabel(text: store.tr("services.\(service).addrLabel"))
+                    TextInputField(placeholder: store.tr("services.\(service).addrPlaceholder"), text: $addr, capitalization: .sentences).dizInput()
+                    if info.needsToAddr {
+                        FieldLabel(text: store.tr("services.\(service).toAddrLabel"))
+                        TextInputField(placeholder: store.tr("services.\(service).toAddrPlaceholder"), text: $toAddr, capitalization: .sentences).dizInput()
                     }
+                    FieldLabel(text: store.tr("sched.title"))
+                    ScheduleSection(choice: $schedule)
+                    CashBanner(text: store.tr("cash.formText"), title: store.tr("cash.formTitle")).padding(.top, 4)
+                    estimateBox
+                    FlowLayout(spacing: 8) {
+                        Chip(title: store.tr("customPriceChipLabel"), on: custom) { custom.toggle() }
+                    }
+                    if custom {
+                        FieldLabel(text: store.tr("customPriceLabel"))
+                        DigitField(placeholder: store.tr("customPriceLabel"), text: $customPrice).dizInput()
+                    }
+                    PrimaryButton(title: store.tr(store.user == nil ? "guest.submit" : "submitBtn"), disabled: store.busy) {
+                        if store.user == nil { showAuth = true; return }
+                        Task {
+                            let ok = await store.createJob(service: service, cat: cat, size: size, desc: desc, addr: addr,
+                                                           toAddr: toAddr, price: finalPrice, schedule: schedule)
+                            if ok { desc = ""; addr = ""; toAddr = ""; cat = nil; size = nil; custom = false; customPrice = ""
+                                    schedule = ScheduleChoice(); picked = false }
+                        }
+                    }.padding(.top, 6)
                 }
             }
-            .listRowBackground(Color.clear)
+            .padding(18)
         }
         .navigationTitle(store.tr("titles.new"))
         .dizScreen()
         .sheet(isPresented: $showAuth) { AuthView(closable: true) }
+    }
+
+    private var estimateBox: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(store.tr("estimateLabel")).font(.system(size: 14))
+                Text(store.tr(custom ? "estimateSubCustom" : "estimateSub")).font(.system(size: 11.5)).foregroundColor(.dizMuted)
+            }
+            Spacer()
+            Text(custom ? (customPrice.isEmpty ? "–" : store.money(finalPrice)) : store.money(estimate))
+                .font(.system(size: 20, weight: .bold))
+        }
+        .padding(.horizontal, 14).padding(.vertical, 12)
+        .background(Color(red: 0.933, green: 0.953, blue: 0.941))
+        .overlay(Rectangle().stroke(Color.dizBrand, lineWidth: 1))
+        .padding(.top, 4)
     }
 }

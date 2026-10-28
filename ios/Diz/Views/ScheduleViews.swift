@@ -65,13 +65,13 @@ struct ScheduleSection: View {
     @Binding var choice: ScheduleChoice
 
     var body: some View {
-        Section(store.tr("sched.title")) {
-            Picker("", selection: $choice.asap) {
-                Text(store.tr("sched.asap")).tag(true)
-                Text(store.tr("sched.pick")).tag(false)
-            }.pickerStyle(.segmented)
+        VStack(alignment: .leading, spacing: 8) {
+            FlowLayout(spacing: 8) {
+                Chip(title: store.tr("sched.asap"), on: choice.asap) { choice.asap = true }
+                Chip(title: store.tr("sched.pick"), on: !choice.asap) { choice.asap = false }
+            }
             if choice.asap {
-                Text(store.tr("sched.asapLong")).font(.footnote).foregroundColor(.secondary)
+                Text(store.tr("sched.asapLong")).font(.system(size: 13, weight: .semibold)).foregroundColor(.dizBrand)
             } else {
                 TimeSlotPicker(selection: $choice.selection)
             }

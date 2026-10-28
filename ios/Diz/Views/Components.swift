@@ -213,3 +213,52 @@ struct AmberButtonStyle: ButtonStyle {
             .opacity(configuration.isPressed ? 0.85 : 1)
     }
 }
+
+/// Selectable square chip (web: .chip / .chip.on).
+struct Chip: View {
+    let title: String
+    let on: Bool
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            Text(title).font(.system(size: 13))
+                .foregroundColor(on ? .white : .dizInk)
+                .padding(.horizontal, 12).padding(.vertical, 7)
+                .background(on ? Color.dizBrand : Color.white)
+                .overlay(Rectangle().stroke(on ? Color.dizBrand : Color.dizLine, lineWidth: 1))
+        }.buttonStyle(.plain)
+    }
+}
+
+/// Wrapping row of views (web: .chip-row with flex-wrap).
+struct FlowLayout: Layout {
+    var spacing: CGFloat = 8
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        arrange(width: proposal.width ?? 320, subviews: subviews).size
+    }
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let r = arrange(width: bounds.width, subviews: subviews)
+        for (i, p) in r.origins.enumerated() {
+            subviews[i].place(at: CGPoint(x: bounds.minX + p.x, y: bounds.minY + p.y), proposal: .unspecified)
+        }
+    }
+    private func arrange(width: CGFloat, subviews: Subviews) -> (size: CGSize, origins: [CGPoint]) {
+        var x: CGFloat = 0, y: CGFloat = 0, rowH: CGFloat = 0, maxW: CGFloat = 0
+        var origins: [CGPoint] = []
+        for v in subviews {
+            let s = v.sizeThatFits(.unspecified)
+            if x > 0 && x + s.width > width { x = 0; y += rowH + spacing; rowH = 0 }
+            origins.append(CGPoint(x: x, y: y))
+            x += s.width + spacing; rowH = max(rowH, s.height); maxW = max(maxW, x - spacing)
+        }
+        return (CGSize(width: min(maxW, width), height: y + rowH), origins)
+    }
+}
+
+/// Field label (web: label).
+struct FieldLabel: View {
+    let text: String
+    var body: some View {
+        Text(text).font(.system(size: 12.5)).foregroundColor(.dizMuted).frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
