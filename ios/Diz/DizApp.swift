@@ -10,6 +10,7 @@ struct DizApp: App {
         WindowGroup {
             RootView()
                 .environmentObject(store)
+                .preferredColorScheme(.light)
                 .environment(\.layoutDirection, store.lang.isRTL ? .rightToLeft : .leftToRight)
                 .task { await store.restore() }
         }

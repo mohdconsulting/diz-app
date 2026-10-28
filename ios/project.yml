@@ -24,6 +24,7 @@ targets:
         TARGETED_DEVICE_FAMILY: "1"   # iPhone only (no iPad screenshots/layout required)
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIUserInterfaceStyle: Light
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: دز
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES

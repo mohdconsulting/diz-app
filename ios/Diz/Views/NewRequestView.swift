@@ -37,6 +37,7 @@ struct NewRequestView: View {
                         }
                     }
                     TextEditor(text: $desc)
+                        .foregroundColor(.dizInk)
                         .scrollContentBackground(.hidden)
                         .frame(minHeight: 80).padding(4)
                         .overlay(alignment: .topLeading) {

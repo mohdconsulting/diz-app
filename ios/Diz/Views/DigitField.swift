@@ -23,14 +23,15 @@ struct DigitField: UIViewRepresentable {
         let f = PaddedField()
         f.inset = inset
         f.delegate = context.coordinator
-        f.placeholder = placeholder
+        f.attributedPlaceholder = NSAttributedString(string: placeholder, attributes: [.foregroundColor: UIColor(Color.dizMuted)])
         f.keyboardType = .numbersAndPunctuation
         f.autocorrectionType = .no
         f.autocapitalizationType = .none
         f.textContentType = .none
         f.textAlignment = .left
         f.semanticContentAttribute = .forceLeftToRight   // digits always read left-to-right
-        f.textColor = .label
+        f.textColor = UIColor(Color.dizInk)
+        f.overrideUserInterfaceStyle = .light
         f.tintColor = UIColor(Color.dizBrand)
         f.font = .preferredFont(forTextStyle: .body)
         f.adjustsFontForContentSizeCategory = true
@@ -48,7 +49,7 @@ struct DigitField: UIViewRepresentable {
     func updateUIView(_ f: UITextField, context: Context) {
         context.coordinator.parent = self
         if f.text != text { f.text = text }
-        f.placeholder = placeholder
+        f.attributedPlaceholder = NSAttributedString(string: placeholder, attributes: [.foregroundColor: UIColor(Color.dizMuted)])
     }
 
     /// Always as wide as the space offered (a bare UITextField would shrink to its placeholder and be hard to hit).
@@ -99,14 +100,15 @@ struct TextInputField: UIViewRepresentable {
         let f = PaddedField()
         f.inset = inset
         f.delegate = context.coordinator
-        f.placeholder = placeholder
+        f.attributedPlaceholder = NSAttributedString(string: placeholder, attributes: [.foregroundColor: UIColor(Color.dizMuted)])
         f.isSecureTextEntry = secure
         f.keyboardType = .default
         f.autocorrectionType = .no
         f.spellCheckingType = .no
         f.autocapitalizationType = secure ? .none : capitalization
         f.textContentType = .none
-        f.textColor = .label
+        f.textColor = UIColor(Color.dizInk)
+        f.overrideUserInterfaceStyle = .light
         f.tintColor = UIColor(Color.dizBrand)
         f.font = .preferredFont(forTextStyle: .body)
         f.adjustsFontForContentSizeCategory = true
@@ -120,7 +122,7 @@ struct TextInputField: UIViewRepresentable {
     func updateUIView(_ f: UITextField, context: Context) {
         context.coordinator.parent = self
         if f.text != text { f.text = text }
-        f.placeholder = placeholder
+        f.attributedPlaceholder = NSAttributedString(string: placeholder, attributes: [.foregroundColor: UIColor(Color.dizMuted)])
         let rtl = context.environment.layoutDirection == .rightToLeft
         f.semanticContentAttribute = rtl ? .forceRightToLeft : .forceLeftToRight
         f.textAlignment = rtl ? .right : .left
