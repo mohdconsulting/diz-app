@@ -61,43 +61,43 @@ struct ProfileView: View {
     @State private var showAuth = false
 
     var body: some View {
-        Form {
-            if store.user == nil {
-                Section {
-                    Text(store.tr("guest.hint")).font(.footnote).foregroundColor(.secondary)
-                    PrimaryButton(title: store.tr("guest.signIn")) { showAuth = true }
-                }
-            }
-            if let u = store.user {
-                Section {
-                    Text(u.name).font(.headline)
-                    Text(u.phone).foregroundColor(.secondary)
-                    Text(u.isDriver ? store.tr("roleDriver") : store.tr("roleCustomer")).foregroundColor(.secondary)
-                    if u.isDriver && !u.profiles.isEmpty {
-                        Text(u.profiles.map { $0 == "driver" ? store.tr("profileDriver") : ($0 == "towing" ? store.tr("profileTowing") : store.tr("services.pro.categories.\($0)")) }.joined(separator: ", "))
-                            .font(.footnote).foregroundColor(.secondary)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) {
+                if store.user == nil {
+                    Card {
+                        Text(store.tr("guest.hint")).font(.system(size: 13)).foregroundColor(.dizMuted)
+                        PrimaryButton(title: store.tr("guest.signIn")) { showAuth = true }
                     }
                 }
-            }
-            Section {
+                if let u = store.user {
+                    Card {
+                        Text(u.name).font(.system(size: 17, weight: .semibold)).foregroundColor(.dizInk)
+                        Text(u.phone).font(.system(size: 14)).foregroundColor(.dizMuted)
+                        Text(u.isDriver ? store.tr("roleDriver") : store.tr("roleCustomer"))
+                            .font(.system(size: 14)).foregroundColor(.dizMuted)
+                        if u.isDriver && !u.profiles.isEmpty {
+                            Text(u.profiles.map { $0 == "driver" ? store.tr("profileDriver") : ($0 == "towing" ? store.tr("profileTowing") : store.tr("services.pro.categories.\($0)")) }.joined(separator: ", "))
+                                .font(.system(size: 12.5)).foregroundColor(.dizMuted)
+                        }
+                    }
+                }
                 HStack { LangPills(light: true); Spacer() }
-            }
-            if store.isDriver && store.locationDenied {
-                Section { Text(store.tr("track.shareDenied")).font(.footnote).foregroundColor(.red) }
-            }
-            Section {
+                if store.isDriver && store.locationDenied {
+                    Text(store.tr("track.shareDenied")).font(.system(size: 13)).foregroundColor(.dizDanger)
+                }
                 Link(store.tr("account.privacy"), destination: Config.privacyURL)
-            }
-            if store.user != nil {
-                Section {
+                    .font(.system(size: 14, weight: .semibold)).foregroundColor(.dizTeal2)
+                if store.user != nil {
                     PrimaryButton(title: store.tr("logoutBtn"), role: .destructive) { store.logout() }
                     PrimaryButton(title: store.tr("account.deleteBtn"), role: .destructive) { confirmDelete = true }
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(18)
         }
-        .sheet(isPresented: $showAuth) { AuthView(closable: true) }
         .navigationTitle(store.tr("tabs.mine"))
         .dizScreen()
+        .sheet(isPresented: $showAuth) { AuthView(closable: true) }
         .alert(store.tr("account.deleteTitle"), isPresented: $confirmDelete) {
             Button(store.tr("account.deleteConfirm"), role: .destructive) { Task { _ = await store.deleteAccount() } }
             Button(store.tr("cancelBtn"), role: .cancel) {}
