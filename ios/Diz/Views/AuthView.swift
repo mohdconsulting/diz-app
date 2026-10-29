@@ -23,9 +23,7 @@ struct AuthView: View {
                     }
                     Text(store.tr(registering ? "authSubtitleRegister" : "authSubtitleLogin")).font(.system(size: 13.5)).foregroundColor(.dizMuted)
 
-                    Picker("", selection: $store.lang) {
-                        ForEach(Lang.allCases) { Text($0.title).tag($0) }
-                    }.pickerStyle(.segmented).tint(.dizAmber)
+                    HStack { LangPills(light: true); Spacer() }
 
                     Text(store.tr(registering ? "authTitleRegister" : "authTitleLogin")).font(.system(size: 21, weight: .semibold)).foregroundColor(.dizInk)
 

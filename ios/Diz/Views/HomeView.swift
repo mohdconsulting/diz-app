@@ -81,17 +81,18 @@ struct HomeView: View {
 /// AR / EN / SV selector in the amber-on-teal style of the web header.
 struct LangPills: View {
     @EnvironmentObject var store: Store
+    var light = false
     var body: some View {
         HStack(spacing: 0) {
             ForEach(Lang.allCases) { l in
                 Button { store.lang = l } label: {
                     Text(l.title).font(.system(size: 11.5, weight: .semibold))
-                        .foregroundColor(store.lang == l ? .dizInk : Color(red: 0.81, green: 0.88, blue: 0.85))
+                        .foregroundColor(store.lang == l ? .dizInk : (light ? .dizMuted : Color(red: 0.81, green: 0.88, blue: 0.85)))
                         .padding(.horizontal, 9).padding(.vertical, 5)
                         .background(store.lang == l ? Color.dizAmber : Color.clear)
                 }.buttonStyle(.plain)
             }
         }
-        .overlay(Rectangle().stroke(Color.white.opacity(0.35), lineWidth: 1).allowsHitTesting(false))
+        .overlay(Rectangle().stroke(light ? Color.dizLine : Color.white.opacity(0.35), lineWidth: 1).allowsHitTesting(false))
     }
 }

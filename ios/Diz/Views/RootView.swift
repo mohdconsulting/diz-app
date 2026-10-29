@@ -24,30 +24,30 @@ struct MainTabs: View {
 
     var body: some View {
         TabView(selection: $tab) {
-            NavigationStack { HomeView(onStart: { tab = store.isDriver ? "open" : "new" }) }
+            NavigationStack { HomeView(onStart: { tab = store.isDriver ? "open" : "new" }) }.id(store.lang)
                 .tabItem { Label(store.tr("tabs.home"), systemImage: "house") }.tag("home")
             if store.user == nil {
                 // Guest: browse services and prices freely; an account is only needed to send an order.
-                NavigationStack { NewRequestView() }
+                NavigationStack { NewRequestView() }.id(store.lang)
                     .tabItem { Label(store.tr("tabs.new"), systemImage: "plus") }.tag("new")
             } else if store.isDriver {
-                NavigationStack { OpenJobsView() }
+                NavigationStack { OpenJobsView() }.id(store.lang)
                     .tabItem { Label(store.tr("tabs.jobs"), systemImage: "briefcase") }.tag("open")
-                NavigationStack { MyJobsView() }
+                NavigationStack { MyJobsView() }.id(store.lang)
                     .tabItem { Label(store.tr("mineTitleDriver"), systemImage: "checkmark.circle") }.tag("mine")
                     .badge(unread)
             } else {
-                NavigationStack { NewRequestView() }
+                NavigationStack { NewRequestView() }.id(store.lang)
                     .tabItem { Label(store.tr("tabs.new"), systemImage: "plus") }.tag("new")
-                NavigationStack { MyJobsView() }
+                NavigationStack { MyJobsView() }.id(store.lang)
                     .tabItem { Label(store.tr("mineTitleCustomer"), systemImage: "list.bullet") }.tag("mine")
                     .badge(unread)
             }
             if store.user != nil {
-                NavigationStack { HistoryView() }
+                NavigationStack { HistoryView() }.id(store.lang)
                     .tabItem { Label(store.tr("tabs.history"), systemImage: "clock") }.tag("history")
             }
-            NavigationStack { ProfileView() }
+            NavigationStack { ProfileView() }.id(store.lang)
                 .tabItem { Label(store.tr("tabs.mine"), systemImage: "person") }.tag("profile")
         }
         .tint(.dizBrand)
@@ -80,9 +80,7 @@ struct ProfileView: View {
                 }
             }
             Section {
-                Picker("", selection: $store.lang) {
-                    ForEach(Lang.allCases) { Text($0.title).tag($0) }
-                }.pickerStyle(.segmented)
+                HStack { LangPills(light: true); Spacer() }
             }
             if store.isDriver && store.locationDenied {
                 Section { Text(store.tr("track.shareDenied")).font(.footnote).foregroundColor(.red) }
