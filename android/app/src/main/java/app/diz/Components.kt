@@ -69,8 +69,8 @@ fun DizTheme(content: @Composable () -> Unit) {
         ),
         // The web design has no rounded corners.
         shapes = Shapes(
-            extraSmall = RectangleShape, small = RectangleShape, medium = RectangleShape,
-            large = RectangleShape, extraLarge = RectangleShape,
+            extraSmall = RoundedCornerShape(0.dp), small = RoundedCornerShape(0.dp), medium = RoundedCornerShape(0.dp),
+            large = RoundedCornerShape(0.dp), extraLarge = RoundedCornerShape(0.dp),
         ),
         content = content,
     )
