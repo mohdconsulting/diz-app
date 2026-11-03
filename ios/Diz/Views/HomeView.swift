@@ -37,20 +37,20 @@ struct HomeView: View {
         }
         .refreshable { await store.refreshAll() }
         .background(Color.dizPaper.ignoresSafeArea())
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .principal) {
-                HStack(spacing: 8) {
-                    Circle().fill(Color.dizAmber).frame(width: 7, height: 7)
-                    Text(store.tr("brand")).font(.system(size: 14, weight: .semibold)).foregroundColor(.white.opacity(0.9))
-                }
-            }
-            ToolbarItem(placement: .navigationBarTrailing) { LangPills() }
-        }
+        .toolbar(.hidden, for: .navigationBar)
     }
 
     private var hero: some View {
         VStack(alignment: .leading, spacing: 8) {
+            // Brand row and language selector live inside the hero (a system toolbar would wrap them in its own capsule).
+            HStack {
+                HStack(spacing: 8) {
+                    Circle().fill(Color.dizAmber).frame(width: 7, height: 7)
+                    Text(store.tr("brand")).font(.system(size: 14, weight: .semibold)).foregroundColor(.white.opacity(0.9))
+                }
+                Spacer()
+                LangPills()
+            }.padding(.bottom, 10)
             Text(store.tr("heroTitle")).font(.system(size: 24, weight: .semibold)).foregroundColor(.white)
             Text(store.tr("heroText")).font(.system(size: 14)).foregroundColor(Color(red: 0.81, green: 0.88, blue: 0.85))
                 .padding(.bottom, 8)
@@ -67,7 +67,7 @@ struct HomeView: View {
         }
         .padding(.horizontal, 20).padding(.top, 14).padding(.bottom, 24)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.dizBrand)
+        .background(Color.dizBrand.ignoresSafeArea(edges: .top))
     }
 
     private func stat(_ n: Int, _ label: String) -> some View {
