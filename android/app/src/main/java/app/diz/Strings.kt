@@ -10,7 +10,11 @@ enum class Lang(val code: String, val title: String, val isRtl: Boolean) {
 
     val locale: Locale get() = Locale(code)
 
-    companion object { fun from(code: String?): Lang = values().firstOrNull { it.code == code } ?: AR }
+    companion object {
+        /** Languages offered in the UI (Swedish texts stay in the app as a fallback but are not selectable). */
+        val selectable: List<Lang> = listOf(AR, EN)
+        fun from(code: String?): Lang = selectable.firstOrNull { it.code == code } ?: AR
+    }
 }
 
 data class ServiceInfo(val key: String, val needsToAddr: Boolean, val categories: List<String>, val sizes: List<Int>)
