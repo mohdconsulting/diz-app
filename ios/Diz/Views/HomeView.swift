@@ -78,21 +78,23 @@ struct HomeView: View {
     }
 }
 
-/// AR / EN / SV selector in the amber-on-teal style of the web header.
+/// AR / EN selector in the amber-on-teal style of the web header. High contrast on both the teal bar and the paper.
 struct LangPills: View {
     @EnvironmentObject var store: Store
     var light = false
     var body: some View {
         HStack(spacing: 0) {
             ForEach(Lang.selectable) { l in
+                let on = store.lang == l
                 Button { store.lang = l } label: {
-                    Text(l.title).font(.system(size: 11.5, weight: .semibold))
-                        .foregroundColor(store.lang == l ? .dizInk : (light ? .dizMuted : Color(red: 0.81, green: 0.88, blue: 0.85)))
-                        .padding(.horizontal, 9).padding(.vertical, 5)
-                        .background(store.lang == l ? Color.dizAmber : Color.clear)
+                    Text(l.title).font(.system(size: 13, weight: .bold))
+                        .foregroundColor(on ? .dizInk : (light ? .dizBrand : .white))
+                        .frame(minWidth: 44)
+                        .padding(.horizontal, 6).padding(.vertical, 7)
+                        .background(on ? Color.dizAmber : (light ? Color.white : Color.white.opacity(0.12)))
                 }.buttonStyle(.plain)
             }
         }
-        .overlay(Rectangle().stroke(light ? Color.dizLine : Color.white.opacity(0.35), lineWidth: 1).allowsHitTesting(false))
+        .overlay(Rectangle().stroke(light ? Color.dizBrand : Color.white.opacity(0.8), lineWidth: 1).allowsHitTesting(false))
     }
 }
