@@ -30,13 +30,15 @@ fun JobCard(store: Store, job: Job, ignoredView: Boolean = false) {
     Card {
         // header
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(store.tr("services.${job.service}.label"), fontSize = 17.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-            Text(store.money(job.price), fontWeight = FontWeight.Bold, color = DizBrand)
+            Text(store.tr("services.${job.service}.label"), fontSize = 15.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+            Text(store.money(job.price), fontWeight = FontWeight.Bold, fontSize = 16.sp, color = DizInk)
         }
         // details
-        Text(store.tr("status.${job.statusKey}"), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = DizBrand)
+        val closed = job.status == "done" || job.status == "cancelled"
+        StatusBadge(store.tr("status.${job.statusKey}"),
+            color = if (closed) DizMuted else if (job.status == "accepted") DizTeal2 else Color(0xFF8A6B1F), dashed = closed)
         job.cat?.let { Text(store.tr("services.${job.service}.categories.$it"), fontSize = 14.sp) }
-        job.size?.let { Text(store.tr("services.${job.service}.sizes.$it"), fontSize = 14.sp, color = Color.Gray) }
+        job.size?.let { Text(store.tr("services.${job.service}.sizes.$it"), fontSize = 14.sp, color = DizMuted) }
         if (job.desc.isNotEmpty()) Text(job.desc, fontSize = 14.sp)
         ScheduleLine(store, job)
         CashLine(store, job, isMyAccepted)
@@ -81,14 +83,14 @@ private fun CustomerSection(store: Store, job: Job) {
                         RatingBadge(store, a.phone)
                         val w = a.proposedWindow
                         if (w != null) Text(store.tr("sched.proposed") + ": " + Scheduling.windowText(w.first, w.second, store.lang), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = DizWarn)
-                        else if (job.requestedWindow != null) Text(store.tr("sched.fitsRequested"), fontSize = 12.sp, color = Color.Gray)
+                        else if (job.requestedWindow != null) Text(store.tr("sched.fitsRequested"), fontSize = 12.sp, color = DizMuted)
                         Footnote(store.money(a.price))
                     }
                     PrimaryButton(store.tr("assignBtn"), Modifier.weight(0.7f)) { store.assign(job, a) }
                 }
             }
             if (confirmDelete) {
-                Footnote(store.tr("confirmDeleteInline"), Color.Black)
+                Footnote(store.tr("confirmDeleteInline"), DizInk)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     PrimaryButton(store.tr("confirmDeleteBtn"), Modifier.weight(1f), danger = true) { store.deleteJob(job.id) }
                     SecondaryButton(store.tr("cancelBtn"), Modifier.weight(1f)) { confirmDelete = false }
@@ -113,12 +115,12 @@ private fun AcceptedCustomer(store: Store, job: Job) {
             Text(store.nameOf(p, job), fontWeight = FontWeight.Bold); RatingBadge(store, p)
         }
     }
-    if (job.arrived) Footnote(store.tr("arrivedNoteCustomer"), Color.Black)
-    if (job.markedDoneByProvider) Footnote(store.tr("providerMarkedDoneNote"), Color.Black)
+    if (job.arrived) Footnote(store.tr("arrivedNoteCustomer"), DizInk)
+    if (job.markedDoneByProvider) Footnote(store.tr("providerMarkedDoneNote"), DizInk)
     if (!job.arrived && !job.markedDoneByProvider) TrackingBlock(store, job)
     if (job.problemReported) {
-        Footnote(store.tr("problemReportedNoteCustomer"), Color.Black)
-        job.providerResponse?.takeIf { it.isNotEmpty() }?.let { Footnote(store.tr("providerResponseLabel") + ": " + it, Color.Black) }
+        Footnote(store.tr("problemReportedNoteCustomer"), DizInk)
+        job.providerResponse?.takeIf { it.isNotEmpty() }?.let { Footnote(store.tr("providerResponseLabel") + ": " + it, DizInk) }
     } else if (job.arrived || job.markedDoneByProvider) {
         PrimaryButton(store.tr("confirmReleaseBtn")) { store.complete(job) }
         if (showProblem) {
@@ -140,7 +142,7 @@ private fun ProviderSection(store: Store, job: Job, ignoredView: Boolean, isMyAc
                 Footnote(store.tr("dismiss.note"))
                 SecondaryButton(store.tr("dismiss.restoreBtn")) { store.restoreJob(job.id) }
             } else if (mine != null) {
-                Footnote(store.tr("yourApplicationNote", mapOf("price" to store.money(mine.price))), Color.Black)
+                Footnote(store.tr("yourApplicationNote", mapOf("price" to store.money(mine.price))), DizInk)
                 mine.proposedWindow?.let { w ->
                     Text(store.tr("sched.yourProposal") + ": " + Scheduling.windowText(w.first, w.second, store.lang), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = DizWarn)
                 }
@@ -156,7 +158,7 @@ private fun ProviderSection(store: Store, job: Job, ignoredView: Boolean, isMyAc
         "accepted" -> {
             if (isMyAccepted) AcceptedProvider(store, job)
             else job.applicants.firstOrNull { it.phone == store.myPhone }?.let {
-                Footnote(store.tr("yourApplicationNote", mapOf("price" to store.money(it.price))), Color.Black)
+                Footnote(store.tr("yourApplicationNote", mapOf("price" to store.money(it.price))), DizInk)
             }
         }
         "done" -> if (isMyAccepted) {
@@ -184,9 +186,9 @@ private fun AcceptedProvider(store: Store, job: Job) {
     var responseText by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
     if (job.problemReported) {
-        Footnote(store.tr("problemReportedNoteProvider", mapOf("text" to (job.problemText ?: ""))), Color.Black)
+        Footnote(store.tr("problemReportedNoteProvider", mapOf("text" to (job.problemText ?: ""))), DizInk)
         val r = job.providerResponse
-        if (!r.isNullOrEmpty()) Footnote(store.tr("yourResponseLabel") + ": " + r, Color.Black)
+        if (!r.isNullOrEmpty()) Footnote(store.tr("yourResponseLabel") + ": " + r, DizInk)
         else if (showRespond) {
             OutlinedTextField(responseText, { responseText = it }, placeholder = { Text(store.tr("respondPlaceholder")) }, minLines = 2, modifier = Modifier.fillMaxWidth())
             PrimaryButton(store.tr("sendResponseBtn")) { scope.launch { if (store.respond(job, responseText)) showRespond = false } }
@@ -196,7 +198,7 @@ private fun AcceptedProvider(store: Store, job: Job) {
         if (store.locationDenied) Footnote(store.tr("track.shareDenied"), DizDanger)
         PrimaryButton(store.tr("providerArriveBtn")) { store.arrive(job) }
     } else if (!job.markedDoneByProvider) {
-        Footnote(store.tr("arrivedNoteProvider"), Color.Black)
+        Footnote(store.tr("arrivedNoteProvider"), DizInk)
         PrimaryButton(store.tr("providerCompleteBtn")) { store.markDone(job) }
     } else {
         Footnote(store.tr("waitingCustomerConfirmNote"))
@@ -220,7 +222,7 @@ fun ReviewSection(store: Store, job: Job) {
         Text(store.tr("review.yourReview"), fontSize = 13.sp, fontWeight = FontWeight.Bold)
         Stars(r.rating.toDouble())
         r.comment?.takeIf { it.isNotEmpty() }?.let { Text(it, fontSize = 13.sp) }
-        if (r.hidden) Text(store.tr("review.hiddenForYou"), fontSize = 12.sp, color = Color.Gray)
+        if (r.hidden) Text(store.tr("review.hiddenForYou"), fontSize = 12.sp, color = DizMuted)
     } else {
         Text(store.tr("review.prompt"), fontSize = 13.sp, fontWeight = FontWeight.Bold)
         StarPicker(rating) { rating = it }

@@ -1,6 +1,7 @@
 package app.diz
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -45,24 +46,24 @@ fun TimeSlotPicker(store: Store, selection: SlotSelection, onChange: (SlotSelect
         }
         val slots = Scheduling.slots(day)
         if (slots.isEmpty()) {
-            Text(store.tr("sched.noSlots"), fontSize = 13.sp, color = Color.Gray)
+            Text(store.tr("sched.noSlots"), fontSize = 13.sp, color = DizMuted)
         } else {
             slots.chunked(3).forEach { rowSlots ->
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                     rowSlots.forEach { s ->
                         val on = selection.contains(s)
                         Box(
-                            Modifier.weight(1f).clip(RoundedCornerShape(8.dp))
-                                .background(if (on) DizBrand else Color(0x1F767680))
+                            Modifier.weight(1f).background(if (on) DizBrand else Color.White)
+                                .border(1.dp, if (on) DizBrand else DizLine)
                                 .clickable { onChange(selection.tap(s)) }.padding(vertical = 10.dp),
                             contentAlignment = Alignment.Center,
-                        ) { Text(Scheduling.slotText(s, store.lang), fontSize = 13.sp, color = if (on) Color.White else Color.Black, textAlign = TextAlign.Center) }
+                        ) { Text(Scheduling.slotText(s, store.lang), fontSize = 13.sp, color = if (on) Color.White else DizInk, textAlign = TextAlign.Center) }
                     }
                     repeat(3 - rowSlots.size) { Box(Modifier.weight(1f)) }
                 }
             }
         }
-        Text(store.tr("sched.hint"), fontSize = 12.sp, color = Color.Gray)
+        Text(store.tr("sched.hint"), fontSize = 12.sp, color = DizMuted)
         val s = selection.start; val e = selection.end
         if (s != null && e != null) {
             Text(
@@ -77,12 +78,12 @@ fun TimeSlotPicker(store: Store, selection: SlotSelection, onChange: (SlotSelect
 @Composable
 fun ScheduleSection(store: Store, choice: ScheduleChoice, onChange: (ScheduleChoice) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(store.tr("sched.title"), fontWeight = FontWeight.Bold)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FieldLabel(store.tr("sched.title"))
+        ChipRow {
             Chip(store.tr("sched.asap"), choice.asap) { onChange(choice.copy(asap = true)) }
             Chip(store.tr("sched.pick"), !choice.asap) { onChange(choice.copy(asap = false)) }
         }
-        if (choice.asap) Text(store.tr("sched.asapLong"), fontSize = 13.sp, color = Color.Gray)
+        if (choice.asap) Text(store.tr("sched.asapLong"), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = DizBrand)
         else TimeSlotPicker(store, choice.selection) { onChange(choice.copy(selection = it)) }
     }
 }
@@ -109,7 +110,7 @@ fun ProposalBox(store: Store, job: Job) {
     var price by remember { mutableStateOf("") }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (open) {
-            Text(store.tr("sched.proposeNote"), fontSize = 13.sp, color = Color.Gray)
+            Text(store.tr("sched.proposeNote"), fontSize = 13.sp, color = DizMuted)
             TimeSlotPicker(store, selection) { selection = it }
             DigitField(price, { price = it }, store.tr("sched.priceLabel"))
             PrimaryButton(store.tr("sched.proposeSend"), enabled = !selection.isEmpty) {

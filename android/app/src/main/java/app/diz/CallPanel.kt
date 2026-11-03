@@ -29,7 +29,7 @@ fun CallPanel(store: Store) {
     val c = m.current ?: return
     Box(Modifier.fillMaxSize().background(Color(0x8C000000)).clickable(enabled = true) {}, contentAlignment = Alignment.Center) {
         Column(
-            Modifier.padding(24.dp).widthIn(max = 360.dp).clip(RoundedCornerShape(20.dp)).background(DizBrand).padding(20.dp),
+            Modifier.padding(24.dp).widthIn(max = 360.dp).background(DizBrand).padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Text("📞 " + store.tr("call.title") + " · " + m.peerLabel(c), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 17.sp)
@@ -48,8 +48,8 @@ fun CallPanel(store: Store) {
                     CallButton("✖ " + store.tr("call.decline"), Color(0xFFD32F2F)) { m.decline() }
                 } else {
                     if (c.phase == CallPhase.ACTIVE) {
-                        CallButton((if (c.muted) "🔇 " else "🎙️ ") + store.tr(if (c.muted) "call.unmute" else "call.mute"), Color.Gray) { m.toggleMute() }
-                        CallButton((if (c.speaker) "🔊 " else "🔈 ") + store.tr("call.speaker"), Color.Gray) { m.toggleSpeaker() }
+                        CallButton((if (c.muted) "🔇 " else "🎙️ ") + store.tr(if (c.muted) "call.unmute" else "call.mute"), DizMuted) { m.toggleMute() }
+                        CallButton((if (c.speaker) "🔊 " else "🔈 ") + store.tr("call.speaker"), DizMuted) { m.toggleSpeaker() }
                     }
                     CallButton(store.tr("call.hangUp"), Color(0xFFD32F2F)) { m.hangUp() }
                 }
@@ -61,7 +61,7 @@ fun CallPanel(store: Store) {
 
 @Composable
 private fun CallButton(title: String, color: Color, onClick: () -> Unit) {
-    Box(Modifier.clip(CircleShape).background(color).clickable(onClick = onClick).padding(horizontal = 14.dp, vertical = 10.dp)) {
+    Box(Modifier.background(color).clickable(onClick = onClick).padding(horizontal = 14.dp, vertical = 10.dp)) {
         Text(title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
     }
 }

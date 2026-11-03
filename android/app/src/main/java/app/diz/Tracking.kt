@@ -33,13 +33,13 @@ fun TrackingBlock(store: Store, job: Job) {
     val context = LocalContext.current
     val loc = store.locations[job.id]
     if (loc == null) {
-        Text(store.tr("track.notSharing"), fontSize = 13.sp, color = Color.Gray)
+        Text(store.tr("track.notSharing"), fontSize = 13.sp, color = DizMuted)
         return
     }
     val ageSec = maxOf(0L, System.currentTimeMillis() / 1000 - loc.updatedAt / 1000).toInt()
     Column {
         Text(store.tr("track.onTheWay"), fontSize = 13.sp, fontWeight = FontWeight.Bold)
-        Text(store.tr("track.ago", mapOf("t" to if (ageSec < 60) "$ageSec " + store.tr("track.sec") else "${ageSec / 60} " + store.tr("track.min"))), fontSize = 12.sp, color = Color.Gray)
+        Text(store.tr("track.ago", mapOf("t" to if (ageSec < 60) "$ageSec " + store.tr("track.sec") else "${ageSec / 60} " + store.tr("track.min"))), fontSize = 12.sp, color = DizMuted)
         if (ageSec > 120) Text(store.tr("track.stale"), fontSize = 12.sp, color = DizWarn)
         LinkButton(store.tr(if (showMap) "track.hideMap" else "track.showMap")) { showMap = !showMap }
         if (showMap) {
@@ -64,7 +64,7 @@ fun TrackingBlock(store: Store, job: Job) {
                     map.controller.setCenter(p)
                     map.invalidate()
                 },
-                modifier = Modifier.fillMaxWidth().height(220.dp).clip(RoundedCornerShape(10.dp)),
+                modifier = Modifier.fillMaxWidth().height(220.dp),
             )
         }
         LinkButton(store.tr("openInMaps")) { openMapsPoint(context, loc.lat, loc.lng) }

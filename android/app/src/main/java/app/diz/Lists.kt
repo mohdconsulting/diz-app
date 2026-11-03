@@ -31,8 +31,8 @@ fun OpenJobsScreen(store: Store) {
     val visible = open.filter { it.id !in store.dismissed }
     val ignored = open.filter { it.id in store.dismissed }
     JobList {
-        item { Text(store.tr("openJobsTitle"), fontSize = 20.sp, fontWeight = FontWeight.Bold) }
-        if (visible.isEmpty()) item { Text(store.tr("emptyJobs"), color = Color.Gray, modifier = Modifier.padding(top = 20.dp)) }
+        item { SectionTitle(store.tr("openJobsTitle")) }
+        if (visible.isEmpty()) item { EmptyBox(store.tr("emptyJobs")) }
         items(visible, key = { it.id }) { JobCard(store, it) }
         if (ignored.isNotEmpty()) {
             item {
@@ -51,8 +51,7 @@ fun MyJobsScreen(store: Store) {
         else j.ownerPhone == store.myPhone
     }
     JobList {
-        item { Text(store.tr(if (store.isDriver) "mineTitleDriver" else "mineTitleCustomer"), fontSize = 20.sp, fontWeight = FontWeight.Bold) }
-        if (mine.isEmpty()) item { Text(store.tr(if (store.isDriver) "emptyMineDriver" else "emptyMineCustomer"), color = Color.Gray, modifier = Modifier.padding(top = 20.dp)) }
+        if (mine.isEmpty()) item { EmptyBox(store.tr(if (store.isDriver) "emptyMineDriver" else "emptyMineCustomer")) }
         items(mine, key = { it.id }) { JobCard(store, it) }
     }
 }
@@ -63,9 +62,8 @@ fun HistoryScreen(store: Store) {
         j.status == "done" && (if (store.isDriver) j.acceptedByPhone == store.myPhone else j.ownerPhone == store.myPhone)
     }.sortedByDescending { it.completedAt ?: 0L }
     JobList {
-        item { Text(store.tr("titles.history"), fontSize = 20.sp, fontWeight = FontWeight.Bold) }
         if (store.isDriver) item { OwnRatingCard(store) }
-        if (done.isEmpty()) item { Text(store.tr(if (store.isDriver) "emptyHistoryDriver" else "emptyHistoryCustomer"), color = Color.Gray, modifier = Modifier.padding(top = 20.dp)) }
+        if (done.isEmpty()) item { EmptyBox(store.tr(if (store.isDriver) "emptyHistoryDriver" else "emptyHistoryCustomer")) }
         items(done, key = { it.id }) { JobCard(store, it) }
     }
 }
@@ -73,10 +71,10 @@ fun HistoryScreen(store: Store) {
 @Composable
 fun OwnRatingCard(store: Store) {
     Card {
-        Text(store.tr("review.yourRating"), fontSize = 14.sp, color = Color.Gray)
+        Text(store.tr("review.yourRating"), fontSize = 14.sp, color = DizMuted)
         val r = store.ratings[store.myPhone]
         if (r != null) Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { Stars(r.avg); Text("%.1f".format(java.util.Locale.US, r.avg) + " (${r.count})") }
-        else Text(store.tr("review.noReviewsYet"), color = Color.Gray)
+        else Text(store.tr("review.noReviewsYet"), color = DizMuted)
         store.myComments.forEach { c ->
             val t = c.comment
             if (!t.isNullOrEmpty()) { Stars(c.rating.toDouble()); Text(t, fontSize = 13.sp) }
