@@ -5,6 +5,8 @@ enum Lang: String, CaseIterable, Identifiable {
     var id: String { rawValue }
     var title: String { switch self { case .ar: return "AR"; case .sv: return "SV"; case .en: return "EN" } }
     var isRTL: Bool { self == .ar }
+    /// Languages offered in the UI (Swedish texts stay in the app as a fallback but are not selectable).
+    static var selectable: [Lang] { [.ar, .en] }
     var locale: Locale { Locale(identifier: rawValue) }
 }
 

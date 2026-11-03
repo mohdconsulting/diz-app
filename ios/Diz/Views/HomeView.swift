@@ -84,7 +84,7 @@ struct LangPills: View {
     var light = false
     var body: some View {
         HStack(spacing: 0) {
-            ForEach(Lang.allCases) { l in
+            ForEach(Lang.selectable) { l in
                 Button { store.lang = l } label: {
                     Text(l.title).font(.system(size: 11.5, weight: .semibold))
                         .foregroundColor(store.lang == l ? .dizInk : (light ? .dizMuted : Color(red: 0.81, green: 0.88, blue: 0.85)))

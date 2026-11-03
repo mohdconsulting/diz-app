@@ -34,7 +34,7 @@ final class Store: ObservableObject {
 
     init() {
         let saved = UserDefaults.standard.string(forKey: "lang") ?? ""
-        lang = Lang(rawValue: saved) ?? .ar
+        lang = Lang.selectable.first { $0.rawValue == saved } ?? .ar
         sharing.onFix = { [weak self] jobId, lat, lng, acc in
             guard let self = self else { return false }
             return await self.sendFix(jobId: jobId, lat: lat, lng: lng, accuracy: acc)
