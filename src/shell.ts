@@ -140,7 +140,7 @@ $('authLangSwitch').addEventListener('click', e=>{
 
 export function start(){
   const saved = safeGetLocal(LANG_KEY);
-  if(saved === 'sv' || saved === 'en' || saved === 'ar') setLangState(saved);
+  if(saved === 'en' || saved === 'ar') setLangState(saved);
   applyStaticText();
   void boot();
 }
