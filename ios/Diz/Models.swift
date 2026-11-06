@@ -123,6 +123,7 @@ struct AppUser: Decodable, Hashable {
     var name: String
     var role: String            // customer | driver | admin
     var profiles: [String]
+    var email: String?          // real e-mail for password reset (diz_password_reset.sql)
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -131,8 +132,9 @@ struct AppUser: Decodable, Hashable {
         name = try c.decodeIfPresent(String.self, forKey: .name) ?? ""
         role = try c.decodeIfPresent(String.self, forKey: .role) ?? "customer"
         profiles = try c.decodeIfPresent([String].self, forKey: .profiles) ?? []
+        email = try c.decodeIfPresent(String.self, forKey: .email)
     }
-    enum CodingKeys: String, CodingKey { case id, phone, name, role, profiles }
+    enum CodingKeys: String, CodingKey { case id, phone, name, role, profiles, email }
     var isDriver: Bool { role == "driver" }
 }
 

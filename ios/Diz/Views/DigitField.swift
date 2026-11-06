@@ -95,6 +95,7 @@ struct TextInputField: UIViewRepresentable {
     var secure = false
     var capitalization: UITextAutocapitalizationType = .none
     var inset: CGFloat = 10
+    var keyboard: UIKeyboardType = .default
 
     func makeUIView(context: Context) -> UITextField {
         let f = PaddedField()
@@ -102,7 +103,7 @@ struct TextInputField: UIViewRepresentable {
         f.delegate = context.coordinator
         f.attributedPlaceholder = NSAttributedString(string: placeholder, attributes: [.foregroundColor: UIColor(Color.dizMuted)])
         f.isSecureTextEntry = secure
-        f.keyboardType = .default
+        f.keyboardType = keyboard
         f.autocorrectionType = .no
         f.spellCheckingType = .no
         f.autocapitalizationType = secure ? .none : capitalization

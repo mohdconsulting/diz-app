@@ -8,6 +8,8 @@ struct AuthView: View {
     @State private var name = ""
     @State private var phone = ""
     @State private var password = ""
+    @State private var email = ""
+    @State private var showForgot = false
     @State private var role = "customer"
     @State private var profiles: Set<String> = []
 
@@ -31,6 +33,9 @@ struct AuthView: View {
                         field(store.tr("authNameLabel"), text: $name)
                     }
                     field(store.tr("authPhoneLabel"), text: $phone, keyboard: .phonePad)
+                    if registering {
+                        field(store.tr("authEmailLabel"), text: $email, keyboard: .emailAddress)
+                    }
                     VStack(alignment: .leading, spacing: 4) {
                         Text(store.tr("authPassLabel")).font(.footnote).foregroundColor(.secondary)
                         TextInputField(placeholder: store.tr("authPassLabel"), text: $password, secure: true)
@@ -55,7 +60,7 @@ struct AuthView: View {
                     PrimaryButton(title: store.tr(registering ? "authSubmitRegister" : "authSubmitLogin"), disabled: store.busy) {
                         Task {
                             if registering {
-                                await store.register(name: name, phone: phone, password: password, role: role,
+                                await store.register(name: name, phone: phone, email: email, password: password, role: role,
                                                      profiles: role == "driver" ? Array(profiles).sorted() : [])
                             } else {
                                 await store.login(phone: phone, password: password)
@@ -67,6 +72,10 @@ struct AuthView: View {
                         Text(store.tr(registering ? "authSwitchTextRegister" : "authSwitchTextLogin")).foregroundColor(.secondary)
                         Button(store.tr(registering ? "authSwitchBtnRegister" : "authSwitchBtnLogin")) { registering.toggle() }.foregroundColor(.dizTeal2).bold()
                     }.font(.subheadline)
+                    if !registering {
+                        Button(store.tr("forgotLink")) { showForgot = true }
+                            .font(.subheadline).foregroundColor(.dizTeal2)
+                    }
                 }
                 .padding(22)
                 .background(Color.white).overlay(Rectangle().stroke(Color.dizLine, lineWidth: 1).allowsHitTesting(false))
@@ -80,6 +89,7 @@ struct AuthView: View {
                 }
             }
             .onChange(of: store.user?.id) { id in if id != nil { dismiss() } }
+            .sheet(isPresented: $showForgot) { ForgotPasswordView(phone: phone) }
         }
     }
 
@@ -118,9 +128,65 @@ struct AuthField: View {
             if keyboard == .phonePad {
                 DigitField(placeholder: label, text: $text, allowPlusAndSpace: true)
                     .dizInput()
+            } else if keyboard == .emailAddress {
+                TextInputField(placeholder: label, text: $text, keyboard: .emailAddress).dizInput()
+                    .environment(\.layoutDirection, .leftToRight)
             } else {
                 TextInputField(placeholder: label, text: $text, capitalization: .words).dizInput()
             }
         }
+    }
+}
+
+/// "Forgot password": asks the server to mail a reset link. The new password is chosen on the web page the link opens.
+struct ForgotPasswordView: View {
+    @EnvironmentObject var store: Store
+    @Environment(\.dismiss) private var dismiss
+    @State var phone: String
+    @State private var sent = false
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    Text(store.tr("forgotTitle")).font(.system(size: 21, weight: .semibold)).foregroundColor(.dizInk)
+                    Text(store.tr("forgotText")).font(.system(size: 13.5)).foregroundColor(.dizMuted)
+                    AuthField(label: store.tr("authPhoneLabel"), text: $phone, keyboard: .phonePad)
+                    PrimaryButton(title: store.tr("forgotSend"), disabled: store.busy) {
+                        Task { if await store.requestPasswordReset(phone: phone) { sent = true } }
+                    }
+                    if sent {
+                        Text(store.tr("forgotSent")).font(.system(size: 13)).foregroundColor(.dizBrand)
+                    }
+                }
+                .padding(22)
+                .background(Color.white).overlay(Rectangle().stroke(Color.dizLine, lineWidth: 1).allowsHitTesting(false))
+                .padding(20)
+            }
+            .background(Color.dizPaper.ignoresSafeArea())
+            .overlay(alignment: .bottom) { ToastView() }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button(store.tr("forgotBack")) { dismiss() } }
+            }
+        }
+    }
+}
+
+/// E-mail used for password reset. Shown in the profile, and on the home screen while the account has none.
+struct EmailEditCard: View {
+    @EnvironmentObject var store: Store
+    var nudge = false
+    @State private var email = ""
+
+    var body: some View {
+        Card {
+            Text(store.tr(nudge ? "emailNudge" : "authEmailLabel")).font(.system(size: 13)).foregroundColor(nudge ? .dizInk : .dizMuted)
+            TextInputField(placeholder: store.tr("authEmailLabel"), text: $email, keyboard: .emailAddress).dizInput()
+                .environment(\.layoutDirection, .leftToRight)
+            PrimaryButton(title: store.tr(nudge ? "emailNudgeBtn" : "accountSaveBtn"), disabled: store.busy) {
+                Task { _ = await store.saveEmail(email) }
+            }
+        }
+        .onAppear { email = store.user?.email ?? "" }
     }
 }

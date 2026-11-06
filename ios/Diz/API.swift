@@ -194,6 +194,11 @@ final class API {
         _ = try await call("DELETE", "/rest/v1/" + table, query: [URLQueryItem(name: "id", value: "eq." + id)], prefer: "return=minimal")
     }
 
+    /// Calls a public Edge Function (deployed with --no-verify-jwt), e.g. request-password-reset.
+    func invokePublic(_ fn: String, _ body: [String: Any]) async throws {
+        _ = try await raw("POST", "/functions/v1/" + fn, body: body, auth: false)
+    }
+
     @discardableResult
     func rpc(_ fn: String, _ args: [String: Any] = [:]) async throws -> Data {
         try await call("POST", "/rest/v1/rpc/" + fn, body: args)

@@ -100,17 +100,23 @@ final class Store: ObservableObject {
         }
     }
 
-    func register(name: String, phone: String, password: String, role: String, profiles: [String]) async {
+    static func isValidEmail(_ s: String) -> Bool {
+        s.trimmingCharacters(in: .whitespaces).range(of: #"^[^@\s]+@[^@\s]+\.[^@\s]+$"#, options: .regularExpression) != nil
+    }
+
+    func register(name: String, phone: String, email realEmail: String, password: String, role: String, profiles: [String]) async {
         let email = Config.authEmail(phone: phone)
-        guard !name.trimmingCharacters(in: .whitespaces).isEmpty, !email.isEmpty, !password.isEmpty else {
+        let mail = realEmail.trimmingCharacters(in: .whitespaces).lowercased()
+        guard !name.trimmingCharacters(in: .whitespaces).isEmpty, !email.isEmpty, !password.isEmpty, !mail.isEmpty else {
             toast("toastAuthMissingFields"); return
         }
+        guard Store.isValidEmail(mail) else { toast("toastInvalidEmail"); return }
         guard password.count >= 6 else { toast("toastPasswordShort"); return }
         if role == "driver" && profiles.isEmpty { toast("toastAuthMissingProfiles"); return }
         busy = true; defer { busy = false }
         do {
             let meta: [String: Any] = ["name": name.trimmingCharacters(in: .whitespaces), "phone": phone,
-                                       "role": role, "profiles": role == "driver" ? profiles : []]
+                                       "role": role, "profiles": role == "driver" ? profiles : [], "email": mail]
             guard let s = try await api.signUp(email: email, password: password, metadata: meta) else {
                 toast("toastAuthNeedsConfirm"); return
             }
@@ -124,6 +130,35 @@ final class Store: ObservableObject {
             else { toastRaw(e.message) }
         } catch {
             toast("toastDbUnavailable")
+        }
+    }
+
+    /// "Forgot password": the server mails a reset link to the account's e-mail. It always answers ok,
+    /// so the app never learns whether the number exists.
+    func requestPasswordReset(phone: String) async -> Bool {
+        guard !Config.authEmail(phone: phone).isEmpty else { toast("toastAuthMissingFields"); return false }
+        busy = true; defer { busy = false }
+        do {
+            try await api.invokePublic("request-password-reset", ["phone": phone, "lang": lang.rawValue])
+            return true
+        } catch {
+            toast("toastDbUnavailable"); return false
+        }
+    }
+
+    func saveEmail(_ raw: String) async -> Bool {
+        guard let u = user else { return false }
+        let mail = raw.trimmingCharacters(in: .whitespaces).lowercased()
+        guard !mail.isEmpty else { toast("toastAuthMissingFields"); return false }
+        guard Store.isValidEmail(mail) else { toast("toastInvalidEmail"); return false }
+        busy = true; defer { busy = false }
+        do {
+            try await api.update("users", id: u.id, ["email": mail])
+            user?.email = mail
+            toast("toastAccountSaved")
+            return true
+        } catch {
+            toast("toastSaveFailed"); return false
         }
     }
 
