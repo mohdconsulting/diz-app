@@ -2,15 +2,6 @@ import XCTest
 @testable import Diz
 
 final class DizTests: XCTestCase {
-    func testPricingMatchesWeb() {
-        XCTAssertEqual(Pricing.price(service: "junk", size: 1, cat: "furniture"), 25000)
-        XCTAssertEqual(Pricing.price(service: "junk", size: 2, cat: "appliances"), 50000)
-        XCTAssertEqual(Pricing.price(service: "towing", size: 3, cat: "transport"), 90000)
-        XCTAssertEqual(Pricing.price(service: "unknown", size: nil, cat: nil), 200)
-        XCTAssertEqual(Pricing.price(service: "pro", size: nil, cat: "electrician"), 35000)
-        XCTAssertEqual(Pricing.price(service: "pro", size: nil, cat: "pest_control"), 30000)
-    }
-
     func testAuthEmail() {
         XCTAssertEqual(Config.authEmail(phone: "+964 770-123"), "diz.964770123@gmail.com")
         XCTAssertEqual(Config.authEmail(phone: "  "), "")

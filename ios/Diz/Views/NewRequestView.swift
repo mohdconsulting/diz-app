@@ -8,15 +8,12 @@ struct NewRequestView: View {
     @State private var desc = ""
     @State private var addr = ""
     @State private var toAddr = ""
-    @State private var custom = false
     @State private var customPrice = ""
     @State private var schedule = ScheduleChoice()
     @State private var showAuth = false
     @State private var picked = false
 
     private var info: ServiceInfo? { Strings.shared.service(service) }
-    private var estimate: Int { Pricing.price(service: service, size: size, cat: cat) }
-    private var finalPrice: Int { custom ? customPrice.intValue : estimate }
 
     var body: some View {
         ScrollView {
@@ -65,20 +62,14 @@ struct NewRequestView: View {
                     FieldLabel(text: store.tr("sched.title"))
                     ScheduleSection(choice: $schedule)
                     CashBanner(text: store.tr("cash.formText"), title: store.tr("cash.formTitle")).padding(.top, 4)
-                    estimateBox
-                    FlowLayout(spacing: 8) {
-                        Chip(title: store.tr("customPriceChipLabel"), on: custom) { custom.toggle() }
-                    }
-                    if custom {
-                        FieldLabel(text: store.tr("customPriceLabel"))
-                        DigitField(placeholder: store.tr("customPriceLabel"), text: $customPrice).dizInput()
-                    }
+                    FieldLabel(text: store.tr("customPriceLabel"))
+                    DigitField(placeholder: store.tr("customPriceLabel"), text: $customPrice).dizInput()
                     PrimaryButton(title: store.tr(store.user == nil ? "guest.submit" : "submitBtn"), disabled: store.busy) {
                         if store.user == nil { showAuth = true; return }
                         Task {
                             let ok = await store.createJob(service: service, cat: cat, size: size, desc: desc, addr: addr,
-                                                           toAddr: toAddr, price: finalPrice, schedule: schedule)
-                            if ok { desc = ""; addr = ""; toAddr = ""; cat = nil; size = nil; custom = false; customPrice = ""
+                                                           toAddr: toAddr, price: customPrice.intValue, schedule: schedule)
+                            if ok { desc = ""; addr = ""; toAddr = ""; cat = nil; size = nil; customPrice = ""
                                     schedule = ScheduleChoice(); picked = false }
                         }
                     }.padding(.top, 6)
@@ -89,21 +80,5 @@ struct NewRequestView: View {
         .navigationTitle(store.tr("titles.new"))
         .dizScreen()
         .sheet(isPresented: $showAuth) { AuthView(closable: true) }
-    }
-
-    private var estimateBox: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(store.tr("estimateLabel")).font(.system(size: 14))
-                Text(store.tr(custom ? "estimateSubCustom" : "estimateSub")).font(.system(size: 11.5)).foregroundColor(.dizMuted)
-            }
-            Spacer()
-            Text(custom ? (customPrice.isEmpty ? "–" : store.money(finalPrice)) : store.money(estimate))
-                .font(.system(size: 20, weight: .bold))
-        }
-        .padding(.horizontal, 14).padding(.vertical, 12)
-        .background(Color(red: 0.933, green: 0.953, blue: 0.941))
-        .overlay(Rectangle().stroke(Color.dizBrand, lineWidth: 1).allowsHitTesting(false))
-        .padding(.top, 4)
     }
 }
