@@ -65,10 +65,12 @@ fun NewRequestScreen(store: Store, onLogin: () -> Unit) {
             }
             OutlinedTextField(desc, { desc = it }, placeholder = { Text(store.tr("services.$service.descPlaceholder"), fontSize = 14.sp) },
                 minLines = 3, maxLines = 6, modifier = Modifier.fillMaxWidth())
-            FieldLabel(store.tr("services.$service.sizeLabel"))
-            ChipRow {
-                info.sizes.forEach { n ->
-                    Chip(store.tr("services.$service.sizes.$n"), size == n) { size = if (size == n) null else n }
+            if (info.sizes.isNotEmpty()) {
+                FieldLabel(store.tr("services.$service.sizeLabel"))
+                ChipRow {
+                    info.sizes.forEach { n ->
+                        Chip(store.tr("services.$service.sizes.$n"), size == n) { size = if (size == n) null else n }
+                    }
                 }
             }
             FieldLabel(store.tr("services.$service.addrLabel"))

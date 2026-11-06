@@ -6,7 +6,7 @@ object Pricing {
         "junk" to mapOf(1 to 25000, 2 to 45000, 3 to 75000),
         "moving" to mapOf(1 to 60000, 2 to 120000, 3 to 250000),
         "goods" to mapOf(1 to 10000, 2 to 20000),
-        "pro" to mapOf(1 to 30000, 2 to 70000, 3 to 50000),
+        "pro" to mapOf(0 to 30000),   // no size step: one base price
         "towing" to mapOf(1 to 40000, 2 to 60000, 3 to 100000),
         "deliver" to mapOf(1 to 8000, 2 to 15000),
     )
@@ -20,7 +20,7 @@ object Pricing {
     )
 
     fun price(service: String, size: Int?, cat: String?): Int {
-        val b = base[service]?.get(size ?: 0) ?: 200
+        val b = base[service]?.get(size ?: 0) ?: base[service]?.get(0) ?: 200
         val extra = bump[service]?.get(cat ?: "") ?: 0
         return b + extra
     }
