@@ -146,6 +146,22 @@ final class Store: ObservableObject {
         }
     }
 
+    /// A provider changes which kinds of jobs they take (same keys as at registration).
+    func saveProfiles(_ profiles: [String]) async -> Bool {
+        guard let u = user, u.isDriver else { return false }
+        guard !profiles.isEmpty else { toast("toastAuthMissingProfiles"); return false }
+        busy = true; defer { busy = false }
+        do {
+            try await api.update("users", id: u.id, ["profiles": profiles])
+            user?.profiles = profiles
+            toast("toastProfileSaved")
+            await refreshAll()
+            return true
+        } catch {
+            toast("toastSaveFailed"); return false
+        }
+    }
+
     func saveEmail(_ raw: String) async -> Bool {
         guard let u = user else { return false }
         let mail = raw.trimmingCharacters(in: .whitespaces).lowercased()

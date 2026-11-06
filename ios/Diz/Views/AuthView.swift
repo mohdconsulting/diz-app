@@ -13,7 +13,7 @@ struct AuthView: View {
     @State private var role = "customer"
     @State private var profiles: Set<String> = []
 
-    private let proCats = ["electrician", "plumber", "smith", "appliance_repair", "cleaner", "painter", "pest_control"]
+    private let proCats = ProfileEditCard.proCats
 
     var body: some View {
         NavigationStack {
@@ -188,5 +188,43 @@ struct EmailEditCard: View {
             }
         }
         .onAppear { email = store.user?.email ?? "" }
+    }
+}
+
+/// A provider's skills (job types they see), editable in the profile like on the web.
+struct ProfileEditCard: View {
+    @EnvironmentObject var store: Store
+    static let proCats = ["electrician", "plumber", "smith", "appliance_repair", "cleaner", "painter", "pest_control"]
+    @State private var picked: Set<String> = []
+
+    private func title(_ key: String) -> String {
+        key == "driver" ? store.tr("profileDriver") : (key == "towing" ? store.tr("profileTowing") : store.tr("services.pro.categories.\(key)"))
+    }
+
+    var body: some View {
+        Card {
+            Text(store.tr("profileEditTitle")).font(.system(size: 12.5, weight: .semibold)).foregroundColor(.dizMuted)
+            ForEach(["driver", "towing"] + ProfileEditCard.proCats, id: \.self) { key in
+                let on = picked.contains(key)
+                Button {
+                    if on { picked.remove(key) } else { picked.insert(key) }
+                } label: {
+                    HStack {
+                        Image(systemName: on ? "checkmark.square.fill" : "square")
+                        Text(title(key))
+                        Spacer()
+                    }
+                    .padding(10)
+                    .background(on ? Color.dizBrand : Color.white)
+                    .foregroundColor(on ? .white : .dizInk)
+                    .overlay(Rectangle().stroke(on ? Color.dizBrand : Color.dizLine, lineWidth: 1).allowsHitTesting(false))
+                }
+                .buttonStyle(.plain)
+            }
+            PrimaryButton(title: store.tr("profileSaveBtn"), disabled: store.busy) {
+                Task { _ = await store.saveProfiles(Array(picked).sorted()) }
+            }
+        }
+        .onAppear { picked = Set(store.user?.profiles ?? []) }
     }
 }
