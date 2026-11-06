@@ -196,16 +196,14 @@
         <input type="text" id="accountPhoneInput">
         <label id="accountEmailLabel"></label>
         <input type="email" id="accountEmailInput" autocomplete="email" dir="ltr">
-        <div style="margin-top:10px;">
-          <button class="secondary" id="accountSaveBtn" onclick="saveAccountDetails()"></button>
-        </div>
       </div>
       <div id="profileEditWrap" style="display:none;margin-bottom:18px;">
         <p class="section-title" id="profileEditTitle"></p>
         <div class="chip-row" id="profileEditChips"></div>
-        <div style="margin-top:10px;">
-          <button class="secondary" id="profileSaveBtn" onclick="saveProfile()"></button>
-        </div>
+      </div>
+      <!-- one save button for name, e-mail and (providers) skills -->
+      <div style="margin:-8px 0 18px;">
+        <button class="secondary" id="accountSaveBtn" onclick="saveAccountDetails()"></button>
       </div>
       <p class="section-title" id="allMineTitle"></p>
       <div id="mineList"></div>

@@ -305,12 +305,18 @@ export async function saveAccountDetails(){
   const newEmail = $<HTMLInputElement>('accountEmailInput').value.trim().toLowerCase();
   if(!newName || !newEmail){ toast(d.toastAuthMissingFields); return; }
   if(!isValidEmail(newEmail)){ toast(d.toastInvalidEmail); return; }
+  // Providers also save their skills with the same button.
+  const isProvider = role === 'driver';
+  const profiles = isProvider ? Array.from(editProfiles ?? new Set(me().profiles || [])) : null;
+  if(isProvider && (!profiles || profiles.length===0)){ toast(d.toastAuthMissingProfiles); return; }
   try{
-    await db().user(me().id).update({name:newName, email:newEmail});
+    await db().user(me().id).update(profiles ? {name:newName, email:newEmail, profiles} : {name:newName, email:newEmail});
     me().name = newName;
     me().email = newEmail;
+    if(profiles) me().profiles = profiles;
     toast(d.toastAccountSaved);
     updateUserRow();
+    if(profiles) refreshCurrentScreen();
   }catch(e){ toast(d.toastSaveFailed); }
 }
 
@@ -324,7 +330,6 @@ export function renderProfileEdit(){
   $('profileEditChips').innerHTML = profileOptions().map(o=>
     `<div class="chip${ep.has(o.key)?' on':''}" data-val="${o.key}">${o.label}</div>`
   ).join('');
-  $('profileSaveBtn').textContent = t().profileSaveBtn;
 }
 
 $('profileEditChips').addEventListener('click', e=>{
@@ -334,18 +339,6 @@ $('profileEditChips').addEventListener('click', e=>{
   if(editProfiles.has(key)) editProfiles.delete(key); else editProfiles.add(key);
   chip.classList.toggle('on');
 });
-
-export async function saveProfile(){
-  if(!dbRef || !currentUser) return;
-  if(!editProfiles || editProfiles.size===0){ toast(t().toastAuthMissingProfiles); return; }
-  const profiles = Array.from(editProfiles);
-  try{
-    await db().user(me().id).update({profiles});
-    me().profiles = profiles;
-    toast(t().toastProfileSaved);
-    refreshCurrentScreen();
-  }catch(e){ toast(t().toastSaveFailed); }
-}
 
 /* ---------- BOOT ---------- */
 export async function boot(){
