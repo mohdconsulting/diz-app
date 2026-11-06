@@ -63,7 +63,7 @@ struct NewRequestView: View {
                     ScheduleSection(choice: $schedule)
                     CashBanner(text: store.tr("cash.formText"), title: store.tr("cash.formTitle")).padding(.top, 4)
                     FieldLabel(text: store.tr("customPriceLabel"))
-                    DigitField(placeholder: store.tr("customPriceLabel"), text: $customPrice).dizInput()
+                    DigitField(placeholder: store.tr("priceUnit"), text: $customPrice).dizInput()
                     PrimaryButton(title: store.tr(store.user == nil ? "guest.submit" : "submitBtn"), disabled: store.busy) {
                         if store.user == nil { showAuth = true; return }
                         Task {
