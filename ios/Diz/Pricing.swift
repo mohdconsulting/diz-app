@@ -6,7 +6,7 @@ enum Pricing {
         "junk": [1: 25000, 2: 45000, 3: 75000],
         "moving": [1: 60000, 2: 120000, 3: 250000],
         "goods": [1: 10000, 2: 20000],
-        "pro": [1: 30000, 2: 70000, 3: 50000],
+        "pro": [0: 30000],   // no size step: one base price
         "towing": [1: 40000, 2: 60000, 3: 100000],
         "deliver": [1: 8000, 2: 15000],
     ]
@@ -20,7 +20,7 @@ enum Pricing {
     ]
 
     static func price(service: String, size: Int?, cat: String?) -> Int {
-        let b = base[service]?[size ?? 0] ?? 200
+        let b = base[service]?[size ?? 0] ?? base[service]?[0] ?? 200
         let extra = bump[service]?[cat ?? ""] ?? 0
         return b + extra
     }

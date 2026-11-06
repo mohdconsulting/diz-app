@@ -48,10 +48,12 @@ struct NewRequestView: View {
                             }
                         }
                         .background(Color.white).overlay(Rectangle().stroke(Color.dizLine, lineWidth: 1).allowsHitTesting(false))
-                    FieldLabel(text: store.tr("services.\(service).sizeLabel"))
-                    FlowLayout(spacing: 8) {
-                        ForEach(info.sizes, id: \.self) { n in
-                            Chip(title: store.tr("services.\(service).sizes.\(n)"), on: size == n) { size = (size == n ? nil : n) }
+                    if !info.sizes.isEmpty {
+                        FieldLabel(text: store.tr("services.\(service).sizeLabel"))
+                        FlowLayout(spacing: 8) {
+                            ForEach(info.sizes, id: \.self) { n in
+                                Chip(title: store.tr("services.\(service).sizes.\(n)"), on: size == n) { size = (size == n ? nil : n) }
+                            }
                         }
                     }
                     FieldLabel(text: store.tr("services.\(service).addrLabel"))

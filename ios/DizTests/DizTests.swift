@@ -7,6 +7,8 @@ final class DizTests: XCTestCase {
         XCTAssertEqual(Pricing.price(service: "junk", size: 2, cat: "appliances"), 50000)
         XCTAssertEqual(Pricing.price(service: "towing", size: 3, cat: "transport"), 90000)
         XCTAssertEqual(Pricing.price(service: "unknown", size: nil, cat: nil), 200)
+        XCTAssertEqual(Pricing.price(service: "pro", size: nil, cat: "electrician"), 35000)
+        XCTAssertEqual(Pricing.price(service: "pro", size: nil, cat: "pest_control"), 30000)
     }
 
     func testAuthEmail() {
