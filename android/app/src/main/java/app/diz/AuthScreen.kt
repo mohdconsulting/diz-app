@@ -31,7 +31,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-private val proCats = listOf("electrician", "plumber", "gardener", "painter", "cleaner")
+private val proCats = listOf("electrician", "plumber", "smith", "appliance_repair", "cleaner", "painter", "pest_control")
 
 /** Sign in / register, shown over the app when the user chooses to log in (e.g. to send an order). */
 @Composable
