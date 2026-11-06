@@ -1,3 +1,6 @@
+/** Services customers can order. 'goods' and 'deliver' are kept in the dictionaries only so old jobs still show their labels. */
+export const OFFERED_SERVICES = ['junk', 'moving', 'pro', 'towing'];
+
 export const PRICE_BASE: Record<string, Record<number, number>> = {
   junk:{1:25000,2:45000,3:75000},
   moving:{1:60000,2:120000,3:250000},
