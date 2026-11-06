@@ -203,6 +203,7 @@ fun ProfileScreen(store: Store, onLogin: () -> Unit) {
                 }
             }
         }
+        if (u != null && u.isDriver) ProfileEditCard(store)
         if (u != null && u.role != "admin") EmailEditCard(store)
         LangPills(store, light = true)
         if (store.isDriver && store.locationDenied) Footnote(store.tr("track.shareDenied"), DizDanger)

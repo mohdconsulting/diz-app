@@ -161,3 +161,16 @@ fun EmailEditCard(store: Store, nudge: Boolean = false) {
         PrimaryButton(store.tr(if (nudge) "emailNudgeBtn" else "accountSaveBtn"), enabled = !store.busy) { store.saveEmail(email) }
     }
 }
+
+/** A provider's skills (job types they see), editable in the profile like on the web. */
+@Composable
+fun ProfileEditCard(store: Store) {
+    var picked by remember(store.user?.id) { mutableStateOf(store.user?.profiles?.toSet() ?: emptySet()) }
+    Card {
+        FieldLabel(store.tr("profileEditTitle"))
+        ProfileRow(store.tr("profileDriver"), "driver" in picked) { picked = picked.toggle("driver") }
+        ProfileRow(store.tr("profileTowing"), "towing" in picked) { picked = picked.toggle("towing") }
+        proCats.forEach { c -> ProfileRow(store.tr("services.pro.categories.$c"), c in picked) { picked = picked.toggle(c) } }
+        PrimaryButton(store.tr("profileSaveBtn"), enabled = !store.busy) { store.saveProfiles(picked.sorted()) }
+    }
+}
