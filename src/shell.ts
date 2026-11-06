@@ -2,6 +2,7 @@ import { mountChat } from './chat';
 import { syncReviews } from './reviews';
 import { mountTrackingMap, syncSharing } from './tracking';
 import { $, safeGetLocal } from './util';
+import { OFFERED_SERVICES } from './pricing';
 import { boot } from './auth';
 import { type Lang, type Job } from './types';
 import { lang, setLangState, role, selectedService, setJobs, dbRef, currentUser, t, db } from './state';
@@ -61,7 +62,7 @@ export function applyStaticText(){
   });
 
   const serviceChips = $('serviceChips');
-  serviceChips.innerHTML = Object.entries(d.services).map(([key,val])=>
+  serviceChips.innerHTML = Object.entries(d.services).filter(([key])=>OFFERED_SERVICES.includes(key)).map(([key,val])=>
     `<div class="chip${selectedService===key?' on':''}" data-val="${key}">${val.label}</div>`
   ).join('');
 
