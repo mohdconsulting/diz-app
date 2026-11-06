@@ -75,6 +75,21 @@ Flöde: kunden trycker **Tilldela & betala** på en sökande (ett enda steg) →
 - Utbetalning till utförare och återbetalning är idag **manuella** (admin trycker "Markera utbetald/återbetald" efter att ha flyttat pengarna). Automatisk utbetalning kräver att leverantören erbjuder det.
 - SQL-test: `tests/sql/` (kräver en lokal Postgres; se kommentarerna i filerna).
 
+## Glömt lösenord (återställning via e-post)
+Inloggningen är fortfarande telefon + lösenord. Varje konto har dessutom en riktig e-postadress (`users.email`, obligatorisk vid registrering; äldre konton får en påminnelse i appen tills de lagt till en). "Glömt lösenordet?" på inloggningen skickar en engångslänk dit. Länken öppnar webbappen (`?reset_token=…`), där man väljer nytt lösenord – samma flöde oavsett om man använder webben, iPhone eller Android.
+
+**Driftsättning (en gång):**
+1. Kör `diz_password_reset.sql` i Supabase SQL Editor **innan** nya appversioner släpps (annars går det inte att spara e-post).
+2. Skapa ett konto på [resend.com](https://resend.com), lägg till och verifiera din domän (DNS-poster), och skapa en API-nyckel.
+3. Sätt hemligheterna och driftsätt funktionen:
+   ```bash
+   supabase secrets set RESEND_API_KEY=re_xxx RESEND_FROM="Diz <no-reply@din-doman.se>" PUBLIC_APP_URL=https://mohdconsulting.github.io/diz-app/
+   supabase functions deploy request-password-reset --no-verify-jwt
+   ```
+4. Testa: logga ut, tryck "Glömt lösenordet?", ange ett nummer som har e-post. Fel syns under *Edge Functions → Logs*.
+
+Detaljer: funktionen svarar alltid "ok" (ingen kan ta reda på vilka nummer som finns), högst 3 mejl per nummer och timme (`password_reset_requests`), och länken gäller en timme (Supabase: *Auth → Email OTP expiration*). Test: `python3 tests/e2e/password_reset.py`.
+
 ## Adresser och Google Maps
 Adresserna på korten är länkar till Google Maps (ingen API-nyckel behövs). Kunden kan i formuläret trycka **Använd min position** för att spara en GPS-pin (webbläsaren frågar om platsåtkomst); då öppnar länken exakt koordinat i stället för att söka på texten. Pinnen är valfri och sparas i `addr_lat/addr_lng/to_lat/to_lng`.
 

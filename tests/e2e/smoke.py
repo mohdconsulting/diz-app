@@ -36,7 +36,7 @@ async def main():
         screen=lambda: pg.evaluate("document.querySelector('.screen.active').dataset.screen")
         async def reg(name,phone,role):
             await pg.click('#authSwitchBtn')
-            await pg.fill('#authNameInput',name); await pg.fill('#authPhoneInput',phone); await pg.fill('#authPassInput','secret1')
+            await pg.fill('#authNameInput',name); await pg.fill('#authPhoneInput',phone); await pg.fill('#authPassInput','secret1'); await pg.fill('#authEmailInput',phone+'@example.com')
             await pg.click(f'#authRoleChips .chip[data-val={role}]')
             if role=='driver': await pg.click('#authProfileChips .chip[data-val=driver]')
             await pg.click('#authSubmitBtn'); await pg.wait_for_timeout(700)
@@ -358,7 +358,7 @@ async def main():
         p3.on('pageerror',lambda e:errs.append('PAGEERR(cash) '+str(e)))
         await p3.goto(URL); await p3.wait_for_timeout(500)
         async def reg3(name,phone,role):
-            await p3.click('#authSwitchBtn'); await p3.fill('#authNameInput',name); await p3.fill('#authPhoneInput',phone); await p3.fill('#authPassInput','secret1')
+            await p3.click('#authSwitchBtn'); await p3.fill('#authNameInput',name); await p3.fill('#authPhoneInput',phone); await p3.fill('#authPassInput','secret1'); await p3.fill('#authEmailInput',phone+'@example.com')
             await p3.click(f'#authRoleChips .chip[data-val={role}]')
             if role=='driver': await p3.click('#authProfileChips .chip[data-val=driver]')
             await p3.click('#authSubmitBtn'); await p3.wait_for_timeout(700)

@@ -30,6 +30,9 @@ export interface SbClient {
     signInWithPassword(args: { email: string; password: string }):
       Promise<{ data: { user: { id: string } | null; session: SbSession | null }; error: SbError | null }>;
     getSession(): Promise<{ data: { session: SbSession | null } }>;
+    verifyOtp(args: { token_hash: string; type: 'recovery' }):
+      Promise<{ data: { user: { id: string } | null; session: SbSession | null }; error: SbError | null }>;
+    updateUser(args: { password: string }): Promise<{ data: { user: { id: string } | null }; error: SbError | null }>;
     signOut(): Promise<{ error: SbError | null }>;
   };
 }

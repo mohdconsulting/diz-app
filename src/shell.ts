@@ -48,6 +48,7 @@ export function applyStaticText(){
   $('allMineTitle').textContent = role==='driver' ? d.allMineTitleDriver : d.allMineTitleCustomer;
   $('historyTitle').textContent = d.historyTitle;
   $('customPriceLabel').textContent = d.customPriceLabel;
+  $<HTMLInputElement>('customPriceInput').placeholder = d.priceUnit;
   $('photoLabel').textContent = d.photoLabel;
   $('photoTriggerBtn').textContent = d.photoTriggerBtn;
   $('removePhotoBtn').textContent = d.removePhotoBtn;

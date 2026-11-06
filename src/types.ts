@@ -64,6 +64,8 @@ export interface AppUser {
   role: Role;
   profiles: string[];
   createdAt: number;
+  /** Real e-mail for password reset (diz_password_reset.sql). Login is still phone + password. */
+  email?: string | null;
 }
 
 export type EventType =

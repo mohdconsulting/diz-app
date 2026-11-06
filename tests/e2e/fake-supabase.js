@@ -96,11 +96,12 @@
         if(args.p_action==='payout'&&p.status==='released') p.status='paid_out'; else if(args.p_action==='refund'&&p.status==='refund_due') p.status='refunded'; else return {error:{message:'bad state'}};
         persist(); return {data:p,error:null};
       } if(fn==='admin_delete_user'){ const i=db.users.findIndex(u=>u.id===args.uid); if(i>=0) db.users.splice(i,1); return {error:null}; } return {error:{message:'x'}}; },
+    functions:{ async invoke(name,opts){ (window.__fnCalls=window.__fnCalls||[]).push({name,body:opts&&opts.body}); return {data:{ok:true},error:null}; } },
     auth:{
       async signUp({email,password,options}){
         if(auth.find(a=>a.email===email)) return {data:{},error:{message:'User already registered'}};
         const id='u'+Math.random().toString(16).slice(2); auth.push({id,email,pw:password});
-        const m=options.data; db.users.push({id,phone:m.phone,name:m.name,role:m.role==='driver'?'driver':'customer',profiles:m.profiles||[],created_at:Date.now()});
+        const m=options.data; db.users.push({id,phone:m.phone,name:m.name,role:m.role==='driver'?'driver':'customer',profiles:m.profiles||[],created_at:Date.now(),email:m.email||null});
         persist(); session={user:{id}}; sessionStorage.setItem('sess',JSON.stringify(session));
         return {data:{user:{id},session},error:null};
       },
@@ -109,6 +110,15 @@
         session={user:{id:a.id}}; sessionStorage.setItem('sess',JSON.stringify(session)); return {data:{user:{id:a.id},session},error:null};
       },
       async getSession(){ return {data:{session}}; },
+      // password reset: the e-mailed token is "tok-<user id>" here
+      async verifyOtp({token_hash,type}){
+        const a=type==='recovery'&&auth.find(x=>'tok-'+x.id===token_hash); if(!a) return {data:{},error:{message:'Token has expired or is invalid'}};
+        session={user:{id:a.id}}; sessionStorage.setItem('sess',JSON.stringify(session)); return {data:{user:{id:a.id},session},error:null};
+      },
+      async updateUser({password}){
+        const a=session&&auth.find(x=>x.id===session.user.id); if(!a) return {data:{user:null},error:{message:'not signed in'}};
+        a.pw=password; persist(); return {data:{user:{id:a.id}},error:null};
+      },
       async signOut(){ session=null; sessionStorage.removeItem('sess'); return {error:null}; }
     }
   };
