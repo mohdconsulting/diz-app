@@ -5,7 +5,7 @@ export const PRICE_BASE: Record<string, Record<number, number>> = {
   junk:{1:25000,2:45000,3:75000},
   moving:{1:60000,2:120000,3:250000},
   goods:{1:10000,2:20000},
-  pro:{1:30000,2:70000,3:50000},
+  pro:{0:30000},
   towing:{1:40000,2:60000,3:100000},
   deliver:{1:8000,2:15000}
 };
@@ -18,8 +18,12 @@ export const PRICE_BUMP: Record<string, Record<string, number>> = {
   deliver:{fragile:5000, package:2000}
 };
 
+/** Services without a size/scope step (the price is the base price at key 0 plus the category bump). */
+export const NO_SIZE_SERVICES = ['pro'];
+export function hasSizes(service: string | null): boolean { return !!service && !NO_SIZE_SERVICES.includes(service); }
+
 export function priceFor(service: string, size: number | null, cat: string | null): number {
-  const base = (PRICE_BASE[service] || {})[size ?? 0] || 200;
+  const base = (PRICE_BASE[service] || {})[hasSizes(service) ? (size ?? 0) : 0] || 200;
   const bump = (PRICE_BUMP[service] || {})[cat ?? ''] || 0;
   return base + bump;
 }

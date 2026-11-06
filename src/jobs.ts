@@ -1,5 +1,5 @@
 import { $ } from './util';
-import { priceFor } from './pricing';
+import { priceFor, hasSizes } from './pricing';
 import { attachPlaceSearch, closeSuggestions } from './place-search';
 import { I18N, type Service } from './i18n';
 import { type Job, type ServiceKey, type Applicant } from './types';
@@ -87,6 +87,9 @@ export function renderRequestDetails(){
   $('catChips').innerHTML = Object.entries(svc.categories).map(([key,label])=>
     `<div class="chip${selectedCat===key?' on':''}" data-val="${key}">${label}</div>`
   ).join('');
+  const showSizes = hasSizes(selectedService);
+  $('sizeLabel').style.display = showSizes ? '' : 'none';
+  $('sizeChips').style.display = showSizes ? '' : 'none';
   $('sizeChips').innerHTML = Object.entries(svc.sizes).map(([key,label])=>
     `<div class="chip${selectedSize===parseInt(key)?' on':''}" data-val="${key}">${label}</div>`
   ).join('');
@@ -175,7 +178,7 @@ $('customPriceChip').addEventListener('click', ()=>{
   $('customPriceWrap').style.display = useCustomPrice ? 'block' : 'none';
   if(useCustomPrice){
     const input = $<HTMLInputElement>('customPriceInput');
-    if(!input.value && selectedSize && selectedService) input.value = String(priceFor(selectedService, selectedSize, selectedCat));
+    if(!input.value && selectedService && (selectedSize || !hasSizes(selectedService))) input.value = String(priceFor(selectedService, selectedSize, selectedCat));
   }
   updateEstimate();
 });
@@ -192,7 +195,7 @@ export function updateEstimate(){
     el.textContent = (val>0) ? (val + " " + t().priceUnit) : "–";
     return;
   }
-  if(selectedService && selectedSize){
+  if(selectedService && (selectedSize || !hasSizes(selectedService))){
     el.textContent = priceFor(selectedService, selectedSize, selectedCat) + " " + t().priceUnit;
   } else {
     el.textContent = "–";
@@ -349,7 +352,8 @@ export async function submitRequest(){
   const service: ServiceKey = selectedService;
   const svc = d.services[service];
   const toAddr = svc.needsToAddr ? storedAddr($<HTMLInputElement>('toAddrInput').value.trim(), toPin) : null;
-  if(!selectedCat || !selectedSize){ toast(d.toastMissingCatSize); return; }
+  const size = hasSizes(service) ? selectedSize : null;
+  if(!selectedCat || (hasSizes(service) && !size)){ toast(d.toastMissingCatSize); return; }
   if(!desc || !addr || (svc.needsToAddr && !toAddr)){ toast(d.toastMissingFields); return; }
   let price: number;
   if(useCustomPrice){
@@ -357,7 +361,7 @@ export async function submitRequest(){
     if(!val || val<=0){ toast(d.toastInvalidOffer); return; }
     price = val;
   } else {
-    price = priceFor(service, selectedSize, selectedCat);
+    price = priceFor(service, size, selectedCat);
   }
   const prevJob = editingJobId ? (jobs.find(x=>x.id===editingJobId) ?? null) : null;
   const sched = scheduleFieldsForSave(prevJob);
@@ -365,10 +369,10 @@ export async function submitRequest(){
   const wasEditing = !!editingJobId;
   try{
     if(wasEditing && editingJobId){
-      await db().job(editingJobId).update({service, cat:selectedCat, desc, addr, toAddr, size:selectedSize, price, photo: photoDataUrl || null, ...pinFields(toAddr), ...sched});
+      await db().job(editingJobId).update({service, cat:selectedCat, desc, addr, toAddr, size, price, photo: photoDataUrl || null, ...pinFields(toAddr), ...sched});
     } else {
       await db().collection('jobs').add({
-        service, cat:selectedCat, desc, addr, toAddr, size:selectedSize, price, ...pinFields(toAddr),
+        service, cat:selectedCat, desc, addr, toAddr, size, price, ...pinFields(toAddr),
         photo: photoDataUrl || null, ...sched,
         status:"open",
         ownerPhone: me().phone, acceptedByPhone:null, createdAt: Date.now()
