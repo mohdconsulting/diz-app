@@ -82,7 +82,8 @@ fun NewRequestScreen(store: Store, onLogin: () -> Unit) {
             ScheduleSection(store, schedule) { schedule = it }
             CashBanner(store.tr("cash.formText"), store.tr("cash.formTitle"))
 
-            DigitField(customPrice, { customPrice = it }, store.tr("customPriceLabel"))
+            FieldLabel(store.tr("customPriceLabel"))
+            DigitField(customPrice, { customPrice = it }, store.tr("priceUnit"))
 
             PrimaryButton(store.tr(if (store.user == null) "guest.submit" else "submitBtn"), enabled = !store.busy) {
                 if (store.user == null) { onLogin(); return@PrimaryButton }
