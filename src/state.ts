@@ -9,7 +9,6 @@ export let role: Role = "customer";
 export let selectedService: ServiceKey | null = null;
 export let selectedCat: string | null = null;
 export let selectedSize: number | null = null;
-export let useCustomPrice = false;
 export let editingJobId: string | null = null;
 export let photoDataUrl: string | null = null;
 export let jobs: Job[] = [];
@@ -33,7 +32,6 @@ export function sb(): SbClient { if(!sbRef) throw new Error('auth client not rea
 export let sbRef: SbClient | null = null;
 export let unsubJobs: (() => void) | null = null;
 
-export function setUseCustomPrice(v: typeof useCustomPrice){ useCustomPrice = v; }
 
 export function setRole(v: typeof role){ role = v; }
 
