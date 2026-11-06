@@ -1,10 +1,10 @@
 import { $ } from './util';
-import { priceFor, hasSizes } from './pricing';
+import { hasSizes } from './pricing';
 import { attachPlaceSearch, closeSuggestions } from './place-search';
 import { I18N, type Service } from './i18n';
 import { type Job, type ServiceKey, type Applicant } from './types';
 import { esc, toast, routeLinksHTML, PIN_ADDR } from './util';
-import { role, paymentsMode, selectedService, setSelectedService, selectedCat, setSelectedCat, selectedSize, setSelectedSize, useCustomPrice, setUseCustomPrice, editingJobId, setEditingJobId, photoDataUrl, setPhotoDataUrl, jobs, dbRef, currentUser, t, me, db } from './state';
+import { role, paymentsMode, selectedService, setSelectedService, selectedCat, setSelectedCat, selectedSize, setSelectedSize, editingJobId, setEditingJobId, photoDataUrl, setPhotoDataUrl, jobs, dbRef, currentUser, t, me, db } from './state';
 import { seenSet, shownSigs, jobEvent } from './notifications';
 import { renderAccountEdit, renderProfileEdit } from './auth';
 import { goTo, refreshCurrentScreen } from './shell';
@@ -130,7 +130,7 @@ export function removePhoto(){
 
 export function resetNewRequestForm(){
   setEditingJobId(null);
-  setSelectedService(null); setSelectedCat(null); setSelectedSize(null); setUseCustomPrice(false);
+  setSelectedService(null); setSelectedCat(null); setSelectedSize(null);
   setPhotoDataUrl(null);
   $<HTMLInputElement>('photoInput').value = '';
   $('photoPreviewWrap').style.display = 'none';
@@ -141,8 +141,6 @@ export function resetNewRequestForm(){
   if($('toAddrInput')) $<HTMLInputElement>('toAddrInput').value = '';
   addrPin = null; toPin = null; addrPinFromSearch = false; toPinFromSearch = false;
   closeSuggestions($('addrSuggest')); closeSuggestions($('toSuggest'));
-  $('customPriceChip').classList.remove('on');
-  $('customPriceWrap').style.display = 'none';
   $<HTMLInputElement>('customPriceInput').value = '';
   $('submitBtn').textContent = t().submitBtn;
   resetScheduleForm();
@@ -155,9 +153,7 @@ $('serviceChips').addEventListener('click', e=>{
   document.querySelectorAll<HTMLElement>('#serviceChips .chip').forEach(c=>c.classList.remove('on'));
   chip.classList.add('on');
   setSelectedService(chip.dataset.val as ServiceKey);
-  setSelectedCat(null); setSelectedSize(null); setUseCustomPrice(false);
-  $('customPriceChip').classList.remove('on');
-  $('customPriceWrap').style.display = 'none';
+  setSelectedCat(null); setSelectedSize(null);
   renderRequestDetails();
   updateEstimate();
 });
@@ -172,34 +168,9 @@ $('sizeChips').addEventListener('click', e=>{
   chip.classList.add('on'); setSelectedSize(parseInt(chip.dataset.val as string)); updateEstimate();
 });
 
-$('customPriceChip').addEventListener('click', ()=>{
-  setUseCustomPrice(!useCustomPrice);
-  $('customPriceChip').classList.toggle('on', useCustomPrice);
-  $('customPriceWrap').style.display = useCustomPrice ? 'block' : 'none';
-  if(useCustomPrice){
-    const input = $<HTMLInputElement>('customPriceInput');
-    if(!input.value && selectedService && (selectedSize || !hasSizes(selectedService))) input.value = String(priceFor(selectedService, selectedSize, selectedCat));
-  }
-  updateEstimate();
-});
-$('customPriceInput').addEventListener('input', updateEstimate);
-
+/** The customer always types the price; this only refreshes the cash note above the price field. */
 export function updateEstimate(){
-  const el = $('priceEstimate');
-  const sub = $('estimateSub');
-  if(!sub) return;
-  sub.textContent = useCustomPrice ? t().estimateSubCustom : t().estimateSub;
   const cn = $('cashNote'); if(cn) cn.innerHTML = `<b>💵 ${t().cash.formTitle}</b>${t().cash.formText}`;
-  if(useCustomPrice){
-    const val = parseInt($<HTMLInputElement>('customPriceInput').value, 10);
-    el.textContent = (val>0) ? (val + " " + t().priceUnit) : "–";
-    return;
-  }
-  if(selectedService && (selectedSize || !hasSizes(selectedService))){
-    el.textContent = priceFor(selectedService, selectedSize, selectedCat) + " " + t().priceUnit;
-  } else {
-    el.textContent = "–";
-  }
 }
 
 export async function providerArrive(id: string){
@@ -304,8 +275,6 @@ export function editJob(id: string){
   setSelectedService(j.service);
   setSelectedCat(j.cat);
   setSelectedSize(j.size);
-  const computedPrice = priceFor(j.service, j.size, j.cat);
-  setUseCustomPrice((j.price !== computedPrice));
 
   document.querySelectorAll<HTMLElement>('#serviceChips .chip').forEach(c=>c.classList.toggle('on', c.dataset.val===selectedService));
   renderRequestDetails();
@@ -321,9 +290,7 @@ export function editJob(id: string){
   if($('toAddrInput')) $<HTMLInputElement>('toAddrInput').value = j.toAddr === PIN_ADDR ? t().myLocationText : (j.toAddr || '');
   addrPin = (j.addrLat != null && j.addrLng != null) ? { lat: j.addrLat, lng: j.addrLng } : null;
   toPin = (j.toLat != null && j.toLng != null) ? { lat: j.toLat, lng: j.toLng } : null;
-  $('customPriceChip').classList.toggle('on', useCustomPrice);
-  $('customPriceWrap').style.display = useCustomPrice ? 'block' : 'none';
-  if(useCustomPrice) $<HTMLInputElement>('customPriceInput').value = String(j.price);
+  $<HTMLInputElement>('customPriceInput').value = String(j.price);
   loadScheduleFromJob(j);
   updateEstimate();
   $('submitBtn').textContent = t().saveChangesBtn;
@@ -355,14 +322,8 @@ export async function submitRequest(){
   const size = hasSizes(service) ? selectedSize : null;
   if(!selectedCat || (hasSizes(service) && !size)){ toast(d.toastMissingCatSize); return; }
   if(!desc || !addr || (svc.needsToAddr && !toAddr)){ toast(d.toastMissingFields); return; }
-  let price: number;
-  if(useCustomPrice){
-    const val = parseInt($<HTMLInputElement>('customPriceInput').value, 10);
-    if(!val || val<=0){ toast(d.toastInvalidOffer); return; }
-    price = val;
-  } else {
-    price = priceFor(service, size, selectedCat);
-  }
+  const price = parseInt($<HTMLInputElement>('customPriceInput').value, 10);
+  if(!price || price<=0){ toast(d.toastInvalidOffer); return; }
   const prevJob = editingJobId ? (jobs.find(x=>x.id===editingJobId) ?? null) : null;
   const sched = scheduleFieldsForSave(prevJob);
   if(!sched) return;
