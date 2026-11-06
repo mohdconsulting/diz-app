@@ -156,18 +156,21 @@ class Store(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    /** A provider changes which kinds of jobs they take (same keys as at registration). */
-    fun saveProfiles(profiles: List<String>) {
+    /** Profile page: one save for the e-mail and, for providers, the skills (which kinds of jobs they see). */
+    fun saveDetails(rawEmail: String, profiles: List<String>?) {
         val u = user ?: return
-        if (!u.isDriver) return
-        if (profiles.isEmpty()) { toast("toastAuthMissingProfiles"); return }
+        val mail = rawEmail.trim().lowercase()
+        if (mail.isEmpty()) { toast("toastAuthMissingFields"); return }
+        if (!isValidEmail(mail)) { toast("toastInvalidEmail"); return }
+        if (profiles != null && profiles.isEmpty()) { toast("toastAuthMissingProfiles"); return }
+        val patch = if (profiles != null) mapOf("email" to mail, "profiles" to profiles) else mapOf("email" to mail)
         viewModelScope.launch {
             busy = true
             try {
-                api.update("users", u.id, mapOf("profiles" to profiles))
-                user = user?.copy(profiles = profiles)
-                toast("toastProfileSaved")
-                refreshAll()
+                api.update("users", u.id, patch)
+                user = user?.copy(email = mail, profiles = profiles ?: u.profiles)
+                toast("toastAccountSaved")
+                if (profiles != null) refreshAll()
             } catch (e: Exception) { toast("toastSaveFailed") }
             finally { busy = false }
         }

@@ -203,8 +203,7 @@ fun ProfileScreen(store: Store, onLogin: () -> Unit) {
                 }
             }
         }
-        if (u != null && u.isDriver) ProfileEditCard(store)
-        if (u != null && u.role != "admin") EmailEditCard(store)
+        if (u != null && u.role != "admin") AccountDetailsCard(store)
         LangPills(store, light = true)
         if (store.isDriver && store.locationDenied) Footnote(store.tr("track.shareDenied"), DizDanger)
         LinkButton(store.tr("account.privacy")) { openUrl(context, Config.PRIVACY_URL) }

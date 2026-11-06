@@ -162,15 +162,22 @@ fun EmailEditCard(store: Store, nudge: Boolean = false) {
     }
 }
 
-/** A provider's skills (job types they see), editable in the profile like on the web. */
+/** Profile page: e-mail and, for providers, skills (job types they see), saved with one button like on the web. */
 @Composable
-fun ProfileEditCard(store: Store) {
-    var picked by remember(store.user?.id) { mutableStateOf(store.user?.profiles?.toSet() ?: emptySet()) }
+fun AccountDetailsCard(store: Store) {
+    val u = store.user ?: return
+    var email by remember(u.id) { mutableStateOf(u.email ?: "") }
+    var picked by remember(u.id) { mutableStateOf(u.profiles.toSet()) }
     Card {
-        FieldLabel(store.tr("profileEditTitle"))
-        ProfileRow(store.tr("profileDriver"), "driver" in picked) { picked = picked.toggle("driver") }
-        ProfileRow(store.tr("profileTowing"), "towing" in picked) { picked = picked.toggle("towing") }
-        proCats.forEach { c -> ProfileRow(store.tr("services.pro.categories.$c"), c in picked) { picked = picked.toggle(c) } }
-        PrimaryButton(store.tr("profileSaveBtn"), enabled = !store.busy) { store.saveProfiles(picked.sorted()) }
+        EmailField(email, { email = it }, store.tr("authEmailLabel"))
+        if (u.isDriver) {
+            FieldLabel(store.tr("profileEditTitle"))
+            ProfileRow(store.tr("profileDriver"), "driver" in picked) { picked = picked.toggle("driver") }
+            ProfileRow(store.tr("profileTowing"), "towing" in picked) { picked = picked.toggle("towing") }
+            proCats.forEach { c -> ProfileRow(store.tr("services.pro.categories.$c"), c in picked) { picked = picked.toggle(c) } }
+        }
+        PrimaryButton(store.tr("accountSaveBtn"), enabled = !store.busy) {
+            store.saveDetails(email, if (u.isDriver) picked.sorted() else null)
+        }
     }
 }
