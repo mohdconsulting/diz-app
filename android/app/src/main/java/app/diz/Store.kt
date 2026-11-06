@@ -116,15 +116,17 @@ class Store(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun register(name: String, phone: String, password: String, role: String, profiles: List<String>) {
+    fun register(name: String, phone: String, realEmail: String, password: String, role: String, profiles: List<String>) {
         val email = Config.authEmail(phone)
-        if (name.isBlank() || email.isEmpty() || password.isEmpty()) { toast("toastAuthMissingFields"); return }
+        val mail = realEmail.trim().lowercase()
+        if (name.isBlank() || email.isEmpty() || password.isEmpty() || mail.isEmpty()) { toast("toastAuthMissingFields"); return }
+        if (!isValidEmail(mail)) { toast("toastInvalidEmail"); return }
         if (password.length < 6) { toast("toastPasswordShort"); return }
         if (role == "driver" && profiles.isEmpty()) { toast("toastAuthMissingProfiles"); return }
         viewModelScope.launch {
             busy = true
             try {
-                val meta = mapOf("name" to name.trim(), "phone" to phone, "role" to role, "profiles" to if (role == "driver") profiles else emptyList<String>())
+                val meta = mapOf("name" to name.trim(), "phone" to phone, "role" to role, "profiles" to if (role == "driver") profiles else emptyList<String>(), "email" to mail)
                 val s = api.signUp(email, password, meta)
                 if (s == null) { toast("toastAuthNeedsConfirm"); return@launch }
                 val u = fetchUser(s.userId, 6)
@@ -136,6 +138,36 @@ class Store(app: Application) : AndroidViewModel(app) {
                 val m = e.message.lowercase()
                 if (m.contains("already") || m.contains("registered")) toast("toastAuthPhoneTaken") else toastRaw(e.message)
             } catch (e: Exception) { toast("toastDbUnavailable") }
+            finally { busy = false }
+        }
+    }
+
+    /** "Forgot password": the server mails a reset link to the account's e-mail. It always answers ok,
+     *  so the app never learns whether the number exists. */
+    fun requestPasswordReset(phone: String, onSent: () -> Unit) {
+        if (Config.authEmail(phone).isEmpty()) { toast("toastAuthMissingFields"); return }
+        viewModelScope.launch {
+            busy = true
+            try {
+                api.invokePublic("request-password-reset", mapOf("phone" to phone, "lang" to lang.code))
+                onSent()
+            } catch (e: Exception) { toast("toastDbUnavailable") }
+            finally { busy = false }
+        }
+    }
+
+    fun saveEmail(raw: String) {
+        val u = user ?: return
+        val mail = raw.trim().lowercase()
+        if (mail.isEmpty()) { toast("toastAuthMissingFields"); return }
+        if (!isValidEmail(mail)) { toast("toastInvalidEmail"); return }
+        viewModelScope.launch {
+            busy = true
+            try {
+                api.update("users", u.id, mapOf("email" to mail))
+                user = user?.copy(email = mail)
+                toast("toastAccountSaved")
+            } catch (e: Exception) { toast("toastSaveFailed") }
             finally { busy = false }
         }
     }
@@ -394,3 +426,5 @@ class Store(app: Application) : AndroidViewModel(app) {
 
     companion object { fun nowMs(): Long = System.currentTimeMillis() }
 }
+
+fun isValidEmail(s: String): Boolean = Regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$").matches(s.trim())

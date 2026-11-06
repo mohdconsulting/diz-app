@@ -154,4 +154,7 @@ class Api(context: Context) {
 
     /** Returns the raw response text (JSON or empty). */
     suspend fun rpc(fn: String, args: Map<String, Any?> = emptyMap()): String = call("POST", "/rest/v1/rpc/$fn", body = args)
+
+    /** Calls a public Edge Function (deployed with --no-verify-jwt), e.g. request-password-reset. */
+    suspend fun invokePublic(fn: String, body: Map<String, Any?>) { raw("POST", "/functions/v1/$fn", body = body, auth = false) }
 }

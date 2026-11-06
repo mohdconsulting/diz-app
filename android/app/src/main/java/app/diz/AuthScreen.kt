@@ -18,6 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,9 +26,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -40,6 +43,9 @@ fun AuthScreen(store: Store, onClose: () -> Unit) {
     var name by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var forgot by remember { mutableStateOf(false) }
+    var resetSent by remember { mutableStateOf(false) }
     var role by remember { mutableStateOf("customer") }
     var profiles by remember { mutableStateOf(setOf<String>()) }
 
@@ -57,6 +63,17 @@ fun AuthScreen(store: Store, onClose: () -> Unit) {
                     Box(Modifier.background(DizAmber, CircleShape).padding(3.5.dp))
                     Text("دز  Diz", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = DizBrand)
                 }
+                if (forgot) {
+                    // "Forgot password": the e-mailed link opens the web app, where the new password is chosen.
+                    LangPills(store, light = true)
+                    Text(store.tr("forgotTitle"), fontSize = 21.sp, fontWeight = FontWeight.SemiBold)
+                    Text(store.tr("forgotText"), color = DizMuted, fontSize = 13.5.sp)
+                    DigitField(phone, { phone = it }, store.tr("authPhoneLabel"), phone = true)
+                    PrimaryButton(store.tr("forgotSend"), enabled = !store.busy) { store.requestPasswordReset(phone) { resetSent = true } }
+                    if (resetSent) Text(store.tr("forgotSent"), color = DizBrand, fontSize = 13.sp)
+                    LinkButton(store.tr("forgotBack")) { forgot = false; resetSent = false }
+                    return@Column
+                }
                 Text(store.tr(if (registering) "authSubtitleRegister" else "authSubtitleLogin"), color = DizMuted, fontSize = 13.5.sp)
                 LangPills(store, light = true)
                 Text(store.tr(if (registering) "authTitleRegister" else "authTitleLogin"), fontSize = 21.sp, fontWeight = FontWeight.SemiBold)
@@ -65,6 +82,7 @@ fun AuthScreen(store: Store, onClose: () -> Unit) {
                     OutlinedTextField(name, { name = it }, label = { Text(store.tr("authNameLabel")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 }
                 DigitField(phone, { phone = it }, store.tr("authPhoneLabel"), phone = true)
+                if (registering) EmailField(email, { email = it }, store.tr("authEmailLabel"))
                 OutlinedTextField(
                     password, { password = it }, label = { Text(store.tr("authPassLabel")) }, singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
@@ -88,7 +106,7 @@ fun AuthScreen(store: Store, onClose: () -> Unit) {
                 }
 
                 PrimaryButton(store.tr(if (registering) "authSubmitRegister" else "authSubmitLogin"), enabled = !store.busy) {
-                    if (registering) store.register(name, phone, password, role, if (role == "driver") profiles.sorted() else emptyList())
+                    if (registering) store.register(name, phone, email, password, role, if (role == "driver") profiles.sorted() else emptyList())
                     else store.login(phone, password)
                 }
 
@@ -96,6 +114,7 @@ fun AuthScreen(store: Store, onClose: () -> Unit) {
                     Text(store.tr(if (registering) "authSwitchTextRegister" else "authSwitchTextLogin"), color = DizMuted, fontSize = 14.sp)
                     LinkButton(store.tr(if (registering) "authSwitchBtnRegister" else "authSwitchBtnLogin")) { registering = !registering }
                 }
+                if (!registering) LinkButton(store.tr("forgotLink")) { forgot = true; resetSent = false }
             }
         }
     }
@@ -117,5 +136,28 @@ private fun ProfileRow(title: String, on: Boolean, onClick: () -> Unit) {
     ) {
         Text(if (on) "☑" else "☐", color = if (on) Color.White else DizInk)
         Text(title, color = if (on) Color.White else DizInk, fontSize = 14.sp)
+    }
+}
+
+/** E-mail field (always left-to-right, e-mail keyboard). */
+@Composable
+fun EmailField(value: String, onChange: (String) -> Unit, label: String) {
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+        OutlinedTextField(
+            value, { onChange(it.trim()) }, label = { Text(label) }, singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+}
+
+/** E-mail used for password reset. Shown in the profile, and on the home screen while the account has none. */
+@Composable
+fun EmailEditCard(store: Store, nudge: Boolean = false) {
+    var email by remember(store.user?.id) { mutableStateOf(store.user?.email ?: "") }
+    Card {
+        Text(store.tr(if (nudge) "emailNudge" else "authEmailLabel"), color = if (nudge) DizInk else DizMuted, fontSize = 13.sp)
+        EmailField(email, { email = it }, store.tr("authEmailLabel"))
+        PrimaryButton(store.tr(if (nudge) "emailNudgeBtn" else "accountSaveBtn"), enabled = !store.busy) { store.saveEmail(email) }
     }
 }

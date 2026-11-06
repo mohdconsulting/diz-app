@@ -110,13 +110,15 @@ data class Job(
     }
 }
 
-data class AppUser(val id: String, val phone: String, val name: String, val role: String, val profiles: List<String>) {
+data class AppUser(val id: String, val phone: String, val name: String, val role: String, val profiles: List<String>,
+                   val email: String? = null) {   // email: real address for password reset (diz_password_reset.sql)
     val isDriver: Boolean get() = role == "driver"
 
     companion object {
         fun from(o: JSONObject) = AppUser(
             id = o.getString("id"), phone = o.getString("phone"), name = o.str("name") ?: "", role = o.str("role") ?: "customer",
             profiles = o.optJSONArray("profiles")?.let { a -> (0 until a.length()).map { a.getString(it) } } ?: emptyList(),
+            email = o.str("email"),
         )
     }
 }

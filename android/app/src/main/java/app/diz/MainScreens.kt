@@ -160,6 +160,8 @@ fun HomeScreen(store: Store, onStart: () -> Unit) {
             }
         }
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            val u = store.user
+            if (u != null && u.role != "admin" && u.email.isNullOrBlank()) EmailEditCard(store, nudge = true)
             if (store.user != null) {
                 SectionTitle(store.tr("recentTitle"))
                 if (mine.isEmpty()) EmptyBox(store.tr("emptyHome")) else mine.take(3).forEach { JobCard(store, it) }
@@ -201,6 +203,7 @@ fun ProfileScreen(store: Store, onLogin: () -> Unit) {
                 }
             }
         }
+        if (u != null && u.role != "admin") EmailEditCard(store)
         LangPills(store, light = true)
         if (store.isDriver && store.locationDenied) Footnote(store.tr("track.shareDenied"), DizDanger)
         LinkButton(store.tr("account.privacy")) { openUrl(context, Config.PRIVACY_URL) }
