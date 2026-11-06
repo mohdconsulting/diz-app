@@ -49,9 +49,11 @@
   "categories": [
    "electrician",
    "plumber",
-   "gardener",
+   "smith",
+   "appliance_repair",
+   "cleaner",
    "painter",
-   "cleaner"
+   "pest_control"
   ],
   "sizes": [
    1,

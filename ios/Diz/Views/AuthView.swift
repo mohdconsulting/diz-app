@@ -11,7 +11,7 @@ struct AuthView: View {
     @State private var role = "customer"
     @State private var profiles: Set<String> = []
 
-    private let proCats = ["electrician", "plumber", "gardener", "painter", "cleaner"]
+    private let proCats = ["electrician", "plumber", "smith", "appliance_repair", "cleaner", "painter", "pest_control"]
 
     var body: some View {
         NavigationStack {
