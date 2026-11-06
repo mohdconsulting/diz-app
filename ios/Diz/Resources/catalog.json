@@ -30,20 +30,6 @@
   ]
  },
  {
-  "key": "goods",
-  "needsToAddr": false,
-  "categories": [
-   "groceries",
-   "pharmacy",
-   "electronics",
-   "furniture"
-  ],
-  "sizes": [
-   1,
-   2
-  ]
- },
- {
   "key": "pro",
   "needsToAddr": false,
   "categories": [
@@ -74,20 +60,6 @@
    1,
    2,
    3
-  ]
- },
- {
-  "key": "deliver",
-  "needsToAddr": true,
-  "categories": [
-   "document",
-   "package",
-   "fragile",
-   "food"
-  ],
-  "sizes": [
-   1,
-   2
   ]
  }
 ]
