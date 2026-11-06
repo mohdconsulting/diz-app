@@ -37,14 +37,11 @@ fun NewRequestScreen(store: Store, onLogin: () -> Unit) {
     var desc by remember { mutableStateOf("") }
     var addr by remember { mutableStateOf("") }
     var toAddr by remember { mutableStateOf("") }
-    var custom by remember { mutableStateOf(false) }
     var customPrice by remember { mutableStateOf("") }
     var schedule by remember { mutableStateOf(ScheduleChoice()) }
     val scope = rememberCoroutineScope()
 
     val info = Strings.service(service)
-    val estimate = Pricing.price(service, size, cat)
-    val finalPrice = if (custom) customPrice.intValue else estimate
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         SectionTitle(store.tr("serviceSelectTitle"))
@@ -85,26 +82,14 @@ fun NewRequestScreen(store: Store, onLogin: () -> Unit) {
             ScheduleSection(store, schedule) { schedule = it }
             CashBanner(store.tr("cash.formText"), store.tr("cash.formTitle"))
 
-            Row(
-                Modifier.fillMaxWidth().background(DizSoft).border(1.dp, DizBrand).padding(horizontal = 14.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(store.tr("estimateLabel"), fontSize = 14.sp)
-                    Text(store.tr(if (custom) "estimateSubCustom" else "estimateSub"), fontSize = 11.5.sp, color = DizMuted)
-                }
-                Text(if (custom) (if (customPrice.isEmpty()) "–" else store.money(finalPrice)) else store.money(estimate),
-                    fontSize = 20.sp, fontWeight = FontWeight.Bold)
-            }
-            ChipRow { Chip(store.tr("customPriceChipLabel"), custom) { custom = !custom } }
-            if (custom) DigitField(customPrice, { customPrice = it }, store.tr("customPriceLabel"))
+            DigitField(customPrice, { customPrice = it }, store.tr("customPriceLabel"))
 
             PrimaryButton(store.tr(if (store.user == null) "guest.submit" else "submitBtn"), enabled = !store.busy) {
                 if (store.user == null) { onLogin(); return@PrimaryButton }
                 scope.launch {
-                    val ok = store.createJob(service, cat, size, desc, addr, toAddr, finalPrice, schedule)
+                    val ok = store.createJob(service, cat, size, desc, addr, toAddr, customPrice.intValue, schedule)
                     if (ok) {
-                        desc = ""; addr = ""; toAddr = ""; cat = null; size = null; custom = false; customPrice = ""
+                        desc = ""; addr = ""; toAddr = ""; cat = null; size = null; customPrice = ""
                         schedule = ScheduleChoice(); picked = false
                     }
                 }

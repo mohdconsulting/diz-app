@@ -19,13 +19,6 @@ class DizTest {
         assertEquals("", Config.authEmail("+ "))
     }
 
-    @Test fun priceTable() {
-        assertEquals(25000, Pricing.price("junk", 1, null))
-        assertEquals(50000, Pricing.price("towing", 2, "transport"))   // 60000 - 10000
-        assertEquals(35000, Pricing.price("pro", null, "electrician"))
-        assertEquals(30000, Pricing.price("pro", null, "pest_control"))
-    }
-
     @Test fun slotSelectionExtendsAndShrinks() {
         val h = Scheduling.SLOT_MS
         val a = 1_000_000_000_000L
