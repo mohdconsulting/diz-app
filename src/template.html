@@ -29,6 +29,7 @@
       <h2 id="authTitle"></h2>
       <p class="sub" id="authSubtitle"></p>
 
+      <div id="authMainWrap">
       <div id="authNameWrap">
         <label id="authNameLabel"></label>
         <input type="text" id="authNameInput">
@@ -36,6 +37,11 @@
 
       <label id="authPhoneLabel"></label>
       <input type="text" id="authPhoneInput">
+
+      <div id="authEmailWrap">
+        <label id="authEmailLabel"></label>
+        <input type="email" id="authEmailInput" autocomplete="email" dir="ltr">
+      </div>
 
       <label id="authPassLabel"></label>
       <input type="password" id="authPassInput">
@@ -58,6 +64,32 @@
       <div class="auth-switch">
         <span id="authSwitchText"></span> <button onclick="toggleAuthMode()" id="authSwitchBtn"></button>
       </div>
+      <div class="auth-switch" id="authForgotRow">
+        <button onclick="openForgot()" id="authForgotBtn"></button>
+      </div>
+      </div>
+
+      <!-- forgotten password: ask for a reset link -->
+      <div id="authForgotWrap" style="display:none;">
+        <label id="forgotPhoneLabel"></label>
+        <input type="text" id="forgotPhoneInput">
+        <div style="margin-top:18px;">
+          <button class="primary" id="forgotSendBtn" onclick="sendResetLink()"></button>
+        </div>
+        <p class="auth-note" id="forgotNote"></p>
+        <div class="auth-switch"><button onclick="closeForgot()" id="forgotBackBtn"></button></div>
+      </div>
+
+      <!-- opened from the e-mailed link: choose a new password -->
+      <div id="authResetWrap" style="display:none;">
+        <label id="resetNewLabel"></label>
+        <input type="password" id="resetNewInput" autocomplete="new-password">
+        <label id="resetRepeatLabel"></label>
+        <input type="password" id="resetRepeatInput" autocomplete="new-password">
+        <div style="margin-top:18px;">
+          <button class="primary" id="resetSaveBtn" onclick="saveNewPassword()"></button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -77,6 +109,10 @@
   </header>
 
   <main>
+    <div class="cash-note" id="emailNudge" style="display:none;margin:0 0 14px;">
+      <span id="emailNudgeText"></span>
+      <div style="margin-top:8px;"><button class="secondary" id="emailNudgeBtn" onclick="openEmailEdit()"></button></div>
+    </div>
 
     <!-- HOME -->
     <section class="screen active" data-screen="home">
@@ -158,6 +194,8 @@
         <input type="text" id="accountNameInput">
         <label id="accountPhoneLabel"></label>
         <input type="text" id="accountPhoneInput">
+        <label id="accountEmailLabel"></label>
+        <input type="email" id="accountEmailInput" autocomplete="email" dir="ltr">
         <div style="margin-top:10px;">
           <button class="secondary" id="accountSaveBtn" onclick="saveAccountDetails()"></button>
         </div>

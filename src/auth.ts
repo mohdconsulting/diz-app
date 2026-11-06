@@ -8,7 +8,7 @@ import { $ } from './util';
 import { createSupabaseDbShim, SUPABASE_URL, SUPABASE_ANON_KEY } from './db';
 import { type AppUser } from './types';
 import { toast } from './util';
-import { role, setRole, setJobs, dbRef, setDbRef, currentUser, setCurrentUser, authMode, setAuthMode, authSelectedRole, setAuthSelectedRole, authSelectedProfiles, setAuthSelectedProfiles, editProfiles, setEditProfiles, t, me, db, sb, sbRef, setSbRef, unsubJobs, setUnsubJobs } from './state';
+import { lang, role, setRole, setJobs, dbRef, setDbRef, currentUser, setCurrentUser, authMode, setAuthMode, authSelectedRole, setAuthSelectedRole, authSelectedProfiles, setAuthSelectedProfiles, editProfiles, setEditProfiles, t, me, db, sb, sbRef, setSbRef, unsubJobs, setUnsubJobs } from './state';
 import { setSeenSet, setShownSigs, setNotifiedSigs, setFirstSnapshotDone, loadSeen, unseenEvents, markShownSeen, updateBadges } from './notifications';
 import { subscribeJobs, applyRoleUI, goTo, refreshCurrentScreen } from './shell';
 import { roleLabel } from './jobs';
@@ -31,11 +31,31 @@ export function profileOptions(){
   return opts;
 }
 
+/** Which part of the sign-in card is shown: the normal form, "forgot password", or "choose a new password". */
+let authPanel: 'main' | 'forgot' | 'reset' = 'main';
+
+export function isValidEmail(v: string): boolean { return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.trim()); }
+
 export function renderAuth(){
   const d = t();
   const isRegister = authMode === 'register';
+  $('authMainWrap').style.display = authPanel === 'main' ? 'block' : 'none';
+  $('authForgotWrap').style.display = authPanel === 'forgot' ? 'block' : 'none';
+  $('authResetWrap').style.display = authPanel === 'reset' ? 'block' : 'none';
+  $('forgotPhoneLabel').textContent = d.authPhoneLabel;
+  $('forgotSendBtn').textContent = d.forgotSend;
+  $('forgotBackBtn').textContent = d.forgotBack;
+  $('resetNewLabel').textContent = d.resetNewLabel;
+  $('resetRepeatLabel').textContent = d.resetRepeatLabel;
+  $('resetSaveBtn').textContent = d.resetSave;
+  if(authPanel === 'forgot'){ $('authTitle').textContent = d.forgotTitle; $('authSubtitle').textContent = d.forgotText; return; }
+  if(authPanel === 'reset'){ $('authTitle').textContent = d.resetTitle; $('authSubtitle').textContent = ''; return; }
   $('authTitle').textContent = isRegister ? d.authTitleRegister : d.authTitleLogin;
   $('authSubtitle').textContent = isRegister ? d.authSubtitleRegister : d.authSubtitleLogin;
+  $('authEmailWrap').style.display = isRegister ? 'block' : 'none';
+  $('authEmailLabel').textContent = d.authEmailLabel;
+  $('authForgotRow').style.display = isRegister ? 'none' : 'block';
+  $('authForgotBtn').textContent = d.forgotLink;
   $('authNameWrap').style.display = isRegister ? 'block' : 'none';
   $('authNameLabel').textContent = d.authNameLabel;
   $('authPhoneLabel').textContent = d.authPhoneLabel;
@@ -101,7 +121,9 @@ export async function submitAuth(){
   const email = authEmail(phone);
   if(authMode === 'register'){
     const name = $<HTMLInputElement>('authNameInput').value.trim();
-    if(!name || !phone || !pass || !email){ toast(d.toastAuthMissingFields); return; }
+    const realEmail = $<HTMLInputElement>('authEmailInput').value.trim().toLowerCase();
+    if(!name || !phone || !pass || !email || !realEmail){ toast(d.toastAuthMissingFields); return; }
+    if(!isValidEmail(realEmail)){ toast(d.toastInvalidEmail); return; }
     if(!authSelectedRole){ toast(d.toastAuthMissingRole); return; }
     if(authSelectedRole==='driver' && authSelectedProfiles.size===0){ toast(d.toastAuthMissingProfiles); return; }
     if(pass.length < 6){ toast(d.toastPasswordShort); return; }
@@ -109,7 +131,7 @@ export async function submitAuth(){
     try{
       const { data, error } = await sb().auth.signUp({
         email, password: pass,
-        options: { data: { name, phone, role: authSelectedRole, profiles } }
+        options: { data: { name, phone, role: authSelectedRole, profiles, email: realEmail } }
       });
       if(error){
         console.error('signUp failed', error);
@@ -138,6 +160,8 @@ export function enterApp(){
   $<HTMLInputElement>('authPhoneInput').value = '';
   $<HTMLInputElement>('authPassInput').value = '';
   $<HTMLInputElement>('authNameInput').value = '';
+  $<HTMLInputElement>('authEmailInput').value = '';
+  authPanel = 'main';
   setAuthSelectedRole(null);
   loadSeen();
   setShownSigs(new Set());
@@ -160,6 +184,80 @@ export function updateUserRow(){
   $('userGreeting').textContent =
     `${d.greetingPrefix}, ${me().name} · ${roleLabel()}`;
   $('logoutBtn').textContent = d.logoutBtn;
+  updateEmailNudge();
+}
+
+/** Accounts made before e-mail was required are asked to add one (needed for password reset). */
+export function updateEmailNudge(){
+  const show = !!currentUser && role !== 'admin' && !me().email;
+  $('emailNudge').style.display = show ? 'block' : 'none';
+  if(!show) return;
+  $('emailNudgeText').textContent = t().emailNudge;
+  $('emailNudgeBtn').textContent = t().emailNudgeBtn;
+}
+export function openEmailEdit(){
+  goTo('mine');
+  setTimeout(()=>{ const el = $<HTMLInputElement>('accountEmailInput'); el.scrollIntoView({block:'center'}); el.focus(); }, 50);
+}
+
+/* ---------- FORGOTTEN PASSWORD ---------- */
+export function openForgot(){
+  authPanel = 'forgot';
+  $<HTMLInputElement>('forgotPhoneInput').value = $<HTMLInputElement>('authPhoneInput').value;
+  $('forgotNote').textContent = '';
+  renderAuth();
+}
+export function closeForgot(){ authPanel = 'main'; renderAuth(); }
+
+export async function sendResetLink(){
+  const d = t();
+  const phone = $<HTMLInputElement>('forgotPhoneInput').value.trim();
+  if(!phone || !authEmail(phone)){ toast(d.toastAuthMissingFields); return; }
+  if(!sbRef){ toast(d.toastDbUnavailable); return; }
+  const btn = $<HTMLButtonElement>('forgotSendBtn');
+  btn.disabled = true;
+  try{
+    // The function always answers ok, so nobody can tell which numbers have accounts.
+    const { error } = await sb().functions.invoke('request-password-reset', { body: { phone, lang } });
+    if(error) throw error;
+    $('forgotNote').textContent = d.forgotSent;
+  }catch(e){ console.error(e); toast(d.toastSaveFailed); }
+  finally{ btn.disabled = false; }
+}
+
+/** Opened from the e-mailed link (?reset_token=…): exchange the one-time token for a session, then ask for a password. */
+async function handleResetLink(): Promise<boolean> {
+  const params = new URLSearchParams(location.search);
+  const token = params.get('reset_token');
+  if(!token) return false;
+  params.delete('reset_token'); params.delete('lang');
+  const rest = params.toString();
+  history.replaceState(null, '', location.pathname + (rest ? '?' + rest : '') + location.hash);
+  const { error } = await sb().auth.verifyOtp({ token_hash: token, type: 'recovery' });
+  if(error){ console.error(error); toast(t().toastResetLinkInvalid); return false; }
+  authPanel = 'reset';
+  renderAuth();
+  $('authOverlay').style.display = 'flex';
+  return true;
+}
+
+export async function saveNewPassword(){
+  const d = t();
+  const p1 = $<HTMLInputElement>('resetNewInput').value;
+  const p2 = $<HTMLInputElement>('resetRepeatInput').value;
+  if(p1.length < 6){ toast(d.toastPasswordShort); return; }
+  if(p1 !== p2){ toast(d.toastPasswordMismatch); return; }
+  const btn = $<HTMLButtonElement>('resetSaveBtn');
+  btn.disabled = true;
+  try{
+    const { data, error } = await sb().auth.updateUser({ password: p1 });
+    if(error || !data.user){ console.error(error); toast(d.toastResetLinkInvalid); return; }
+    $<HTMLInputElement>('resetNewInput').value = ''; $<HTMLInputElement>('resetRepeatInput').value = '';
+    toast(d.toastPasswordChanged);
+    authPanel = 'main';
+    if(await loadProfile(data.user.id)) enterApp(); else renderAuth();
+  }catch(e){ console.error(e); toast(d.toastSaveFailed); }
+  finally{ btn.disabled = false; }
 }
 
 export async function logout(){
@@ -179,7 +277,9 @@ export async function logout(){
   updateBadges();
   setEditProfiles(null);
   setAuthMode('login');
+  authPanel = 'main';
   renderAuth();
+  updateEmailNudge();
   $('authOverlay').style.display = 'flex';
 }
 
@@ -187,6 +287,9 @@ export function renderAccountEdit(){
   $('accountEditTitle').textContent = t().accountEditTitle;
   $('accountNameLabel').textContent = t().authNameLabel;
   $('accountPhoneLabel').textContent = t().authPhoneLabel;
+  $('accountEmailLabel').textContent = t().authEmailLabel;
+  const emailInput = $<HTMLInputElement>('accountEmailInput');
+  if(document.activeElement !== emailInput) emailInput.value = me().email ?? '';
   $('accountSaveBtn').textContent = t().accountSaveBtn;
   const nameInput = $<HTMLInputElement>('accountNameInput');
   const phoneInput = $<HTMLInputElement>('accountPhoneInput');
@@ -199,10 +302,13 @@ export async function saveAccountDetails(){
   if(!dbRef || !currentUser) return;
   const d = t();
   const newName = $<HTMLInputElement>('accountNameInput').value.trim();
-  if(!newName){ toast(d.toastAuthMissingFields); return; }
+  const newEmail = $<HTMLInputElement>('accountEmailInput').value.trim().toLowerCase();
+  if(!newName || !newEmail){ toast(d.toastAuthMissingFields); return; }
+  if(!isValidEmail(newEmail)){ toast(d.toastInvalidEmail); return; }
   try{
-    await db().user(me().id).update({name:newName});
+    await db().user(me().id).update({name:newName, email:newEmail});
     me().name = newName;
+    me().email = newEmail;
     toast(d.toastAccountSaved);
     updateUserRow();
   }catch(e){ toast(d.toastSaveFailed); }
@@ -261,6 +367,9 @@ export async function boot(){
     $('authOverlay').style.display = 'flex';
     return;
   }
+
+  // Opened from a password-reset e-mail?
+  try{ if(await handleResetLink()) return; }catch(e){ console.error(e); }
 
   // Restore an existing Supabase session (stored by supabase-js in the browser)
   try{
