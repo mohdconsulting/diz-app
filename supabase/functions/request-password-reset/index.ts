@@ -55,6 +55,19 @@ function normalizePhone(p: unknown): string {
     .toLowerCase();
 }
 
+/** RESEND_FROM as typed in the dashboard: strips surrounding quotes, odd brackets and extra spaces.
+ *  Returns null (and the caller logs the raw value) when it still isn't "a@b.c" or "Name <a@b.c>". */
+function cleanFrom(raw: string | undefined): string | null {
+  if (!raw) return null;
+  const s = raw.normalize('NFKC').trim()
+    .replace(/^["'“”‘’«»]+|["'“”‘’«»]+$/g, '').trim()
+    .replace(/[‹〈＜]/g, '<').replace(/[›〉＞]/g, '>')
+    .replace(/[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g, '')   // invisible direction/zero-width marks
+    .replace(/\s+/g, ' ');
+  const addr = '[^<>\\s@"]+@[^<>\\s@"]+\\.[^<>\\s@"]+';
+  return new RegExp(`^(${addr}|[^<>@"]*<${addr}>)$`).test(s) ? s : null;
+}
+
 function mailHtml(lang: Lang, name: string, phone: string, link: string): string {
   const t = T[lang];
   const fill = (s: string) => esc(s).replace('{name}', esc(name)).replace('{phone}', esc(phone));
@@ -107,11 +120,17 @@ Deno.serve(async (req) => {
     appUrl.searchParams.set('lang', lang);
 
     // 4) Send it with Resend.
+    const rawFrom = Deno.env.get('RESEND_FROM');
+    const from = cleanFrom(rawFrom);
+    if (!from) {
+      console.error('RESEND_FROM is not a valid sender. Use: Diz <no-reply@your-verified-domain>. Got:', JSON.stringify(rawFrom ?? null));
+      return json({ ok: true });
+    }
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: `Bearer ${Deno.env.get('RESEND_API_KEY')}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        from: Deno.env.get('RESEND_FROM') ?? 'Diz <onboarding@resend.dev>',
+        from,
         to: [row.email],
         subject: T[lang].subject,
         html: mailHtml(lang, row.name ?? '', String(body?.phone ?? ''), appUrl.toString()),
