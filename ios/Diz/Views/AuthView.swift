@@ -13,7 +13,7 @@ struct AuthView: View {
     @State private var role = "customer"
     @State private var profiles: Set<String> = []
 
-    private let proCats = ProfileEditCard.proCats
+    private let proCats = AccountDetailsCard.proCats
 
     var body: some View {
         NavigationStack {
@@ -191,11 +191,12 @@ struct EmailEditCard: View {
     }
 }
 
-/// A provider's skills (job types they see), editable in the profile like on the web.
-struct ProfileEditCard: View {
+/// Profile page: e-mail and, for providers, skills (job types they see), saved with one button like on the web.
+struct AccountDetailsCard: View {
     @EnvironmentObject var store: Store
     static let proCats = ["electrician", "plumber", "smith", "appliance_repair", "cleaner", "painter", "pest_control"]
     @State private var picked: Set<String> = []
+    @State private var email = ""
 
     private func title(_ key: String) -> String {
         key == "driver" ? store.tr("profileDriver") : (key == "towing" ? store.tr("profileTowing") : store.tr("services.pro.categories.\(key)"))
@@ -203,28 +204,37 @@ struct ProfileEditCard: View {
 
     var body: some View {
         Card {
-            Text(store.tr("profileEditTitle")).font(.system(size: 12.5, weight: .semibold)).foregroundColor(.dizMuted)
-            ForEach(["driver", "towing"] + ProfileEditCard.proCats, id: \.self) { key in
-                let on = picked.contains(key)
-                Button {
-                    if on { picked.remove(key) } else { picked.insert(key) }
-                } label: {
-                    HStack {
-                        Image(systemName: on ? "checkmark.square.fill" : "square")
-                        Text(title(key))
-                        Spacer()
+            Text(store.tr("authEmailLabel")).font(.system(size: 13)).foregroundColor(.dizMuted)
+            TextInputField(placeholder: store.tr("authEmailLabel"), text: $email, keyboard: .emailAddress).dizInput()
+                .environment(\.layoutDirection, .leftToRight)
+            if store.isDriver {
+                Text(store.tr("profileEditTitle")).font(.system(size: 12.5, weight: .semibold)).foregroundColor(.dizMuted)
+                    .padding(.top, 6)
+                ForEach(["driver", "towing"] + AccountDetailsCard.proCats, id: \.self) { key in
+                    let on = picked.contains(key)
+                    Button {
+                        if on { picked.remove(key) } else { picked.insert(key) }
+                    } label: {
+                        HStack {
+                            Image(systemName: on ? "checkmark.square.fill" : "square")
+                            Text(title(key))
+                            Spacer()
+                        }
+                        .padding(10)
+                        .background(on ? Color.dizBrand : Color.white)
+                        .foregroundColor(on ? .white : .dizInk)
+                        .overlay(Rectangle().stroke(on ? Color.dizBrand : Color.dizLine, lineWidth: 1).allowsHitTesting(false))
                     }
-                    .padding(10)
-                    .background(on ? Color.dizBrand : Color.white)
-                    .foregroundColor(on ? .white : .dizInk)
-                    .overlay(Rectangle().stroke(on ? Color.dizBrand : Color.dizLine, lineWidth: 1).allowsHitTesting(false))
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
-            PrimaryButton(title: store.tr("profileSaveBtn"), disabled: store.busy) {
-                Task { _ = await store.saveProfiles(Array(picked).sorted()) }
+            PrimaryButton(title: store.tr("accountSaveBtn"), disabled: store.busy) {
+                Task { _ = await store.saveDetails(email: email, profiles: store.isDriver ? Array(picked).sorted() : nil) }
             }
         }
-        .onAppear { picked = Set(store.user?.profiles ?? []) }
+        .onAppear {
+            picked = Set(store.user?.profiles ?? [])
+            email = store.user?.email ?? ""
+        }
     }
 }
