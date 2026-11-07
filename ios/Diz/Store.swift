@@ -74,13 +74,12 @@ final class Store: ObservableObject {
         }
     }
 
-    /// Re-reads the provider's own row so an activation by admin shows up without logging in again.
+    /// Re-reads the provider's own activation status, both ways (activated or deactivated by admin).
     func refreshApproval() async {
-        guard isUnapprovedProvider, let id = user?.id, let u = await fetchUser(id: id, retries: 1) else { return }
-        if u.approved != false {
-            user?.approved = u.approved
-            toast("toastNowApproved")
-        }
+        guard isDriver, let id = user?.id, let u = await fetchUser(id: id, retries: 1) else { return }
+        guard let fresh = u.approved, fresh != user?.approved else { return }
+        user?.approved = fresh
+        toast(fresh ? "toastNowApproved" : "toastNotApproved")
     }
 
     private func fetchUser(id: String, retries: Int) async -> AppUser? {
@@ -434,7 +433,7 @@ final class Store: ObservableObject {
 
     // MARK: Provider actions
     func apply(_ j: Job, price: Int, proposal: SlotSelection? = nil) async {
-        if isUnapprovedProvider { await refreshApproval() }
+        await refreshApproval()
         guard !isUnapprovedProvider else { toast("toastNotApproved"); return }
         guard price > 0, let u = user else { toast("toastInvalidOffer"); return }
         var list = j.applicants
@@ -528,7 +527,11 @@ final class Store: ObservableObject {
     // MARK: Internals
     private func patch(_ id: String, _ fields: [String: Any], ok: String) async {
         do { try await api.update("jobs", id: id, fields); toast(ok); await loadJobs(); updateSharing() }
-        catch { toast("toastSaveFailed") }
+        catch {
+            // Deactivated by admin in the meantime: the database refuses the offer.
+            if String(describing: error).contains("provider_not_approved") { user?.approved = false; toast("toastNotApproved") }
+            else { toast("toastSaveFailed") }
+        }
     }
 
     static func nowMs() -> Int64 { Int64(Date().timeIntervalSince1970 * 1000) }
