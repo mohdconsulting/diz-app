@@ -161,8 +161,8 @@ export async function adminSettlePayment(paymentId: string, action: 'payout' | '
 
 // ---------- rendering ----------
 const money = (n: number) => n + ' ' + t().priceUnit;
-const NOTE = 'margin-top:8px;font-size:14.5px;';
-const SUB = 'margin-top:6px;font-size:14px;color:var(--muted);';
+const NOTE = 'margin-top:8px;font-size:16.5px;';
+const SUB = 'margin-top:6px;font-size:16px;color:var(--muted);';
 
 function mockPanelHTML(p: Payment, who: string): string {
   const d = t().pay;
