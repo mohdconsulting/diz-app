@@ -14,14 +14,14 @@ struct DocumentsCard: View {
 
     var body: some View {
         Card {
-            Text(store.tr("docs.title")).font(.system(size: 14, weight: .semibold)).foregroundColor(.dizMuted)
-            Text(store.tr("docs.hint")).font(.system(size: 14)).foregroundColor(.dizMuted)
+            Text(store.tr("docs.title")).font(.system(size: 16, weight: .semibold)).foregroundColor(.dizMuted)
+            Text(store.tr("docs.hint")).font(.system(size: 16)).foregroundColor(.dizMuted)
             if store.myDocs.isEmpty {
                 Text(store.tr("docs.empty")).font(.footnote).foregroundColor(.dizMuted)
             }
             ForEach(store.myDocs) { doc in
                 HStack {
-                    Text("📄 " + doc.fileName).font(.system(size: 14.5)).foregroundColor(.dizInk).lineLimit(1)
+                    Text("📄 " + doc.fileName).font(.system(size: 16.5)).foregroundColor(.dizInk).lineLimit(1)
                     Spacer()
                     Button(store.tr("docs.remove")) { Task { await store.deleteDoc(doc) } }
                         .font(.footnote).foregroundColor(.red).disabled(store.busy)

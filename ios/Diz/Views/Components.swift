@@ -32,7 +32,7 @@ enum DizTheme {
         nav.configureWithOpaqueBackground()
         nav.backgroundColor = teal
         nav.shadowColor = .clear
-        nav.titleTextAttributes = [.foregroundColor: UIColor.white, .font: UIFont.systemFont(ofSize: 20, weight: .semibold)]
+        nav.titleTextAttributes = [.foregroundColor: UIColor.white, .font: UIFont.systemFont(ofSize: 23, weight: .semibold)]
         UINavigationBar.appearance().standardAppearance = nav
         UINavigationBar.appearance().scrollEdgeAppearance = nav
         UINavigationBar.appearance().compactAppearance = nav
@@ -45,9 +45,9 @@ enum DizTheme {
         let muted = UIColor(Color.dizMuted)
         for item in [tab.stackedLayoutAppearance, tab.inlineLayoutAppearance, tab.compactInlineLayoutAppearance] {
             item.normal.iconColor = muted
-            item.normal.titleTextAttributes = [.foregroundColor: muted, .font: UIFont.systemFont(ofSize: 12.5, weight: .semibold)]
+            item.normal.titleTextAttributes = [.foregroundColor: muted, .font: UIFont.systemFont(ofSize: 14.5, weight: .semibold)]
             item.selected.iconColor = teal
-            item.selected.titleTextAttributes = [.foregroundColor: teal, .font: UIFont.systemFont(ofSize: 12.5, weight: .semibold)]
+            item.selected.titleTextAttributes = [.foregroundColor: teal, .font: UIFont.systemFont(ofSize: 14.5, weight: .semibold)]
         }
         UITabBar.appearance().standardAppearance = tab
         UITabBar.appearance().scrollEdgeAppearance = tab
@@ -72,7 +72,7 @@ struct PrimaryButton: View {
     let action: () -> Void
     var body: some View {
         Button(role: role, action: action) {
-            Text(title).font(.system(size: 17, weight: .semibold))
+            Text(title).font(.system(size: 19.5, weight: .semibold))
                 .foregroundColor(role == .destructive ? .dizDanger : .dizInk)
                 .frame(maxWidth: .infinity).padding(.vertical, 13)
                 .background(role == .destructive ? Color.white : Color.dizAmber)
@@ -126,7 +126,7 @@ struct ToastView: View {
     var body: some View {
         if let t = store.toastText {
             Text(t)
-                .font(.system(size: 15)).foregroundColor(.white).multilineTextAlignment(.center)
+                .font(.system(size: 17)).foregroundColor(.white).multilineTextAlignment(.center)
                 .padding(.horizontal, 18).padding(.vertical, 10)
                 .background(Color.dizInk)
                 .padding(.bottom, 90)
@@ -167,7 +167,7 @@ struct StatusBadge: View {
     var color: Color = .dizTeal2
     var dashed = false
     var body: some View {
-        Text(text).font(.system(size: 13)).foregroundColor(color)
+        Text(text).font(.system(size: 15)).foregroundColor(color)
             .padding(.horizontal, 8).padding(.vertical, 3)
             .overlay(Rectangle().stroke(color, style: StrokeStyle(lineWidth: 1, dash: dashed ? [3, 2] : [])).allowsHitTesting(false))
     }
@@ -177,7 +177,7 @@ struct StatusBadge: View {
 struct SecondaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 14.5, weight: .semibold)).foregroundColor(.dizBrand)
+            .font(.system(size: 16.5, weight: .semibold)).foregroundColor(.dizBrand)
             .padding(.horizontal, 12).padding(.vertical, 9)
             .overlay(Rectangle().stroke(Color.dizBrand, lineWidth: 1).allowsHitTesting(false))
             .opacity(configuration.isPressed ? 0.6 : 1)
@@ -197,7 +197,7 @@ extension View { func dizInput() -> some View { modifier(DizInputBox()) } }
 struct EmptyBox: View {
     let text: String
     var body: some View {
-        Text(text).font(.system(size: 15.5)).foregroundColor(.dizMuted).multilineTextAlignment(.center)
+        Text(text).font(.system(size: 18)).foregroundColor(.dizMuted).multilineTextAlignment(.center)
             .frame(maxWidth: .infinity).padding(.vertical, 26).padding(.horizontal, 18)
             .overlay(Rectangle().stroke(Color.dizLine, style: StrokeStyle(lineWidth: 1, dash: [4, 3])).allowsHitTesting(false))
     }
@@ -207,7 +207,7 @@ struct EmptyBox: View {
 struct AmberButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 14.5, weight: .semibold)).foregroundColor(.dizInk)
+            .font(.system(size: 16.5, weight: .semibold)).foregroundColor(.dizInk)
             .padding(.horizontal, 14).padding(.vertical, 10)
             .background(Color.dizAmber)
             .opacity(configuration.isPressed ? 0.85 : 1)
@@ -221,7 +221,7 @@ struct Chip: View {
     let action: () -> Void
     var body: some View {
         Button(action: action) {
-            Text(title).font(.system(size: 14.5))
+            Text(title).font(.system(size: 16.5))
                 .foregroundColor(on ? .white : .dizInk)
                 .padding(.horizontal, 12).padding(.vertical, 7)
                 .background(on ? Color.dizBrand : Color.white)
@@ -259,6 +259,6 @@ struct FlowLayout: Layout {
 struct FieldLabel: View {
     let text: String
     var body: some View {
-        Text(text).font(.system(size: 14)).foregroundColor(.dizMuted).frame(maxWidth: .infinity, alignment: .leading)
+        Text(text).font(.system(size: 16)).foregroundColor(.dizMuted).frame(maxWidth: .infinity, alignment: .leading)
     }
 }

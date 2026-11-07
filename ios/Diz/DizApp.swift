@@ -11,8 +11,8 @@ struct DizApp: App {
             RootView()
                 .environmentObject(store)
                 .preferredColorScheme(.light)
-                // Text one step larger than the system default (but still follows a larger accessibility setting).
-                .dynamicTypeSize(.xLarge ... .accessibility5)
+                // Text two steps larger than the system default (but still follows a larger accessibility setting).
+                .dynamicTypeSize(.xxLarge ... .accessibility5)
                 .environment(\.layoutDirection, store.lang.isRTL ? .rightToLeft : .leftToRight)
                 .task { await store.restore() }
         }

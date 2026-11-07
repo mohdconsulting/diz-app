@@ -65,19 +65,19 @@ struct ProfileView: View {
             VStack(alignment: .leading, spacing: 12) {
                 if store.user == nil {
                     Card {
-                        Text(store.tr("guest.hint")).font(.system(size: 14.5)).foregroundColor(.dizMuted)
+                        Text(store.tr("guest.hint")).font(.system(size: 16.5)).foregroundColor(.dizMuted)
                         PrimaryButton(title: store.tr("guest.signIn")) { showAuth = true }
                     }
                 }
                 if let u = store.user {
                     Card {
-                        Text(u.name).font(.system(size: 19, weight: .semibold)).foregroundColor(.dizInk)
-                        Text(u.phone).font(.system(size: 15.5)).foregroundColor(.dizMuted)
+                        Text(u.name).font(.system(size: 22, weight: .semibold)).foregroundColor(.dizInk)
+                        Text(u.phone).font(.system(size: 18)).foregroundColor(.dizMuted)
                         Text(u.isDriver ? store.tr("roleDriver") : store.tr("roleCustomer"))
-                            .font(.system(size: 15.5)).foregroundColor(.dizMuted)
+                            .font(.system(size: 18)).foregroundColor(.dizMuted)
                         if u.isDriver && !u.profiles.isEmpty {
                             Text(u.profiles.map { $0 == "driver" ? store.tr("profileDriver") : ($0 == "towing" ? store.tr("profileTowing") : store.tr("services.pro.categories.\($0)")) }.joined(separator: ", "))
-                                .font(.system(size: 14)).foregroundColor(.dizMuted)
+                                .font(.system(size: 16)).foregroundColor(.dizMuted)
                         }
                     }
                 }
@@ -85,10 +85,10 @@ struct ProfileView: View {
                 if store.isDriver { DocumentsCard() }
                 HStack { LangPills(light: true); Spacer() }
                 if store.isDriver && store.locationDenied {
-                    Text(store.tr("track.shareDenied")).font(.system(size: 14.5)).foregroundColor(.dizDanger)
+                    Text(store.tr("track.shareDenied")).font(.system(size: 16.5)).foregroundColor(.dizDanger)
                 }
                 Link(store.tr("account.privacy"), destination: Config.privacyURL)
-                    .font(.system(size: 15.5, weight: .semibold)).foregroundColor(.dizTeal2)
+                    .font(.system(size: 18, weight: .semibold)).foregroundColor(.dizTeal2)
                 if store.user != nil {
                     PrimaryButton(title: store.tr("logoutBtn"), role: .destructive) { store.logout() }
                     PrimaryButton(title: store.tr("account.deleteBtn"), role: .destructive) { confirmDelete = true }

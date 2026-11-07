@@ -12,11 +12,11 @@ struct OpenJobsView: View {
         ScrollView {
             LazyVStack(spacing: 12) {
                 if store.isUnapprovedProvider {
-                    Text(store.tr("approvalPending")).font(.system(size: 15)).foregroundColor(.dizInk)
+                    Text(store.tr("approvalPending")).font(.system(size: 17)).foregroundColor(.dizInk)
                         .padding(12).frame(maxWidth: .infinity, alignment: .leading)
                         .background(Color.dizSoft).overlay(Rectangle().stroke(Color.dizLine, lineWidth: 1).allowsHitTesting(false))
                 }
-                Text(store.tr("openJobsTitle")).font(.system(size: 14, weight: .semibold)).foregroundColor(.dizMuted).frame(maxWidth: .infinity, alignment: .leading)
+                Text(store.tr("openJobsTitle")).font(.system(size: 16, weight: .semibold)).foregroundColor(.dizMuted).frame(maxWidth: .infinity, alignment: .leading)
                 if visible.isEmpty { EmptyBox(text: store.tr("emptyJobs")) }
                 ForEach(visible) { JobCardView(job: $0) }
                 if !ignored.isEmpty {
