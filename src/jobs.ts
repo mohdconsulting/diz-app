@@ -6,7 +6,7 @@ import { type Job, type ServiceKey, type Applicant } from './types';
 import { esc, toast, routeLinksHTML, PIN_ADDR } from './util';
 import { role, paymentsMode, selectedService, setSelectedService, selectedCat, setSelectedCat, selectedSize, setSelectedSize, editingJobId, setEditingJobId, photoDataUrl, setPhotoDataUrl, jobs, dbRef, currentUser, t, me, db } from './state';
 import { seenSet, shownSigs, jobEvent } from './notifications';
-import { renderAccountEdit, renderProfileEdit } from './auth';
+import { renderAccountEdit, renderProfileEdit, isUnapprovedProvider, refreshApproval } from './auth';
 import { goTo, refreshCurrentScreen } from './shell';
 import { ad } from './admin';
 import { chatHTML } from './chat';
@@ -375,6 +375,7 @@ export async function applyToJob(id: string, price: number, proposal?: { start: 
   if(!dbRef || !currentUser) return false;
   const j = jobs.find(x=>x.id===id);
   if(!j) return false;
+  if(isUnapprovedProvider() && !(await refreshApproval())){ toast(t().toastNotApproved); return false; }
   const applicants = Array.isArray(j.applicants) ? j.applicants.slice() : [];
   const idx = applicants.findIndex(a=>a.phone===me().phone);
   const entry: Applicant = {phone: me().phone, name: me().name, price, appliedAt: Date.now()};
@@ -437,7 +438,11 @@ export function jobCardHTML(j: Job, courierView: boolean, ignoredView = false): 
     body = `<div style="margin-top:6px;font-size:12px;color:var(--muted);">${d.dismiss.note}</div>
       <div class="action-row"><button class="secondary" onclick="restoreJob('${j.id}')">${d.dismiss.restoreBtn}</button></div>`;
   } else if(courierView){
-    if(j.status==='open'){
+    if(j.status==='open' && isUnapprovedProvider()){
+      // Not activated by admin yet: the job is visible, but no offer controls.
+      body = `<div style="margin-top:6px;font-size:12px;color:var(--muted);">${d.toastNotApproved}</div>
+      <div class="action-row"><button class="secondary" onclick="dismissJob('${j.id}')">${d.dismiss.btn}</button></div>`;
+    } else if(j.status==='open'){
       const mine = applicants.find(a=>a.phone===currentUser?.phone);
       const note = mine
         ? `<div style="margin-top:6px;font-size:12px;color:var(--muted);">${d.yourApplicationNote.replace('{price}', mine.price + ' ' + d.priceUnit)}</div>`

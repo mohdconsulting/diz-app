@@ -187,8 +187,30 @@ export function updateUserRow(){
   updateEmailNudge();
 }
 
+/** Provider not yet activated by admin? (undefined = DB without the column → treat as activated.) */
+export function isUnapprovedProvider(): boolean { return !!currentUser && role === 'driver' && me().approved === false; }
+
+/** Re-reads the provider's own row so an activation by admin shows up without logging in again. */
+export async function refreshApproval(): Promise<boolean> {
+  if(!isUnapprovedProvider() || !dbRef) return !isUnapprovedProvider();
+  try{
+    const snap = await db().user(me().id).get();
+    if(snap.exists && (snap.data() as { approved?: boolean }).approved){
+      me().approved = true;
+      toast(t().toastNowApproved);
+      updateUserRow();
+      refreshCurrentScreen();
+      return true;
+    }
+  }catch(e){ console.error(e); }
+  return false;
+}
+
 /** Accounts made before e-mail was required are asked to add one (needed for password reset). */
 export function updateEmailNudge(){
+  const an = $('approvalNote');
+  an.style.display = isUnapprovedProvider() ? 'block' : 'none';
+  if(isUnapprovedProvider()) an.textContent = t().approvalPending;
   const show = !!currentUser && role !== 'admin' && !me().email;
   $('emailNudge').style.display = show ? 'block' : 'none';
   if(!show) return;
@@ -305,12 +327,18 @@ export async function saveAccountDetails(){
   const newEmail = $<HTMLInputElement>('accountEmailInput').value.trim().toLowerCase();
   if(!newName || !newEmail){ toast(d.toastAuthMissingFields); return; }
   if(!isValidEmail(newEmail)){ toast(d.toastInvalidEmail); return; }
+  // Providers also save their skills with the same button.
+  const isProvider = role === 'driver';
+  const profiles = isProvider ? Array.from(editProfiles ?? new Set(me().profiles || [])) : null;
+  if(isProvider && (!profiles || profiles.length===0)){ toast(d.toastAuthMissingProfiles); return; }
   try{
-    await db().user(me().id).update({name:newName, email:newEmail});
+    await db().user(me().id).update(profiles ? {name:newName, email:newEmail, profiles} : {name:newName, email:newEmail});
     me().name = newName;
     me().email = newEmail;
+    if(profiles) me().profiles = profiles;
     toast(d.toastAccountSaved);
     updateUserRow();
+    if(profiles) refreshCurrentScreen();
   }catch(e){ toast(d.toastSaveFailed); }
 }
 
@@ -324,7 +352,6 @@ export function renderProfileEdit(){
   $('profileEditChips').innerHTML = profileOptions().map(o=>
     `<div class="chip${ep.has(o.key)?' on':''}" data-val="${o.key}">${o.label}</div>`
   ).join('');
-  $('profileSaveBtn').textContent = t().profileSaveBtn;
 }
 
 $('profileEditChips').addEventListener('click', e=>{
@@ -334,18 +361,6 @@ $('profileEditChips').addEventListener('click', e=>{
   if(editProfiles.has(key)) editProfiles.delete(key); else editProfiles.add(key);
   chip.classList.toggle('on');
 });
-
-export async function saveProfile(){
-  if(!dbRef || !currentUser) return;
-  if(!editProfiles || editProfiles.size===0){ toast(t().toastAuthMissingProfiles); return; }
-  const profiles = Array.from(editProfiles);
-  try{
-    await db().user(me().id).update({profiles});
-    me().profiles = profiles;
-    toast(t().toastProfileSaved);
-    refreshCurrentScreen();
-  }catch(e){ toast(t().toastSaveFailed); }
-}
 
 /* ---------- BOOT ---------- */
 export async function boot(){
@@ -367,6 +382,9 @@ export async function boot(){
     $('authOverlay').style.display = 'flex';
     return;
   }
+
+  // A provider waiting for activation sees it as soon as they come back to the app.
+  window.addEventListener('focus', ()=>{ void refreshApproval(); });
 
   // Opened from a password-reset e-mail?
   try{ if(await handleResetLink()) return; }catch(e){ console.error(e); }
