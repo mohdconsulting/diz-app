@@ -31,6 +31,8 @@
       if(table==='job_dismissals'&&st.op==='select'){ const u=session&&db.users.find(x=>x.id===session.user.id); m=m.filter(r=>u&&r.provider_phone===u.phone); }
       if(table==='reviews'&&st.op==='select'){ const u=session&&db.users.find(x=>x.id===session.user.id); m=m.filter(r=>u&&(u.role==='admin'||r.customer_phone===u.phone||(r.provider_phone===u.phone&&!r.hidden))); }
       if(table==='messages'&&st.op==='select'){ const u=session&&db.users.find(x=>x.id===session.user.id); m=m.filter(r=>u&&(u.role==='admin'||r.sender_phone===u.phone||r.recipient_phone===u.phone)); }
+      // like PostgREST: only the selected columns come back (catches a forgotten column in the app's select list)
+      if(st.op==='select'&&st.sel&&st.sel!=='*'&&!st.sel.includes('(')){ const cols=st.sel.split(',').map(x=>x.trim()); m=m.map(r=>Object.fromEntries(cols.filter(c=>c in r).map(c=>[c,r[c]]))); }
       if(st.op==='select'){ if(st.maybe) return {data:m[0]||null,error:null}; return {data:m,error:null}; }
       if(st.op==='insert'){ const r={id:'n'+Math.random().toString(16).slice(2),...st.payload}; T.push(r); return {data:st.single?r:[r],error:null}; }
       if(st.op==='upsert'){ const k=table==='admin_notes'?'job_id':'id'; const i=T.findIndex(r=>r[k]===st.payload[k]); if(i>=0) Object.assign(T[i],st.payload); else T.push(st.payload); return {error:null}; }

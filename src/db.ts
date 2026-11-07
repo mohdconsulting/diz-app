@@ -196,8 +196,8 @@ export function createSupabaseDbShim(sb: SbClient): DbShim {
   function usersCollection(): UsersCollection {
     return {
       async get() {
-        // password column no longer exists; select explicit columns anyway
-        const { data, error } = await sb.from('users').select('id,phone,name,role,profiles,created_at');
+        // All columns (approved, email, …): an explicit list here once hid the providers' activation status from admin.
+        const { data, error } = await sb.from('users').select('*');
         if (error) throw error;
         const rows = data as Row[];
         return { empty: rows.length === 0, docs: rows.map(r => makeSnapshot(r.id as string, rowToUserObj(r))) };
