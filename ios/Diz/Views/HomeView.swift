@@ -24,7 +24,7 @@ struct HomeView: View {
                 }
                 if store.user != nil {
                     VStack(alignment: .leading, spacing: 12) {
-                        Text(store.tr("recentTitle")).font(.system(size: 12.5, weight: .semibold)).foregroundColor(.dizMuted)
+                        Text(store.tr("recentTitle")).font(.system(size: 14, weight: .semibold)).foregroundColor(.dizMuted)
                         if mine.isEmpty {
                             EmptyBox(text: store.tr("emptyHome"))
                         } else {
@@ -33,7 +33,7 @@ struct HomeView: View {
                     }.padding(18)
                 } else {
                     VStack(alignment: .leading, spacing: 12) {
-                        Text(store.tr("guest.hint")).font(.system(size: 13)).foregroundColor(.dizMuted)
+                        Text(store.tr("guest.hint")).font(.system(size: 14.5)).foregroundColor(.dizMuted)
                     }.padding(18)
                 }
             }
@@ -49,16 +49,16 @@ struct HomeView: View {
             HStack {
                 HStack(spacing: 8) {
                     Circle().fill(Color.dizAmber).frame(width: 7, height: 7)
-                    Text(store.tr("brand")).font(.system(size: 14, weight: .semibold)).foregroundColor(.white.opacity(0.9))
+                    Text(store.tr("brand")).font(.system(size: 15.5, weight: .semibold)).foregroundColor(.white.opacity(0.9))
                 }
                 Spacer()
                 LangPills()
             }.padding(.bottom, 10)
-            Text(store.tr("heroTitle")).font(.system(size: 24, weight: .semibold)).foregroundColor(.white)
-            Text(store.tr("heroText")).font(.system(size: 14)).foregroundColor(Color(red: 0.81, green: 0.88, blue: 0.85))
+            Text(store.tr("heroTitle")).font(.system(size: 27, weight: .semibold)).foregroundColor(.white)
+            Text(store.tr("heroText")).font(.system(size: 15.5)).foregroundColor(Color(red: 0.81, green: 0.88, blue: 0.85))
                 .padding(.bottom, 8)
             Button(action: onStart) {
-                Text(store.tr(store.isDriver ? "tabs.jobs" : "heroBtn")).font(.system(size: 15, weight: .semibold))
+                Text(store.tr(store.isDriver ? "tabs.jobs" : "heroBtn")).font(.system(size: 17, weight: .semibold))
                     .foregroundColor(.dizInk).frame(maxWidth: .infinity).padding(.vertical, 13).background(Color.dizAmber)
             }.buttonStyle(.plain)
             if store.user != nil {
@@ -75,8 +75,8 @@ struct HomeView: View {
 
     private func stat(_ n: Int, _ label: String) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("\(n)").font(.system(size: 18, weight: .semibold)).foregroundColor(.white)
-            Text(label).font(.system(size: 12.5)).foregroundColor(Color(red: 0.66, green: 0.76, blue: 0.73))
+            Text("\(n)").font(.system(size: 20, weight: .semibold)).foregroundColor(.white)
+            Text(label).font(.system(size: 14)).foregroundColor(Color(red: 0.66, green: 0.76, blue: 0.73))
         }
     }
 }
@@ -90,7 +90,7 @@ struct LangPills: View {
             ForEach(Lang.selectable) { l in
                 let on = store.lang == l
                 Button { store.lang = l } label: {
-                    Text(l.title).font(.system(size: 13, weight: .bold))
+                    Text(l.title).font(.system(size: 14.5, weight: .bold))
                         .foregroundColor(on ? .dizInk : (light ? .dizBrand : .white))
                         .frame(minWidth: 44)
                         .padding(.horizontal, 6).padding(.vertical, 7)

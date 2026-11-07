@@ -18,7 +18,7 @@ struct NewRequestView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
-                Text(store.tr("serviceSelectTitle")).font(.system(size: 12.5, weight: .semibold)).foregroundColor(.dizMuted)
+                Text(store.tr("serviceSelectTitle")).font(.system(size: 14, weight: .semibold)).foregroundColor(.dizMuted)
                 FlowLayout(spacing: 8) {
                     ForEach(Strings.shared.services) { s in
                         Chip(title: store.tr("services.\(s.key).label"), on: picked && s.key == service) {
@@ -39,7 +39,7 @@ struct NewRequestView: View {
                         .frame(minHeight: 80).padding(4)
                         .overlay(alignment: .topLeading) {
                             if desc.isEmpty {
-                                Text(store.tr("services.\(service).descPlaceholder")).font(.system(size: 14))
+                                Text(store.tr("services.\(service).descPlaceholder")).font(.system(size: 15.5))
                                     .foregroundColor(.dizMuted.opacity(0.7)).padding(.horizontal, 9).padding(.vertical, 12)
                                     .allowsHitTesting(false)
                             }

@@ -39,9 +39,9 @@ struct JobCardView: View {
     // MARK: Parts
     private var header: some View {
         HStack(alignment: .firstTextBaseline) {
-            Text(store.tr("services.\(job.service).label")).font(.system(size: 15, weight: .semibold))
+            Text(store.tr("services.\(job.service).label")).font(.system(size: 17, weight: .semibold))
             Spacer()
-            Text(store.money(job.price)).font(.system(size: 16, weight: .bold)).foregroundColor(.dizInk)
+            Text(store.money(job.price)).font(.system(size: 18, weight: .bold)).foregroundColor(.dizInk)
         }
     }
 

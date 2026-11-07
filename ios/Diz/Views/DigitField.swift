@@ -33,7 +33,7 @@ struct DigitField: UIViewRepresentable {
         f.textColor = UIColor(Color.dizInk)
         f.overrideUserInterfaceStyle = .light
         f.tintColor = UIColor(Color.dizBrand)
-        f.font = .preferredFont(forTextStyle: .body)
+        f.font = .systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize * 1.12)   // text is ~12 % larger app-wide
         f.adjustsFontForContentSizeCategory = true
         f.returnKeyType = .done
         f.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -111,7 +111,7 @@ struct TextInputField: UIViewRepresentable {
         f.textColor = UIColor(Color.dizInk)
         f.overrideUserInterfaceStyle = .light
         f.tintColor = UIColor(Color.dizBrand)
-        f.font = .preferredFont(forTextStyle: .body)
+        f.font = .systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize * 1.12)   // text is ~12 % larger app-wide
         f.adjustsFontForContentSizeCategory = true
         f.returnKeyType = .done
         f.clearButtonMode = .never

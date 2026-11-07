@@ -21,13 +21,13 @@ struct AuthView: View {
                 VStack(alignment: .leading, spacing: 14) {
                     HStack(spacing: 8) {
                         Circle().fill(Color.dizAmber).frame(width: 7, height: 7)
-                        Text("دز  Diz").font(.system(size: 22, weight: .bold)).foregroundColor(.dizBrand)
+                        Text("دز  Diz").font(.system(size: 24.5, weight: .bold)).foregroundColor(.dizBrand)
                     }
-                    Text(store.tr(registering ? "authSubtitleRegister" : "authSubtitleLogin")).font(.system(size: 13.5)).foregroundColor(.dizMuted)
+                    Text(store.tr(registering ? "authSubtitleRegister" : "authSubtitleLogin")).font(.system(size: 15)).foregroundColor(.dizMuted)
 
                     HStack { LangPills(light: true); Spacer() }
 
-                    Text(store.tr(registering ? "authTitleRegister" : "authTitleLogin")).font(.system(size: 21, weight: .semibold)).foregroundColor(.dizInk)
+                    Text(store.tr(registering ? "authTitleRegister" : "authTitleLogin")).font(.system(size: 23.5, weight: .semibold)).foregroundColor(.dizInk)
 
                     if registering {
                         field(store.tr("authNameLabel"), text: $name)
@@ -124,7 +124,7 @@ struct AuthField: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(label).font(.system(size: 12.5)).foregroundColor(.dizMuted)
+            Text(label).font(.system(size: 14)).foregroundColor(.dizMuted)
             if keyboard == .phonePad {
                 DigitField(placeholder: label, text: $text, allowPlusAndSpace: true)
                     .dizInput()
@@ -149,14 +149,14 @@ struct ForgotPasswordView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
-                    Text(store.tr("forgotTitle")).font(.system(size: 21, weight: .semibold)).foregroundColor(.dizInk)
-                    Text(store.tr("forgotText")).font(.system(size: 13.5)).foregroundColor(.dizMuted)
+                    Text(store.tr("forgotTitle")).font(.system(size: 23.5, weight: .semibold)).foregroundColor(.dizInk)
+                    Text(store.tr("forgotText")).font(.system(size: 15)).foregroundColor(.dizMuted)
                     AuthField(label: store.tr("authPhoneLabel"), text: $phone, keyboard: .phonePad)
                     PrimaryButton(title: store.tr("forgotSend"), disabled: store.busy) {
                         Task { if await store.requestPasswordReset(phone: phone) { sent = true } }
                     }
                     if sent {
-                        Text(store.tr("forgotSent")).font(.system(size: 13)).foregroundColor(.dizBrand)
+                        Text(store.tr("forgotSent")).font(.system(size: 14.5)).foregroundColor(.dizBrand)
                     }
                 }
                 .padding(22)
@@ -180,7 +180,7 @@ struct EmailEditCard: View {
 
     var body: some View {
         Card {
-            Text(store.tr(nudge ? "emailNudge" : "authEmailLabel")).font(.system(size: 13)).foregroundColor(nudge ? .dizInk : .dizMuted)
+            Text(store.tr(nudge ? "emailNudge" : "authEmailLabel")).font(.system(size: 14.5)).foregroundColor(nudge ? .dizInk : .dizMuted)
             TextInputField(placeholder: store.tr("authEmailLabel"), text: $email, keyboard: .emailAddress).dizInput()
                 .environment(\.layoutDirection, .leftToRight)
             PrimaryButton(title: store.tr(nudge ? "emailNudgeBtn" : "accountSaveBtn"), disabled: store.busy) {
@@ -204,11 +204,11 @@ struct AccountDetailsCard: View {
 
     var body: some View {
         Card {
-            Text(store.tr("authEmailLabel")).font(.system(size: 13)).foregroundColor(.dizMuted)
+            Text(store.tr("authEmailLabel")).font(.system(size: 14.5)).foregroundColor(.dizMuted)
             TextInputField(placeholder: store.tr("authEmailLabel"), text: $email, keyboard: .emailAddress).dizInput()
                 .environment(\.layoutDirection, .leftToRight)
             if store.isDriver {
-                Text(store.tr("profileEditTitle")).font(.system(size: 12.5, weight: .semibold)).foregroundColor(.dizMuted)
+                Text(store.tr("profileEditTitle")).font(.system(size: 14, weight: .semibold)).foregroundColor(.dizMuted)
                     .padding(.top, 6)
                 ForEach(["driver", "towing"] + AccountDetailsCard.proCats, id: \.self) { key in
                     let on = picked.contains(key)

@@ -71,7 +71,7 @@ struct ScheduleSection: View {
                 Chip(title: store.tr("sched.pick"), on: !choice.asap) { choice.asap = false }
             }
             if choice.asap {
-                Text(store.tr("sched.asapLong")).font(.system(size: 13, weight: .semibold)).foregroundColor(.dizBrand)
+                Text(store.tr("sched.asapLong")).font(.system(size: 14.5, weight: .semibold)).foregroundColor(.dizBrand)
             } else {
                 TimeSlotPicker(selection: $choice.selection)
             }
