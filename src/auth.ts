@@ -191,19 +191,25 @@ export function updateUserRow(){
 export function isUnapprovedProvider(): boolean { return !!currentUser && role === 'driver' && me().approved === false; }
 
 /** Re-reads the provider's own row so an activation by admin shows up without logging in again. */
+/** Re-reads a provider's own activation status, both ways: activated or deactivated by admin.
+ *  Returns whether the provider may make offers right now. */
 export async function refreshApproval(): Promise<boolean> {
-  if(!isUnapprovedProvider() || !dbRef) return !isUnapprovedProvider();
+  if(!currentUser || role !== 'driver' || !dbRef) return true;
   try{
     const snap = await db().user(me().id).get();
-    if(snap.exists && (snap.data() as { approved?: boolean }).approved){
-      me().approved = true;
-      toast(t().toastNowApproved);
-      updateUserRow();
-      refreshCurrentScreen();
-      return true;
-    }
+    const fresh = snap.exists ? (snap.data() as { approved?: boolean }).approved : undefined;
+    if(fresh !== undefined && fresh !== me().approved) setApproval(fresh);
   }catch(e){ console.error(e); }
-  return false;
+  return !isUnapprovedProvider();
+}
+
+/** Applies a new activation status: banner, offer buttons and a toast. */
+export function setApproval(approved: boolean){
+  if(!currentUser || me().approved === approved) return;
+  me().approved = approved;
+  toast(approved ? t().toastNowApproved : t().toastNotApproved);
+  updateUserRow();
+  refreshCurrentScreen();
 }
 
 /** Accounts made before e-mail was required are asked to add one (needed for password reset). */
@@ -385,6 +391,7 @@ export async function boot(){
 
   // A provider waiting for activation sees it as soon as they come back to the app.
   window.addEventListener('focus', ()=>{ void refreshApproval(); });
+  setInterval(()=>{ if(document.visibilityState === 'visible') void refreshApproval(); }, 60000);
 
   // Opened from a password-reset e-mail?
   try{ if(await handleResetLink()) return; }catch(e){ console.error(e); }

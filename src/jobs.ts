@@ -6,7 +6,7 @@ import { type Job, type ServiceKey, type Applicant } from './types';
 import { esc, toast, routeLinksHTML, PIN_ADDR } from './util';
 import { role, paymentsMode, selectedService, setSelectedService, selectedCat, setSelectedCat, selectedSize, setSelectedSize, editingJobId, setEditingJobId, photoDataUrl, setPhotoDataUrl, jobs, dbRef, currentUser, t, me, db } from './state';
 import { seenSet, shownSigs, jobEvent } from './notifications';
-import { renderAccountEdit, renderProfileEdit, isUnapprovedProvider, refreshApproval } from './auth';
+import { renderAccountEdit, renderProfileEdit, isUnapprovedProvider, refreshApproval, setApproval } from './auth';
 import { goTo, refreshCurrentScreen } from './shell';
 import { ad } from './admin';
 import { chatHTML } from './chat';
@@ -375,7 +375,7 @@ export async function applyToJob(id: string, price: number, proposal?: { start: 
   if(!dbRef || !currentUser) return false;
   const j = jobs.find(x=>x.id===id);
   if(!j) return false;
-  if(isUnapprovedProvider() && !(await refreshApproval())){ toast(t().toastNotApproved); return false; }
+  if(!(await refreshApproval())){ toast(t().toastNotApproved); return false; }
   const applicants = Array.isArray(j.applicants) ? j.applicants.slice() : [];
   const idx = applicants.findIndex(a=>a.phone===me().phone);
   const entry: Applicant = {phone: me().phone, name: me().name, price, appliedAt: Date.now()};
@@ -386,7 +386,11 @@ export async function applyToJob(id: string, price: number, proposal?: { start: 
   try{
     await db().job(id).update({applicants});
     toast(t().toastApplied);
-  }catch(e){ toast(t().toastSaveFailed); return false; }
+  }catch(e){
+    // Deactivated by admin in the meantime: the database refuses the offer.
+    if(String((e as { message?: string })?.message ?? e).includes('provider_not_approved')){ setApproval(false); return false; }
+    toast(t().toastSaveFailed); return false;
+  }
 
   if(!j.ownerPhone){
     setTimeout(async ()=>{
