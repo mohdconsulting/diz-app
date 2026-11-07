@@ -34,6 +34,7 @@ class Store(app: Application) : AndroidViewModel(app) {
         private set
     var myComments by mutableStateOf<List<ProviderComment>>(emptyList())
     var myDocs by mutableStateOf<List<ProviderDoc>>(emptyList())   // provider: documents for verification
+    var docProgress by mutableStateOf<String?>(null)              // "Uploading 1 of 3…" while uploading
         private set
     var toastText by mutableStateOf<String?>(null)
         private set
@@ -182,30 +183,41 @@ class Store(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    /** Uploads one file to provider-docs/<user id>/… and records it in provider_documents. */
-    fun uploadDoc(kind: String, bytes: ByteArray, fileName: String, mime: String) {
+    /** A file chosen or photographed for upload. */
+    data class DocFile(val bytes: ByteArray, val name: String, val mime: String)
+
+    /** Uploads the ID-document files one after another to provider-docs/<user id>/… and records them in provider_documents. */
+    fun uploadDocs(files: List<DocFile>) {
         val id = user?.id ?: return
-        if (!isDriver) return
-        if (bytes.size > MAX_DOC_BYTES) { toast("docs.tooBig"); return }
-        if (!(mime.startsWith("image/") || mime == "application/pdf")) { toast("docs.badType"); return }
-        if (myDocs.size >= 20) { toast("docs.tooMany"); return }
-        val ext = when (mime) { "application/pdf" -> "pdf"; "image/png" -> "png"; "image/webp" -> "webp"; "image/heic", "image/heif" -> "heic"; else -> "jpg" }
-        val path = "$id/${java.util.UUID.randomUUID()}.$ext"
+        if (!isDriver || files.isEmpty()) return
         viewModelScope.launch {
             busy = true
+            var done = 0
             try {
-                api.uploadFile(DOC_BUCKET, path, bytes, mime)
-                try {
-                    api.insert("provider_documents", mapOf("user_id" to id, "kind" to kind, "file_path" to path,
-                        "file_name" to fileName.take(200), "mime" to mime, "size_bytes" to bytes.size))
-                } catch (e: Exception) {
-                    try { api.removeFiles(DOC_BUCKET, listOf(path)) } catch (_: Exception) {}
-                    throw e
+                for ((i, f) in files.withIndex()) {
+                    docProgress = tr("docs.uploadingN", mapOf("n" to "${i + 1}", "total" to "${files.size}"))
+                    if (f.bytes.size > MAX_DOC_BYTES) { toast("docs.tooBig"); continue }
+                    if (!(f.mime.startsWith("image/") || f.mime == "application/pdf")) { toast("docs.badType"); continue }
+                    if (myDocs.size + done >= 20) { toast("docs.tooMany"); break }
+                    val ext = if (f.mime == "application/pdf") "pdf" else "jpg"
+                    val path = "$id/${java.util.UUID.randomUUID()}.$ext"
+                    try {
+                        api.uploadFile(DOC_BUCKET, path, f.bytes, f.mime)
+                        try {
+                            api.insert("provider_documents", mapOf("user_id" to id, "kind" to "id", "file_path" to path,
+                                "file_name" to f.name.take(200), "mime" to f.mime, "size_bytes" to f.bytes.size))
+                        } catch (e: Exception) {
+                            try { api.removeFiles(DOC_BUCKET, listOf(path)) } catch (_: Exception) {}
+                            throw e
+                        }
+                        done++
+                    } catch (e: Exception) { toast("toastSaveFailed") }
                 }
-                toast("docs.uploaded")
-                loadMyDocs()
-            } catch (e: Exception) { toast("toastSaveFailed") }
-            finally { busy = false }
+                if (done == 1) toast("docs.uploaded") else if (done > 1) toast("docs.uploadedN", mapOf("n" to "$done"))
+                myDocs = try {
+                    api.select("provider_documents", listOf("user_id" to "eq.$id"), order = "created_at.asc").map { ProviderDoc.from(it) }
+                } catch (e: Exception) { myDocs }
+            } finally { busy = false; docProgress = null }
         }
     }
 
@@ -526,7 +538,6 @@ class Store(app: Application) : AndroidViewModel(app) {
     companion object {
         fun nowMs(): Long = System.currentTimeMillis()
         const val DOC_BUCKET = "provider-docs"
-        val DOC_KINDS = listOf("id", "license", "certificate", "other")
         const val MAX_DOC_BYTES = 10 * 1024 * 1024
     }
 }

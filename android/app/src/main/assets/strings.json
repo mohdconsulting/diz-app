@@ -400,8 +400,8 @@
   "approvalPending": "حسابك كمقدم خدمة بانتظار التفعيل من دز. يمكنك رؤية الطلبات الآن، لكن يمكنك تقديم العروض فقط بعد تفعيل حسابك. ارفع مستنداتك من صفحة الملف الشخصي لتسريع العملية.",
   "toastNotApproved": "حسابك غير مفعّل بعد. يمكنك تقديم العروض بعد أن يفعّله دز.",
   "toastNowApproved": "تم تفعيل حسابك – يمكنك الآن قبول الطلبات!",
-  "docs.title": "مستندات التحقق",
-  "docs.hint": "ارفع مثلًا الهوية أو إجازة السوق أو شهادة المهنة (صورة أو PDF، بحد أقصى 10 ميغابايت). لا يراها إلا فريق دز.",
+  "docs.title": "وثيقة الهوية للتحقق",
+  "docs.hint": "ارفع أو صوّر وثيقة هويتك، ويفضّل الوجه والخلف. صورة أو PDF، بحد أقصى 10 ميغابايت لكل ملف. لا يراها إلا فريق دز.",
   "docs.kindLabel": "نوع المستند",
   "docs.kId": "وثيقة الهوية",
   "docs.kLicense": "إجازة السوق",
@@ -420,7 +420,11 @@
   "docs.adminNone": "لا توجد مستندات.",
   "docs.tooMany": "يمكنك رفع 20 مستندًا كحد أقصى.",
   "docs.pickImage": "اختر صورة",
-  "docs.pickPdf": "اختر ملف PDF"
+  "docs.pickPdf": "اختر ملف PDF",
+  "docs.takePhoto": "التقاط صورة",
+  "docs.chooseFiles": "اختيار ملفات",
+  "docs.uploadingN": "جارٍ رفع {n} من {total}…",
+  "docs.uploadedN": "تم رفع {n} مستندات"
  },
  "sv": {
   "chat.openBtn": "Chatta",
@@ -823,8 +827,8 @@
   "approvalPending": "Ditt konto som tjänsteleverantör väntar på att aktiveras av Diz. Du kan se jobben redan nu, men kan lämna anbud först när kontot är aktiverat. Ladda upp dina dokument under Profil så går det snabbare.",
   "toastNotApproved": "Ditt konto är inte aktiverat än. Du kan lämna anbud när Diz har aktiverat det.",
   "toastNowApproved": "Ditt konto är aktiverat – nu kan du ta jobb!",
-  "docs.title": "Dokument för verifiering",
-  "docs.hint": "Ladda upp t.ex. ID-handling, körkort eller yrkesbevis (bild eller PDF, max 10 MB). Bara Diz kan se dem.",
+  "docs.title": "ID-handling för verifiering",
+  "docs.hint": "Ladda upp eller fotografera din ID-handling, gärna både fram- och baksida. Bild eller PDF, max 10 MB per fil. Bara Diz kan se dem.",
   "docs.kindLabel": "Typ av dokument",
   "docs.kId": "ID-handling",
   "docs.kLicense": "Körkort",
@@ -843,7 +847,11 @@
   "docs.adminNone": "Inga dokument.",
   "docs.tooMany": "Du kan ha högst 20 dokument.",
   "docs.pickImage": "Välj bild",
-  "docs.pickPdf": "Välj PDF"
+  "docs.pickPdf": "Välj PDF",
+  "docs.takePhoto": "Ta foto",
+  "docs.chooseFiles": "Välj filer",
+  "docs.uploadingN": "Laddar upp {n} av {total}…",
+  "docs.uploadedN": "{n} dokument uppladdade"
  },
  "en": {
   "chat.openBtn": "Chat",
@@ -1246,8 +1254,8 @@
   "approvalPending": "Your service provider account is waiting to be activated by Diz. You can already see the jobs, but you can make offers once your account is activated. Upload your documents under Profile to speed it up.",
   "toastNotApproved": "Your account isn't activated yet. You can make offers once Diz has activated it.",
   "toastNowApproved": "Your account is activated – you can now take jobs!",
-  "docs.title": "Documents for verification",
-  "docs.hint": "Upload e.g. ID, driving licence or trade certificate (image or PDF, max 10 MB). Only Diz can see them.",
+  "docs.title": "ID document for verification",
+  "docs.hint": "Upload or photograph your ID document, ideally both front and back. Image or PDF, max 10 MB per file. Only Diz can see them.",
   "docs.kindLabel": "Document type",
   "docs.kId": "ID document",
   "docs.kLicense": "Driving licence",
@@ -1266,6 +1274,10 @@
   "docs.adminNone": "No documents.",
   "docs.tooMany": "You can have at most 20 documents.",
   "docs.pickImage": "Choose image",
-  "docs.pickPdf": "Choose PDF"
+  "docs.pickPdf": "Choose PDF",
+  "docs.takePhoto": "Take photo",
+  "docs.chooseFiles": "Choose files",
+  "docs.uploadingN": "Uploading {n} of {total}…",
+  "docs.uploadedN": "{n} documents uploaded"
  }
 }

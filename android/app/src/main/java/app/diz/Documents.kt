@@ -1,12 +1,14 @@
 package app.diz
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -20,35 +22,27 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
+import java.io.ByteArrayOutputStream
+import java.io.File
 
-/** Provider profile: documents for verification (ID, licence, certificate …), images or PDF up to 10 MB.
- *  Files go to the private Storage bucket provider-docs; only the provider and admin can read them. */
+/** Provider profile: ID document for verification. The provider can take a photo or choose one or more
+ *  images/PDFs; uploads start right away. Files go to the private Storage bucket provider-docs. */
 @Composable
 fun DocumentsCard(store: Store) {
     val context = LocalContext.current
-    var kind by remember { mutableStateOf("id") }
-    fun kindLabel(k: String) = store.tr(when (k) { "id" -> "docs.kId"; "license" -> "docs.kLicense"; "certificate" -> "docs.kCertificate"; else -> "docs.kOther" })
+    var cameraUri by remember { mutableStateOf<Uri?>(null) }
 
-    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
-        if (uri == null) return@rememberLauncherForActivityResult
-        val resolver = context.contentResolver
-        val mime = resolver.getType(uri) ?: ""
-        var name = "document"
-        var size = -1L
-        resolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE), null, null, null)?.use { c ->
-            if (c.moveToFirst()) {
-                c.getString(0)?.let { name = it }
-                if (!c.isNull(1)) size = c.getLong(1)
-            }
-        }
-        if (size > Store.MAX_DOC_BYTES) { store.toast("docs.tooBig"); return@rememberLauncherForActivityResult }
-        val bytes = try { resolver.openInputStream(uri)?.use { it.readBytes() } } catch (e: Exception) { null }
-        if (bytes == null) { store.toast("toastSaveFailed"); return@rememberLauncherForActivityResult }
-        store.uploadDoc(kind, bytes, name, mime)
+    val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { ok ->
+        val uri = cameraUri
+        if (ok && uri != null) readDocFile(context, uri)?.let { store.uploadDocs(listOf(it)) }
+    }
+    val files = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
+        val list = uris.mapNotNull { readDocFile(context, it) }
+        if (uris.isNotEmpty() && list.isEmpty()) store.toast("docs.badType") else store.uploadDocs(list)
     }
 
     LaunchedEffect(store.user?.id) { store.loadMyDocs() }
@@ -62,17 +56,50 @@ fun DocumentsCard(store: Store) {
                 Modifier.fillMaxWidth().border(1.dp, DizLine).padding(horizontal = 10.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(kindLabel(doc.kind), fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = DizBrand)
-                    Text(doc.fileName, fontSize = 13.sp, color = DizInk, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                }
+                Text("📄 " + doc.fileName, Modifier.weight(1f), fontSize = 13.sp, color = DizInk, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 LinkButton(store.tr("docs.remove"), danger = true) { if (!store.busy) store.deleteDoc(doc) }
             }
         }
-        FieldLabel(store.tr("docs.kindLabel"))
-        ChipRow { Store.DOC_KINDS.forEach { k -> Chip(kindLabel(k), kind == k) { kind = k } } }
-        PrimaryButton(store.tr(if (store.busy) "docs.uploading" else "docs.upload"), enabled = !store.busy) {
-            picker.launch(arrayOf("image/*", "application/pdf"))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            PrimaryButton(store.tr("docs.takePhoto"), Modifier.weight(1f), enabled = !store.busy) {
+                val dir = File(context.cacheDir, "camera").apply { mkdirs() }
+                val file = File(dir, "id-${System.currentTimeMillis()}.jpg")
+                val uri = FileProvider.getUriForFile(context, context.packageName + ".files", file)
+                cameraUri = uri
+                try { camera.launch(uri) } catch (e: Exception) { store.toast("toastSaveFailed") }
+            }
+            PrimaryButton(store.tr("docs.chooseFiles"), Modifier.weight(1f), enabled = !store.busy) {
+                files.launch(arrayOf("image/*", "application/pdf"))
+            }
         }
+        store.docProgress?.let { Footnote(it) }
     }
+}
+
+/** Reads a chosen/photographed file. Images are scaled to at most 2000 px and sent as JPEG (keeps them well under 10 MB). */
+private fun readDocFile(context: Context, uri: Uri): Store.DocFile? {
+    val resolver = context.contentResolver
+    val mime = resolver.getType(uri) ?: ""
+    var name = "photo.jpg"
+    try {
+        resolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { c ->
+            if (c.moveToFirst()) c.getString(0)?.let { name = it }
+        }
+    } catch (_: Exception) {}
+    val bytes = try { resolver.openInputStream(uri)?.use { it.readBytes() } } catch (e: Exception) { null } ?: return null
+    if (mime == "application/pdf") return Store.DocFile(bytes, name, mime)
+    val jpeg = toJpeg(bytes) ?: return null
+    return Store.DocFile(jpeg, name.substringBeforeLast('.') + ".jpg", "image/jpeg")
+}
+
+private fun toJpeg(bytes: ByteArray, maxSide: Int = 2000): ByteArray? {
+    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+    BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+    if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+    var sample = 1
+    while (maxOf(bounds.outWidth, bounds.outHeight) / (sample * 2) >= maxSide) sample *= 2
+    val bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, BitmapFactory.Options().apply { inSampleSize = sample }) ?: return null
+    val scale = minOf(1f, maxSide.toFloat() / maxOf(bmp.width, bmp.height))
+    val out = if (scale < 1f) Bitmap.createScaledBitmap(bmp, (bmp.width * scale).toInt(), (bmp.height * scale).toInt(), true) else bmp
+    return ByteArrayOutputStream().use { s -> out.compress(Bitmap.CompressFormat.JPEG, 85, s); s.toByteArray() }
 }
