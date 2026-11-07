@@ -4,7 +4,7 @@ import asyncio, pathlib, sys
 from playwright.async_api import async_playwright
 R = pathlib.Path(__file__).resolve().parent.parent.parent; E = R/'tests/e2e'; URL = (R/'index.html').as_uri()
 res = []
-def check(l, c): res.append(('PASS ' if c else '*** FAIL ') + l)
+def check(l, c): res.append(('PASS ' if c else '*** FAIL ') + l); print(res[-1], flush=True)
 DB = "JSON.parse(sessionStorage.getItem('dbs')).db"
 def setdb(js): return "(()=>{const s=JSON.parse(sessionStorage.getItem('dbs')); const db=s.db; " + js + "; sessionStorage.setItem('dbs',JSON.stringify(s));})()"
 
@@ -71,6 +71,25 @@ async def main():
         await pg.locator('#jobsList button:has-text("Apply at this price")').first.click(); await pg.wait_for_timeout(500)
         check('offer saved after activation', await pg.evaluate("(" + DB + ".jobs[0].applicants||[]).length") == 1)
 
+        # admin's list must show the stored status after a fresh load (regression: column missing from the select)
+        await logout(); await login('admin1')
+        await pg.evaluate("goTo('adminUsers')"); await pg.wait_for_timeout(400)
+        check('admin list shows Active after reload', 'Deactivate' in await pg.locator('#adminUsersList .card').filter(has_text='0722').inner_text())
+        await pg.evaluate("window.__db.users.find(u=>u.phone==='0722').approved=false")
+        await logout(); await login('admin1')
+        await pg.evaluate("goTo('adminUsers')"); await pg.wait_for_timeout(400)
+        card = pg.locator('#adminUsersList .card').filter(has_text='0722')
+        check('admin list shows pending after reload', 'Waiting for activation' in await card.inner_text() and await card.locator('button:has-text("Activate")').count() == 1)
+        await card.locator('button:has-text("Activate")').click(); await pg.wait_for_timeout(300)
+        await logout(); await login('0722')
+
+        # activation picked up without logging out (window focus)
+        await pg.evaluate("window.__db.users.find(u=>u.phone==='0722').approved=false")
+        await pg.reload(); await pg.wait_for_timeout(900)
+        await pg.evaluate("window.__db.users.find(u=>u.phone==='0722').approved=true")
+        await pg.evaluate("window.dispatchEvent(new Event('focus'))"); await pg.wait_for_timeout(500)
+        check('activation picked up on focus', not await pg.is_visible('#approvalNote'))
+
         # deactivated again by admin -> banner returns on next load
         await pg.evaluate(setdb("db.users.find(u=>u.phone==='0722').approved=false"))
         await pg.reload(); await pg.wait_for_timeout(900)
@@ -80,5 +99,4 @@ async def main():
         if errs: print(errs)
         await b.close()
 asyncio.run(main())
-print('\n'.join(res))
 sys.exit(1 if any(r.startswith('***') for r in res) else 0)
