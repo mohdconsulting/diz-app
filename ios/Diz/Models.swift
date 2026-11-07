@@ -124,6 +124,7 @@ struct AppUser: Decodable, Hashable {
     var role: String            // customer | driver | admin
     var profiles: [String]
     var email: String?          // real e-mail for password reset (diz_password_reset.sql)
+    var approved: Bool?         // providers: activated by admin (diz_provider_approval.sql); nil = column missing → treated as activated
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -133,8 +134,9 @@ struct AppUser: Decodable, Hashable {
         role = try c.decodeIfPresent(String.self, forKey: .role) ?? "customer"
         profiles = try c.decodeIfPresent([String].self, forKey: .profiles) ?? []
         email = try c.decodeIfPresent(String.self, forKey: .email)
+        approved = try c.decodeIfPresent(Bool.self, forKey: .approved)
     }
-    enum CodingKeys: String, CodingKey { case id, phone, name, role, profiles, email }
+    enum CodingKeys: String, CodingKey { case id, phone, name, role, profiles, email, approved }
     var isDriver: Bool { role == "driver" }
 }
 

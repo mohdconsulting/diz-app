@@ -57,6 +57,8 @@ final class Store: ObservableObject {
     }
 
     var isDriver: Bool { user?.isDriver ?? false }
+    /// Provider not yet activated by admin: sees jobs but cannot make offers.
+    var isUnapprovedProvider: Bool { isDriver && user?.approved == false }
     var myPhone: String { user?.phone ?? "" }
 
     // MARK: Session lifecycle
@@ -69,6 +71,15 @@ final class Store: ObservableObject {
             await afterSignIn()
         } else if api.session == nil {
             user = nil
+        }
+    }
+
+    /// Re-reads the provider's own row so an activation by admin shows up without logging in again.
+    func refreshApproval() async {
+        guard isUnapprovedProvider, let id = user?.id, let u = await fetchUser(id: id, retries: 1) else { return }
+        if u.approved != false {
+            user?.approved = u.approved
+            toast("toastNowApproved")
         }
     }
 
@@ -210,6 +221,7 @@ final class Store: ObservableObject {
     // MARK: Loading
     func refreshAll() async {
         guard user != nil else { return }
+        await refreshApproval()
         await loadJobs()
         async let a: Void = loadMessages()
         async let b: Void = loadLocations()
@@ -422,6 +434,8 @@ final class Store: ObservableObject {
 
     // MARK: Provider actions
     func apply(_ j: Job, price: Int, proposal: SlotSelection? = nil) async {
+        if isUnapprovedProvider { await refreshApproval() }
+        guard !isUnapprovedProvider else { toast("toastNotApproved"); return }
         guard price > 0, let u = user else { toast("toastInvalidOffer"); return }
         var list = j.applicants
         var entry = Applicant(phone: u.phone, name: u.name, price: price, appliedAt: Store.nowMs())

@@ -164,6 +164,10 @@ struct JobCardView: View {
             if ignoredView {
                 Text(store.tr("dismiss.note")).font(.footnote).foregroundColor(.secondary)
                 Button(store.tr("dismiss.restoreBtn")) { Task { await store.restore(job.id) } }.buttonStyle(.bordered)
+            } else if store.isUnapprovedProvider {
+                // Not activated by admin yet: the job is visible, but no offer controls.
+                Text(store.tr("toastNotApproved")).font(.footnote).foregroundColor(.secondary)
+                Button(store.tr("dismiss.btn")) { Task { await store.dismiss(job.id) } }.font(.footnote)
             } else if let mine = job.applicants.first(where: { $0.phone == store.myPhone }) {
                 Text(store.tr("yourApplicationNote", ["price": store.money(mine.price)])).font(.footnote)
                 if let w = mine.proposedWindow {
