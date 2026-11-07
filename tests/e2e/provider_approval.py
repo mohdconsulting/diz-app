@@ -90,6 +90,21 @@ async def main():
         await pg.evaluate("window.dispatchEvent(new Event('focus'))"); await pg.wait_for_timeout(500)
         check('activation picked up on focus', not await pg.is_visible('#approvalNote'))
 
+        # admin deactivates an active provider while they are logged in
+        await pg.evaluate("goTo('jobs')"); await pg.wait_for_timeout(300)
+        await pg.evaluate("window.__db.users.find(u=>u.phone==='0722').approved=false")
+        await pg.evaluate("window.dispatchEvent(new Event('focus'))"); await pg.wait_for_timeout(500)
+        check('deactivation picked up on focus: banner', await pg.is_visible('#approvalNote'))
+        check('deactivation picked up on focus: no offer buttons', await pg.locator('#jobsList .offer-row').count() == 0)
+        await pg.evaluate("window.__db.users.find(u=>u.phone==='0722').approved=true")
+        await pg.evaluate("window.dispatchEvent(new Event('focus'))"); await pg.wait_for_timeout(500)
+        # deactivated without focus/poll: the offer itself re-checks first
+        n0 = await pg.evaluate("(window.__db.jobs[0].applicants||[]).length")
+        await pg.evaluate("window.__db.users.find(u=>u.phone==='0722').approved=false")
+        await pg.locator('#jobsList .offer-row button').first.click(); await pg.wait_for_timeout(500)
+        check('offer re-checks status and is refused', await pg.evaluate("(window.__db.jobs[0].applicants||[]).length") == n0 and await pg.is_visible('#approvalNote'))
+        await pg.evaluate("window.__db.users.find(u=>u.phone==='0722').approved=true")
+
         # deactivated again by admin -> banner returns on next load
         await pg.evaluate(setdb("db.users.find(u=>u.phone==='0722').approved=false"))
         await pg.reload(); await pg.wait_for_timeout(900)
