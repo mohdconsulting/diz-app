@@ -76,9 +76,9 @@ fun DizTheme(content: @Composable () -> Unit) {
             large = RoundedCornerShape(0.dp), extraLarge = RoundedCornerShape(0.dp),
         ),
         content = {
-            // All text ~12 % larger than the system setting (on top of the user's own font-size choice).
+            // All text ~30 % larger than the system setting (on top of the user's own font-size choice).
             val d = LocalDensity.current
-            CompositionLocalProvider(LocalDensity provides Density(d.density, d.fontScale * 1.12f), content = content)
+            CompositionLocalProvider(LocalDensity provides Density(d.density, d.fontScale * 1.3f), content = content)
         },
     )
 }
