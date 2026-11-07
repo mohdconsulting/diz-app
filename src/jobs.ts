@@ -440,17 +440,17 @@ export function jobCardHTML(j: Job, courierView: boolean, ignoredView = false): 
   let body;
   const applicants = Array.isArray(j.applicants) ? j.applicants : [];
   if(courierView && ignoredView){
-    body = `<div style="margin-top:6px;font-size:12px;color:var(--muted);">${d.dismiss.note}</div>
+    body = `<div style="margin-top:6px;font-size:13.5px;color:var(--muted);">${d.dismiss.note}</div>
       <div class="action-row"><button class="secondary" onclick="restoreJob('${j.id}')">${d.dismiss.restoreBtn}</button></div>`;
   } else if(courierView){
     if(j.status==='open' && isUnapprovedProvider()){
       // Not activated by admin yet: the job is visible, but no offer controls.
-      body = `<div style="margin-top:6px;font-size:12px;color:var(--muted);">${d.toastNotApproved}</div>
+      body = `<div style="margin-top:6px;font-size:13.5px;color:var(--muted);">${d.toastNotApproved}</div>
       <div class="action-row"><button class="secondary" onclick="dismissJob('${j.id}')">${d.dismiss.btn}</button></div>`;
     } else if(j.status==='open'){
       const mine = applicants.find(a=>a.phone===currentUser?.phone);
       const note = mine
-        ? `<div style="margin-top:6px;font-size:12px;color:var(--muted);">${d.yourApplicationNote.replace('{price}', mine.price + ' ' + d.priceUnit)}</div>`
+        ? `<div style="margin-top:6px;font-size:13.5px;color:var(--muted);">${d.yourApplicationNote.replace('{price}', mine.price + ' ' + d.priceUnit)}</div>`
         : '';
       body = `${note}
       <div class="action-row">
@@ -471,8 +471,8 @@ export function jobCardHTML(j: Job, courierView: boolean, ignoredView = false): 
         ? applicants.slice().sort((a,b)=>a.price-b.price).map(a=>`
           <div class="card" style="margin-bottom:8px;padding:10px 12px;">
             <div class="top-row">
-              <div><h3 style="font-size:14px;">${esc(a.name || a.phone)}</h3>${ratingBadgeHTML(a.phone)}${applicantTimeHTML(j, a)}</div>
-              <div class="price" style="font-size:14px;">${a.price} ${d.priceUnit}</div>
+              <div><h3 style="font-size:15.5px;">${esc(a.name || a.phone)}</h3>${ratingBadgeHTML(a.phone)}${applicantTimeHTML(j, a)}</div>
+              <div class="price" style="font-size:15.5px;">${a.price} ${d.priceUnit}</div>
             </div>
             <div class="action-row">
               <button class="secondary" onclick="assignJob('${j.id}','${a.phone}')">${paymentsMode !== 'off' ? d.pay.assignPayBtn.replace('{amount}', a.price + ' ' + d.priceUnit) : d.assignBtn}</button>
@@ -494,12 +494,12 @@ export function jobCardHTML(j: Job, courierView: boolean, ignoredView = false): 
       let note = '';
       let btnLabel = d.completeBtn;
       const canComplete = !!(j.arrived || j.markedDoneByProvider);
-      const noteStyle = 'margin-top:8px;font-size:13px;';
-      const subStyle = 'margin-top:6px;font-size:12.5px;color:var(--muted);';
+      const noteStyle = 'margin-top:8px;font-size:14.5px;';
+      const subStyle = 'margin-top:6px;font-size:14px;color:var(--muted);';
       if(j.problemReported){
         note = `<div style="${noteStyle}">${d.problemReportedNoteCustomer}</div>
           <div style="${subStyle}">“${esc(j.problemText||'')}”</div>
-          ${j.providerResponse ? `<div style="margin-top:8px;font-size:13px;"><b>${d.providerResponseLabel}:</b> “${esc(j.providerResponse)}”</div>` : ''}`;
+          ${j.providerResponse ? `<div style="margin-top:8px;font-size:14.5px;"><b>${d.providerResponseLabel}:</b> “${esc(j.providerResponse)}”</div>` : ''}`;
         btnLabel = d.confirmReleaseBtn;
       } else if(j.markedDoneByProvider){
         const left = fmtRemaining((j.markedDoneAt||Date.now()) + REPORT_WINDOW_MS - Date.now());
@@ -545,9 +545,9 @@ export function jobCardHTML(j: Job, courierView: boolean, ignoredView = false): 
       const payLine = providerPaymentHTML(j).html;
       let problemNote = payLine;
       if(j.problemReported){
-        problemNote = `<div style="margin-top:6px;font-size:12.5px;color:var(--danger);">${d.problemReportedNoteProvider.replace('{text}', ()=>esc(j.problemText||''))}</div>`;
+        problemNote = `<div style="margin-top:6px;font-size:14px;color:var(--danger);">${d.problemReportedNoteProvider.replace('{text}', ()=>esc(j.problemText||''))}</div>`;
         if(j.providerResponse){
-          problemNote += `<div style="margin-top:8px;font-size:13px;"><b>${d.yourResponseLabel}:</b> “${esc(j.providerResponse)}”</div>`;
+          problemNote += `<div style="margin-top:8px;font-size:14.5px;"><b>${d.yourResponseLabel}:</b> “${esc(j.providerResponse)}”</div>`;
         } else {
           problemNote += `<div style="margin-top:10px;">
             <label style="margin-top:0;">${d.respondPrompt}</label>
@@ -562,11 +562,11 @@ export function jobCardHTML(j: Job, courierView: boolean, ignoredView = false): 
         body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
         ${problemNote}
         ${chatHTML(j)}
-        <div style="margin-top:6px;font-size:12px;color:var(--muted);">${d.waitingCustomerConfirmNote}</div>`;
+        <div style="margin-top:6px;font-size:13.5px;color:var(--muted);">${d.waitingCustomerConfirmNote}</div>`;
       } else if(j.arrived){
         body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
         ${problemNote}
-        <div style="margin-top:6px;font-size:12px;color:var(--muted);">${d.arrivedNoteProvider}</div>
+        <div style="margin-top:6px;font-size:13.5px;color:var(--muted);">${d.arrivedNoteProvider}</div>
         ${chatHTML(j)}
         <div class="action-row">
           <button class="secondary" onclick="providerMarkDone('${j.id}')">${d.providerCompleteBtn}</button>
@@ -582,16 +582,16 @@ export function jobCardHTML(j: Job, courierView: boolean, ignoredView = false): 
       }
     } else if(j.status==='cancelled'){
       body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
-      <div style="margin-top:6px;font-size:12px;color:var(--muted);">${ad().cancelledNote}</div>
+      <div style="margin-top:6px;font-size:13.5px;color:var(--muted);">${ad().cancelledNote}</div>
       ${settledPaymentHTML(j, role==='driver')}`;
     } else if(j.status==='done'){
       body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
-      <div style="margin-top:6px;font-size:12px;color:var(--muted);">${j.resolution==='released' ? ad().releasedNote : (j.autoReleased ? d.autoReleasedNote : d.paymentReleasedNote)}</div>
+      <div style="margin-top:6px;font-size:13.5px;color:var(--muted);">${j.resolution==='released' ? ad().releasedNote : (j.autoReleased ? d.autoReleasedNote : d.paymentReleasedNote)}</div>
       ${settledPaymentHTML(j, role==='driver')}
       ${reviewBlockHTML(j)}`;
     } else if(j.status==='open' && isMine && role==='customer' && pendingDeleteId===j.id){
       body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
-      <div style="margin-top:8px;font-size:13px;">${d.confirmDeleteInline}</div>
+      <div style="margin-top:8px;font-size:14.5px;">${d.confirmDeleteInline}</div>
       <div class="action-row">
         <button class="secondary" onclick="confirmDeleteRequest('${j.id}')">${d.confirmDeleteBtn}</button>
         <button class="secondary" onclick="cancelDelete()">${d.cancelBtn}</button>
