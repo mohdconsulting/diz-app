@@ -66,6 +66,8 @@ export interface AppUser {
   createdAt: number;
   /** Real e-mail for password reset (diz_password_reset.sql). Login is still phone + password. */
   email?: string | null;
+  /** Providers: activated by admin (diz_provider_approval.sql). undefined = column not there yet → treated as activated. */
+  approved?: boolean;
 }
 
 export type EventType =

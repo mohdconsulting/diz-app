@@ -24,7 +24,7 @@ export const ADM = {
     release:"Släpp betalning", refund:"Återbetala kund", cancel:"Avbryt uppdrag", reopen:"Återöppna", del:"Radera",
     confirm:{release:"Släpp betalningen till utföraren och avsluta uppdraget?", refund:"Avbryt uppdraget och återbetala kunden?", cancel:"Avbryt uppdraget?", reopen:"Återöppna uppdraget så att nya utförare kan ansöka? Tilldelning och problemrapport rensas.", delete:"Radera uppdraget permanent?"},
     yes:"Bekräfta", no:"Avbryt", done:"Klart",
-    usersEmpty:"Inga användare.", jobsCount:"uppdrag", delUser:"Radera användare", delUserConfirm:"Radera användaren permanent? Deras uppdrag finns kvar.", userDeleted:"Användare raderad", adminProtected:"Admin-konton raderas via databasen."
+    usersEmpty:"Inga användare.", jobsCount:"uppdrag", delUser:"Radera användare", delUserConfirm:"Radera användaren permanent? Deras uppdrag finns kvar.", userDeleted:"Användare raderad", adminProtected:"Admin-konton raderas via databasen.", approvedLabel:"Aktiv", pendingLabel:"Väntar på aktivering", approve:"Aktivera", revoke:"Inaktivera", approvedToast:"Leverantören är aktiverad", revokedToast:"Leverantören är inaktiverad", skills:"Kompetenser"
   },
   en:{
     roleAdmin:"Admin", cancelledNote:"The job was cancelled by an administrator. The payment is refunded to the customer.",
@@ -40,7 +40,7 @@ export const ADM = {
     release:"Release payment", refund:"Refund customer", cancel:"Cancel job", reopen:"Reopen", del:"Delete",
     confirm:{release:"Release the payment to the provider and close the job?", refund:"Cancel the job and refund the customer?", cancel:"Cancel the job?", reopen:"Reopen the job so new providers can apply? Assignment and problem report are cleared.", delete:"Delete the job permanently?"},
     yes:"Confirm", no:"Cancel", done:"Done",
-    usersEmpty:"No users.", jobsCount:"jobs", delUser:"Delete user", delUserConfirm:"Delete this user permanently? Their jobs remain.", userDeleted:"User deleted", adminProtected:"Admin accounts are removed via the database."
+    usersEmpty:"No users.", jobsCount:"jobs", delUser:"Delete user", delUserConfirm:"Delete this user permanently? Their jobs remain.", userDeleted:"User deleted", adminProtected:"Admin accounts are removed via the database.", approvedLabel:"Active", pendingLabel:"Waiting for activation", approve:"Activate", revoke:"Deactivate", approvedToast:"Provider activated", revokedToast:"Provider deactivated", skills:"Skills"
   },
   ar:{
     roleAdmin:"مشرف", cancelledNote:"ألغى المشرف الطلب. سيُعاد المبلغ إلى العميل.",
@@ -56,12 +56,12 @@ export const ADM = {
     release:"تحرير الدفع", refund:"إعادة المبلغ للعميل", cancel:"إلغاء الطلب", reopen:"إعادة الفتح", del:"حذف",
     confirm:{release:"تحرير الدفع لمقدم الخدمة وإغلاق الطلب؟", refund:"إلغاء الطلب وإعادة المبلغ للعميل؟", cancel:"إلغاء الطلب؟", reopen:"إعادة فتح الطلب ليتقدم مقدمو خدمة جدد؟ سيُمسح التكليف وبلاغ المشكلة.", delete:"حذف الطلب نهائيًا؟"},
     yes:"تأكيد", no:"إلغاء", done:"تم",
-    usersEmpty:"لا يوجد مستخدمون.", jobsCount:"طلبات", delUser:"حذف المستخدم", delUserConfirm:"حذف هذا المستخدم نهائيًا؟ تبقى طلباته.", userDeleted:"تم حذف المستخدم", adminProtected:"تُحذف حسابات المشرفين عبر قاعدة البيانات."
+    usersEmpty:"لا يوجد مستخدمون.", jobsCount:"طلبات", delUser:"حذف المستخدم", delUserConfirm:"حذف هذا المستخدم نهائيًا؟ تبقى طلباته.", userDeleted:"تم حذف المستخدم", adminProtected:"تُحذف حسابات المشرفين عبر قاعدة البيانات.", approvedLabel:"مفعّل", pendingLabel:"بانتظار التفعيل", approve:"تفعيل", revoke:"إلغاء التفعيل", approvedToast:"تم تفعيل مقدم الخدمة", revokedToast:"تم إلغاء تفعيل مقدم الخدمة", skills:"المهارات"
   }
 };
 export function ad(){ return ADM[lang]; }
 
-export type AdminUser = { id: string; phone: string; name: string; role: Role; profiles?: string[]; createdAt?: number };
+export type AdminUser = { id: string; phone: string; name: string; role: Role; profiles?: string[]; createdAt?: number; approved?: boolean; email?: string | null };
 export let adminFilter = 'all', adminQuery = '';
 export let adminUsersList: AdminUser[] = [];
 export let adminNotes: Record<string, string> = {};
@@ -283,7 +283,10 @@ export function renderAdminUsers(){
   if(!adminUsersList.length){ el.innerHTML = `<div class="empty">${a.usersEmpty}</div>`; return; }
   const d = t();
   const roleName = (r: Role)=> r==='admin' ? a.roleAdmin : (r==='driver' ? d.roleDriver : d.roleCustomer);
-  el.innerHTML = adminUsersList.slice().sort((x,y)=>(y.createdAt||0)-(x.createdAt||0)).map(u=>{
+  const pendingFirst = (u: AdminUser) => (u.role==='driver' && u.approved===false) ? 0 : 1;
+  const skill = (k: string) => k==='driver' ? d.profileDriver : (k==='towing' ? d.profileTowing
+    : ((d.services.pro.categories as Record<string,string>)[k] ?? k));
+  el.innerHTML = adminUsersList.slice().sort((x,y)=>pendingFirst(x)-pendingFirst(y) || (y.createdAt||0)-(x.createdAt||0)).map(u=>{
     const n = jobs.filter(j=>j.ownerPhone===u.phone || j.acceptedByPhone===u.phone).length;
     const pend = adminPendingUser===u.id;
     const actions = u.role==='admin'
@@ -292,17 +295,35 @@ export function renderAdminUsers(){
         ? `<div class="adm-confirm">${a.delUserConfirm}<div class="action-row">
             <button class="danger" onclick="adminDeleteUser('${esc(u.id)}')">${a.yes}</button>
             <button class="secondary" onclick="setAdminPendingUser(null)">${a.no}</button></div></div>`
-        : `<div class="action-row"><button class="danger" onclick="setAdminPendingUser('${esc(u.id)}')">${a.delUser}</button></div>`);
+        : `<div class="action-row">
+            ${u.role==='driver' ? (u.approved===false
+              ? `<button class="primary" onclick="adminSetApproved('${esc(u.id)}', true)">${a.approve}</button>`
+              : `<button class="secondary" onclick="adminSetApproved('${esc(u.id)}', false)">${a.revoke}</button>`) : ''}
+            <button class="danger" onclick="setAdminPendingUser('${esc(u.id)}')">${a.delUser}</button></div>`);
+    const providerInfo = u.role==='driver' ? `
+      <div style="margin-top:6px;"><span class="status ${u.approved===false ? 'waiting' : 'accepted'}">${u.approved===false ? a.pendingLabel : a.approvedLabel}</span></div>
+      <div style="margin-top:6px;font-size:12.5px;"><b>${a.skills}:</b> ${(u.profiles||[]).map(k=>esc(skill(k))).join(', ') || '–'}</div>` : '';
     return `<div class="card">
       <div class="top-row"><div>
         <div class="service-badge">${roleName(u.role)}</div>
         <h3>${esc(u.name)}</h3>
-        <p class="meta">${esc(u.phone)}</p>
+        <p class="meta">${esc(u.phone)}${u.email ? ' · ' + esc(u.email) : ''}</p>
       </div><div class="meta" style="font-size:12px;color:var(--muted);">${n} ${a.jobsCount}</div></div>
       <div style="margin-top:6px;font-size:12px;color:var(--muted);">${fmtTime(u.createdAt)}</div>
+      ${providerInfo}
       ${actions}
     </div>`;
   }).join('');
+}
+
+export async function adminSetApproved(id: string, approved: boolean){
+  if(!dbRef || role!=='admin') return;
+  try{
+    await db().user(id).update({approved});
+    const u = adminUsersList.find(x=>x.id===id); if(u) u.approved = approved;
+    renderAdminUsers();
+    toast(approved ? ad().approvedToast : ad().revokedToast);
+  }catch(e){ console.error(e); toast(t().toastSaveFailed); }
 }
 
 export async function adminDeleteUser(id: string){

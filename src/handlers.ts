@@ -14,7 +14,7 @@ import {
 } from './jobs';
 import {
   setAdminFilter, saveAdminNote, adminDo, adminDeleteUser, adminAsk, adminAbort, setAdminQuery,
-  setAdminNoteDraft, setAdminPendingUser,
+  setAdminNoteDraft, setAdminPendingUser, adminSetApproved,
 } from './admin';
 
 /** Functions referenced from inline on* attributes in the markup (module scope isn't visible to those). */
@@ -25,5 +25,5 @@ export const handlers = {
   assignJob, askDelete, useMyLocation, clearPin, adminDo, adminDeleteUser, adminAsk, adminAbort, setReportDraft, setRespondDraft,
   setAdminQuery, setAdminNoteDraft, setAdminPendingUser, startPayment, mockPay, cancelMockCheckout, retrySharing, toggleTrackMap, toggleChat, toggleAdminChat, startCall, dismissJob, restoreJob, toggleDismissed, setReviewRating, setReviewComment, submitReview, moderateReview, askClearComment,
   schedPickDay, schedTapSlot, schedSetAsap, schedToggleProposal, schedSetPrice, submitProposal,
-  openForgot, closeForgot, sendResetLink, saveNewPassword, openEmailEdit,
+  openForgot, closeForgot, sendResetLink, saveNewPassword, openEmailEdit, adminSetApproved,
 };

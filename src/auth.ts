@@ -187,8 +187,30 @@ export function updateUserRow(){
   updateEmailNudge();
 }
 
+/** Provider not yet activated by admin? (undefined = DB without the column → treat as activated.) */
+export function isUnapprovedProvider(): boolean { return !!currentUser && role === 'driver' && me().approved === false; }
+
+/** Re-reads the provider's own row so an activation by admin shows up without logging in again. */
+export async function refreshApproval(): Promise<boolean> {
+  if(!isUnapprovedProvider() || !dbRef) return !isUnapprovedProvider();
+  try{
+    const snap = await db().user(me().id).get();
+    if(snap.exists && (snap.data() as { approved?: boolean }).approved){
+      me().approved = true;
+      toast(t().toastNowApproved);
+      updateUserRow();
+      refreshCurrentScreen();
+      return true;
+    }
+  }catch(e){ console.error(e); }
+  return false;
+}
+
 /** Accounts made before e-mail was required are asked to add one (needed for password reset). */
 export function updateEmailNudge(){
+  const an = $('approvalNote');
+  an.style.display = isUnapprovedProvider() ? 'block' : 'none';
+  if(isUnapprovedProvider()) an.textContent = t().approvalPending;
   const show = !!currentUser && role !== 'admin' && !me().email;
   $('emailNudge').style.display = show ? 'block' : 'none';
   if(!show) return;
@@ -360,6 +382,9 @@ export async function boot(){
     $('authOverlay').style.display = 'flex';
     return;
   }
+
+  // A provider waiting for activation sees it as soon as they come back to the app.
+  window.addEventListener('focus', ()=>{ void refreshApproval(); });
 
   // Opened from a password-reset e-mail?
   try{ if(await handleResetLink()) return; }catch(e){ console.error(e); }
