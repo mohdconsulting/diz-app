@@ -160,3 +160,13 @@ data class ProviderLocation(val jobId: String, val lat: Double, val lng: Double,
         fun from(o: JSONObject) = ProviderLocation(o.getString("job_id"), o.optDouble("lat"), o.optDouble("lng"), o.long("updated_at") ?: 0L)
     }
 }
+
+/** A provider's document for verification (diz_provider_documents.sql). The file itself is in Storage: provider-docs/<filePath>. */
+data class ProviderDoc(val id: String, val kind: String, val filePath: String, val fileName: String, val createdAt: String?) {
+    companion object {
+        fun from(o: JSONObject) = ProviderDoc(
+            id = o.optString("id"), kind = o.optString("kind"), filePath = o.optString("file_path"),
+            fileName = o.optString("file_name"), createdAt = o.str("created_at"),
+        )
+    }
+}

@@ -97,11 +97,14 @@ class Api(context: Context) {
 
     // ---- HTTP ----
     private suspend fun raw(method: String, path: String, query: List<Pair<String, String>> = emptyList(), body: Any? = null,
-                            auth: Boolean = true, prefer: String? = null): String = withContext(Dispatchers.IO) {
+                            auth: Boolean = true, prefer: String? = null,
+                            bytes: ByteArray? = null, contentType: String? = null): String = withContext(Dispatchers.IO) {
         val url = Config.SUPABASE_URL.toHttpUrl().newBuilder().addPathSegments(path.trimStart('/')).apply {
             query.forEach { (k, v) -> addQueryParameter(k, v) }
         }.build()
-        val rb = if (body != null) toJson(body).toString().toRequestBody(json) else if (method == "GET" || method == "DELETE") null else "".toRequestBody(json)
+        val rb = if (body != null) toJson(body).toString().toRequestBody(json)
+            else if (bytes != null) bytes.toRequestBody((contentType ?: "application/octet-stream").toMediaType())
+            else if (method == "GET" || method == "DELETE") null else "".toRequestBody(json)
         val req = Request.Builder().url(url).method(method, rb).header("apikey", Config.SUPABASE_KEY).apply {
             val s = session
             if (auth && s != null) header("Authorization", "Bearer " + s.accessToken)
@@ -122,13 +125,23 @@ class Api(context: Context) {
 
     /** Authenticated request; refreshes the token once on 401. */
     private suspend fun call(method: String, path: String, query: List<Pair<String, String>> = emptyList(), body: Any? = null,
-                             prefer: String? = null): String {
+                             prefer: String? = null, bytes: ByteArray? = null, contentType: String? = null): String {
         refreshIfNeeded()
         return try {
-            raw(method, path, query, body, prefer = prefer)
+            raw(method, path, query, body, prefer = prefer, bytes = bytes, contentType = contentType)
         } catch (e: ApiError) {
-            if (e.status == 401 && refreshIfNeeded(force = true)) raw(method, path, query, body, prefer = prefer) else throw e
+            if (e.status == 401 && refreshIfNeeded(force = true)) raw(method, path, query, body, prefer = prefer, bytes = bytes, contentType = contentType) else throw e
         }
+    }
+
+    // ---- Storage ----
+    /** Uploads a file to a (private) Storage bucket, e.g. provider-docs/<user id>/<uuid>.pdf. */
+    suspend fun uploadFile(bucket: String, path: String, bytes: ByteArray, contentType: String) {
+        call("POST", "/storage/v1/object/$bucket/$path", bytes = bytes, contentType = contentType)
+    }
+
+    suspend fun removeFiles(bucket: String, paths: List<String>) {
+        call("DELETE", "/storage/v1/object/$bucket", body = mapOf("prefixes" to paths))
     }
 
     // ---- PostgREST ----

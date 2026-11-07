@@ -33,6 +33,7 @@ class Store(app: Application) : AndroidViewModel(app) {
     var ratings by mutableStateOf<Map<String, Rating>>(emptyMap())
         private set
     var myComments by mutableStateOf<List<ProviderComment>>(emptyList())
+    var myDocs by mutableStateOf<List<ProviderDoc>>(emptyList())   // provider: documents for verification
         private set
     var toastText by mutableStateOf<String?>(null)
         private set
@@ -170,6 +171,57 @@ class Store(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    // ---- Provider documents (verification) ----
+    fun loadMyDocs() {
+        val id = user?.id
+        if (!isDriver || id == null) { myDocs = emptyList(); return }
+        viewModelScope.launch {
+            myDocs = try {
+                api.select("provider_documents", listOf("user_id" to "eq.$id"), order = "created_at.asc").map { ProviderDoc.from(it) }
+            } catch (e: Exception) { emptyList() }
+        }
+    }
+
+    /** Uploads one file to provider-docs/<user id>/… and records it in provider_documents. */
+    fun uploadDoc(kind: String, bytes: ByteArray, fileName: String, mime: String) {
+        val id = user?.id ?: return
+        if (!isDriver) return
+        if (bytes.size > MAX_DOC_BYTES) { toast("docs.tooBig"); return }
+        if (!(mime.startsWith("image/") || mime == "application/pdf")) { toast("docs.badType"); return }
+        if (myDocs.size >= 20) { toast("docs.tooMany"); return }
+        val ext = when (mime) { "application/pdf" -> "pdf"; "image/png" -> "png"; "image/webp" -> "webp"; "image/heic", "image/heif" -> "heic"; else -> "jpg" }
+        val path = "$id/${java.util.UUID.randomUUID()}.$ext"
+        viewModelScope.launch {
+            busy = true
+            try {
+                api.uploadFile(DOC_BUCKET, path, bytes, mime)
+                try {
+                    api.insert("provider_documents", mapOf("user_id" to id, "kind" to kind, "file_path" to path,
+                        "file_name" to fileName.take(200), "mime" to mime, "size_bytes" to bytes.size))
+                } catch (e: Exception) {
+                    try { api.removeFiles(DOC_BUCKET, listOf(path)) } catch (_: Exception) {}
+                    throw e
+                }
+                toast("docs.uploaded")
+                loadMyDocs()
+            } catch (e: Exception) { toast("toastSaveFailed") }
+            finally { busy = false }
+        }
+    }
+
+    fun deleteDoc(doc: ProviderDoc) {
+        viewModelScope.launch {
+            busy = true
+            try {
+                api.delete("provider_documents", doc.id)
+                try { api.removeFiles(DOC_BUCKET, listOf(doc.filePath)) } catch (_: Exception) {}
+                toast("docs.deleted")
+                loadMyDocs()
+            } catch (e: Exception) { toast("toastSaveFailed") }
+            finally { busy = false }
+        }
+    }
+
     /** Profile page: one save for the e-mail and, for providers, the skills (which kinds of jobs they see). */
     fun saveDetails(rawEmail: String, profiles: List<String>?) {
         val u = user ?: return
@@ -212,7 +264,7 @@ class Store(app: Application) : AndroidViewModel(app) {
         sharing.stop()
         api.clearSession()
         user = null; jobs = emptyList(); messages = emptyList(); locations = emptyMap(); dismissed = emptySet()
-        reviews = emptyMap(); ratings = emptyMap(); myComments = emptyList(); ratingsKey = ""
+        reviews = emptyMap(); ratings = emptyMap(); myComments = emptyList(); myDocs = emptyList(); ratingsKey = ""
     }
 
     private suspend fun afterSignIn() {
@@ -471,7 +523,12 @@ class Store(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    companion object { fun nowMs(): Long = System.currentTimeMillis() }
+    companion object {
+        fun nowMs(): Long = System.currentTimeMillis()
+        const val DOC_BUCKET = "provider-docs"
+        val DOC_KINDS = listOf("id", "license", "certificate", "other")
+        const val MAX_DOC_BYTES = 10 * 1024 * 1024
+    }
 }
 
 fun isValidEmail(s: String): Boolean = Regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$").matches(s.trim())
