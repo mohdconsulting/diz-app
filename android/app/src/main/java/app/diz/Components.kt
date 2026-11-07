@@ -1,5 +1,8 @@
 package app.diz
 
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.runtime.CompositionLocalProvider
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -72,7 +75,11 @@ fun DizTheme(content: @Composable () -> Unit) {
             extraSmall = RoundedCornerShape(0.dp), small = RoundedCornerShape(0.dp), medium = RoundedCornerShape(0.dp),
             large = RoundedCornerShape(0.dp), extraLarge = RoundedCornerShape(0.dp),
         ),
-        content = content,
+        content = {
+            // All text ~12 % larger than the system setting (on top of the user's own font-size choice).
+            val d = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(d.density, d.fontScale * 1.12f), content = content)
+        },
     )
 }
 
