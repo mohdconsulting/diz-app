@@ -76,6 +76,7 @@ class Store(app: Application) : AndroidViewModel(app) {
     val isDriver: Boolean get() = user?.isDriver ?: false
     /** Provider not yet activated by admin: sees jobs but cannot make offers. */
     val isUnapprovedProvider: Boolean get() = isDriver && user?.approved == false
+    private var approvalChecked = false
     val myPhone: String get() = user?.phone ?: ""
 
     // ---- session lifecycle ----
@@ -89,12 +90,15 @@ class Store(app: Application) : AndroidViewModel(app) {
         } finally { restoring = false }
     }
 
-    /** Re-reads the provider's own row so an activation by admin shows up without logging in again. */
+    /** Re-reads the provider's own activation status, both ways (activated or deactivated by admin). */
     suspend fun refreshApproval() {
         val id = user?.id ?: return
-        if (!isUnapprovedProvider) return
-        val u = fetchUser(id, 1) ?: return
-        if (u.approved != false) { user = user?.copy(approved = u.approved); toast("toastNowApproved") }
+        if (!isDriver) return
+        val fresh = fetchUser(id, 1)?.approved ?: return
+        if (fresh != user?.approved) {
+            user = user?.copy(approved = fresh)
+            toast(if (fresh) "toastNowApproved" else "toastNotApproved")
+        }
     }
 
     private suspend fun fetchUser(id: String, retries: Int): AppUser? {
@@ -370,10 +374,11 @@ class Store(app: Application) : AndroidViewModel(app) {
 
     // ---- provider actions ----
     fun apply(j: Job, price: Int, proposal: SlotSelection? = null) {
-        if (isUnapprovedProvider) {
+        if (isDriver && !approvalChecked) {
             viewModelScope.launch {
                 refreshApproval()
-                if (isUnapprovedProvider) toast("toastNotApproved") else apply(j, price, proposal)
+                if (isUnapprovedProvider) toast("toastNotApproved")
+                else { approvalChecked = true; try { apply(j, price, proposal) } finally { approvalChecked = false } }
             }
             return
         }
@@ -459,7 +464,11 @@ class Store(app: Application) : AndroidViewModel(app) {
 
     // ---- internals ----
     private suspend fun patch(id: String, fields: Map<String, Any?>, ok: String) {
-        try { api.update("jobs", id, fields); toast(ok); loadJobs(); updateSharing() } catch (e: Exception) { toast("toastSaveFailed") }
+        try { api.update("jobs", id, fields); toast(ok); loadJobs(); updateSharing() } catch (e: Exception) {
+            // Deactivated by admin in the meantime: the database refuses the offer.
+            if (e.message?.contains("provider_not_approved") == true) { user = user?.copy(approved = false); toast("toastNotApproved") }
+            else toast("toastSaveFailed")
+        }
     }
 
     companion object { fun nowMs(): Long = System.currentTimeMillis() }
