@@ -82,6 +82,7 @@ struct ProfileView: View {
                     }
                 }
                 if store.user != nil && store.user?.role != "admin" { AccountDetailsCard() }
+                if store.isDriver { DocumentsCard() }
                 HStack { LangPills(light: true); Spacer() }
                 if store.isDriver && store.locationDenied {
                     Text(store.tr("track.shareDenied")).font(.system(size: 13)).foregroundColor(.dizDanger)

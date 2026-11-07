@@ -195,3 +195,18 @@ struct PaymentRow: Decodable, Hashable {
     var status: String
     enum CodingKeys: String, CodingKey { case id, status; case jobId = "job_id" }
 }
+
+/// A provider's document for verification (diz_provider_documents.sql). The file itself is in Storage: provider-docs/<file_path>.
+struct ProviderDoc: Decodable, Identifiable, Hashable {
+    let id: String
+    let kind: String
+    let filePath: String
+    let fileName: String
+    let createdAt: String?
+    enum CodingKeys: String, CodingKey {
+        case id, kind
+        case filePath = "file_path"
+        case fileName = "file_name"
+        case createdAt = "created_at"
+    }
+}

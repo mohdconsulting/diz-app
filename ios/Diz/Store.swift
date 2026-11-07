@@ -20,6 +20,7 @@ final class Store: ObservableObject {
     @Published var reviews: [String: Review] = [:]           // by job id
     @Published var ratings: [String: Rating] = [:]           // by provider phone
     @Published var myComments: [ProviderComment] = []
+    @Published var myDocs: [ProviderDoc] = []                 // provider: documents for verification
     @Published var toastText: String?
     @Published var busy = false
     @Published var restoring = true
@@ -156,6 +157,57 @@ final class Store: ObservableObject {
         }
     }
 
+    // MARK: Provider documents (verification)
+
+    static let docBucket = "provider-docs"
+    static let docKinds = ["id", "license", "certificate", "other"]
+    static let maxDocBytes = 10 * 1024 * 1024
+
+    func loadMyDocs() async {
+        guard isDriver, let id = user?.id else { myDocs = []; return }
+        do {
+            myDocs = try await api.select("provider_documents", ProviderDoc.self,
+                                          filters: [URLQueryItem(name: "user_id", value: "eq." + id)], order: "created_at.asc")
+        } catch { myDocs = [] }
+    }
+
+    /// Uploads one file to provider-docs/<user id>/… and records it in provider_documents.
+    func uploadDoc(kind: String, data: Data, fileName: String, mime: String) async {
+        guard isDriver, let id = user?.id else { return }
+        guard data.count <= Store.maxDocBytes else { toast("docs.tooBig"); return }
+        guard mime.hasPrefix("image/") || mime == "application/pdf" else { toast("docs.badType"); return }
+        guard myDocs.count < 20 else { toast("docs.tooMany"); return }
+        let ext = mime == "application/pdf" ? "pdf" : "jpg"
+        let path = "\(id)/\(UUID().uuidString.lowercased()).\(ext)"
+        busy = true; defer { busy = false }
+        do {
+            try await api.uploadFile(bucket: Store.docBucket, path: path, data: data, contentType: mime)
+            do {
+                try await api.insert("provider_documents", ["user_id": id, "kind": kind, "file_path": path,
+                                                            "file_name": String(fileName.prefix(200)), "mime": mime, "size_bytes": data.count])
+            } catch {
+                try? await api.removeFiles(bucket: Store.docBucket, paths: [path])
+                throw error
+            }
+            toast("docs.uploaded")
+            await loadMyDocs()
+        } catch {
+            toast("toastSaveFailed")
+        }
+    }
+
+    func deleteDoc(_ doc: ProviderDoc) async {
+        busy = true; defer { busy = false }
+        do {
+            try await api.delete("provider_documents", id: doc.id)
+            try? await api.removeFiles(bucket: Store.docBucket, paths: [doc.filePath])
+            toast("docs.deleted")
+            await loadMyDocs()
+        } catch {
+            toast("toastSaveFailed")
+        }
+    }
+
     /// Profile page: one save for the e-mail and, for providers, the skills (which kinds of jobs they see).
     func saveDetails(email raw: String, profiles: [String]?) async -> Bool {
         guard let u = user else { return false }
@@ -200,7 +252,7 @@ final class Store: ObservableObject {
         sharing.stop()
         api.clearSession()
         user = nil; jobs = []; messages = []; locations = [:]; payments = [:]; dismissed = []
-        reviews = [:]; ratings = [:]; myComments = []; ratingsKey = ""; paymentsMode = "off"
+        reviews = [:]; ratings = [:]; myComments = []; myDocs = []; ratingsKey = ""; paymentsMode = "off"
     }
 
     private func afterSignIn() async {

@@ -127,7 +127,7 @@ final class API {
     // MARK: HTTP
 
     private func raw(_ method: String, _ path: String, query: [URLQueryItem] = [], body: Any? = nil,
-                     auth: Bool = true, prefer: String? = nil) async throws -> Data {
+                     auth: Bool = true, prefer: String? = nil, data upload: Data? = nil, contentType: String? = nil) async throws -> Data {
         var comps = URLComponents(url: Config.supabaseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
         if !query.isEmpty { comps.queryItems = query }
         var req = URLRequest(url: comps.url!)
@@ -139,6 +139,10 @@ final class API {
         if let body = body {
             req.setValue("application/json", forHTTPHeaderField: "Content-Type")
             req.httpBody = try JSONSerialization.data(withJSONObject: body)
+        } else if let upload = upload {
+            req.setValue(contentType ?? "application/octet-stream", forHTTPHeaderField: "Content-Type")
+            req.httpBody = upload
+            req.timeoutInterval = 120
         }
         let (data, resp) = try await urlSession.data(for: req)
         let code = (resp as? HTTPURLResponse)?.statusCode ?? 0
@@ -153,16 +157,27 @@ final class API {
 
     /// Authenticated request; refreshes the token once on 401.
     private func call(_ method: String, _ path: String, query: [URLQueryItem] = [], body: Any? = nil,
-                      prefer: String? = nil) async throws -> Data {
+                      prefer: String? = nil, data upload: Data? = nil, contentType: String? = nil) async throws -> Data {
         await refreshIfNeeded()
         do {
-            return try await raw(method, path, query: query, body: body, prefer: prefer)
+            return try await raw(method, path, query: query, body: body, prefer: prefer, data: upload, contentType: contentType)
         } catch let e as APIError where e.status == 401 {
             if await refreshIfNeeded(force: true) {
-                return try await raw(method, path, query: query, body: body, prefer: prefer)
+                return try await raw(method, path, query: query, body: body, prefer: prefer, data: upload, contentType: contentType)
             }
             throw e
         }
+    }
+
+    // MARK: Storage
+
+    /// Uploads a file to a (private) Storage bucket, e.g. provider-docs/<user id>/<uuid>.pdf.
+    func uploadFile(bucket: String, path: String, data: Data, contentType: String) async throws {
+        _ = try await call("POST", "/storage/v1/object/\(bucket)/\(path)", data: data, contentType: contentType)
+    }
+
+    func removeFiles(bucket: String, paths: [String]) async throws {
+        _ = try await call("DELETE", "/storage/v1/object/\(bucket)", body: ["prefixes": paths])
     }
 
     // MARK: PostgREST
