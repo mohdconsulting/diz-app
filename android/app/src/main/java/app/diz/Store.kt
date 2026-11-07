@@ -73,7 +73,11 @@ class Store(app: Application) : AndroidViewModel(app) {
         toastJob?.cancel()
         toastJob = viewModelScope.launch { delay(3000); toastText = null }
     }
-    fun changeLang(l: Lang) { lang = l; prefs.edit().putString("lang", l.code).apply() }
+    fun changeLang(l: Lang) {
+        val changed = l != lang
+        lang = l; prefs.edit().putString("lang", l.code).apply()
+        if (changed) viewModelScope.launch { registerPush() }   // notifications follow the app language
+    }
 
     val isDriver: Boolean get() = user?.isDriver ?: false
     /** Provider not yet activated by admin: sees jobs but cannot make offers. */
@@ -274,12 +278,45 @@ class Store(app: Application) : AndroidViewModel(app) {
         pollJob?.cancel(); pollJob = null
         calls.stop()
         sharing.stop()
-        api.clearSession()
+        // Stop notifications to this phone, then end the session (unless a new login happened meanwhile).
+        val token = pushToken
+        val old = api.session?.accessToken
+        if (token != null && old != null) {
+            viewModelScope.launch {
+                try { api.rpc("unregister_push_token", mapOf("p_token" to token)) } catch (_: Exception) {}
+                if (api.session?.accessToken == old) api.clearSession()
+            }
+        } else api.clearSession()
+        Push.clear(getApplication())
         user = null; jobs = emptyList(); messages = emptyList(); locations = emptyMap(); dismissed = emptySet()
         reviews = emptyMap(); ratings = emptyMap(); myComments = emptyList(); myDocs = emptyList(); ratingsKey = ""
     }
 
+    // ---- Push notifications ----
+    private var pushToken: String? = null
+    /** Asks for the Android 13+ notification permission (set by MainActivity). */
+    var requestNotificationPermission: (() -> Unit)? = null
+
+    /** Sends this phone's FCM token (and language) to Supabase so notifications reach it. */
+    suspend fun registerPush() {
+        if (user == null) return
+        val ctx = getApplication<Application>()
+        val t = Push.token(ctx) ?: Push.savedToken(ctx) ?: return
+        pushToken = t
+        try { api.rpc("register_push_token", mapOf("p_token" to t, "p_platform" to "android", "p_lang" to lang.code, "p_env" to "production")) } catch (_: Exception) {}
+    }
+
+    /** App opened or brought to the front: clear notifications and the number on the icon (locally and on the server). */
+    fun appBecameActive() {
+        Push.clear(getApplication())
+        if (user == null) return
+        viewModelScope.launch { try { api.rpc("reset_push_badge") } catch (_: Exception) {} }
+    }
+
     private suspend fun afterSignIn() {
+        requestNotificationPermission?.invoke()
+        registerPush()
+        appBecameActive()
         refreshAll()
         calls.start()
         pollJob?.cancel()
