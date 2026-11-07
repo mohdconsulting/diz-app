@@ -40,6 +40,7 @@ fun JobCard(store: Store, job: Job, ignoredView: Boolean = false) {
         job.cat?.let { Text(store.tr("services.${job.service}.categories.$it"), fontSize = 14.sp) }
         job.size?.let { Text(store.tr("services.${job.service}.sizes.$it"), fontSize = 14.sp, color = DizMuted) }
         if (job.desc.isNotEmpty()) Text(job.desc, fontSize = 14.sp)
+        JobPhotoImage(job.photo, 160)
         ScheduleLine(store, job)
         CashLine(store, job, isMyAccepted)
         if (job.addr.isNotEmpty()) LinkButton("📍 " + job.addr) { openMapsQuery(context, job.addr) }

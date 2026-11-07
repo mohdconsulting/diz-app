@@ -43,6 +43,7 @@ data class Job(
     val cat: String?,
     val size: Int?,
     val desc: String,
+    val photo: String? = null,       // optional photo as a JPEG data URL (same as the web app)
     val addr: String,
     val toAddr: String?,
     val price: Int,
@@ -89,6 +90,7 @@ data class Job(
             cat = o.str("cat"),
             size = o.int("size"),
             desc = o.str("desc_text") ?: "",
+            photo = o.str("photo"),
             addr = o.str("addr") ?: "",
             toAddr = o.str("to_addr"),
             price = o.int("price") ?: 0,

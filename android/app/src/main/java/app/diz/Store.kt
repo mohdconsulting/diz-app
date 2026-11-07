@@ -367,7 +367,7 @@ class Store(app: Application) : AndroidViewModel(app) {
     fun nameOf(phone: String, j: Job): String = j.applicants.firstOrNull { it.phone == phone }?.name ?: phone
 
     // ---- customer actions ----
-    suspend fun createJob(service: String, cat: String?, size: Int?, desc: String, addr: String, toAddr: String?, price: Int, schedule: ScheduleChoice): Boolean {
+    suspend fun createJob(service: String, cat: String?, size: Int?, desc: String, addr: String, toAddr: String?, price: Int, schedule: ScheduleChoice, photo: String? = null): Boolean {
         val info = Strings.service(service)
         val needsCat = info?.categories?.isNotEmpty() == true
         if ((needsCat && cat == null) || (info?.sizes?.isNotEmpty() == true && size == null)) { toast("toastMissingCatSize"); return false }
@@ -385,6 +385,7 @@ class Store(app: Application) : AndroidViewModel(app) {
         if (cat != null) row["cat"] = cat
         if (size != null) row["size"] = size
         if (!toAddr.isNullOrEmpty() && info?.needsToAddr == true) row["to_addr"] = toAddr
+        if (photo != null) row["photo"] = photo
         return try {
             insertJob(row, schedule)
             toast("toastSubmitted")

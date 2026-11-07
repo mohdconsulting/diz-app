@@ -35,6 +35,7 @@ fun NewRequestScreen(store: Store, onLogin: () -> Unit) {
     var cat by remember { mutableStateOf<String?>(null) }
     var size by remember { mutableStateOf<Int?>(null) }
     var desc by remember { mutableStateOf("") }
+    var photo by remember { mutableStateOf<String?>(null) }
     var addr by remember { mutableStateOf("") }
     var toAddr by remember { mutableStateOf("") }
     var customPrice by remember { mutableStateOf("") }
@@ -62,6 +63,7 @@ fun NewRequestScreen(store: Store, onLogin: () -> Unit) {
             }
             OutlinedTextField(desc, { desc = it }, placeholder = { Text(store.tr("services.$service.descPlaceholder"), fontSize = 14.sp) },
                 minLines = 3, maxLines = 6, modifier = Modifier.fillMaxWidth())
+            JobPhotoField(store, photo) { photo = it }
             if (info.sizes.isNotEmpty()) {
                 FieldLabel(store.tr("services.$service.sizeLabel"))
                 ChipRow {
@@ -88,10 +90,10 @@ fun NewRequestScreen(store: Store, onLogin: () -> Unit) {
             PrimaryButton(store.tr(if (store.user == null) "guest.submit" else "submitBtn"), enabled = !store.busy) {
                 if (store.user == null) { onLogin(); return@PrimaryButton }
                 scope.launch {
-                    val ok = store.createJob(service, cat, size, desc, addr, toAddr, customPrice.intValue, schedule)
+                    val ok = store.createJob(service, cat, size, desc, addr, toAddr, customPrice.intValue, schedule, photo)
                     if (ok) {
                         desc = ""; addr = ""; toAddr = ""; cat = null; size = null; customPrice = ""
-                        schedule = ScheduleChoice(); picked = false
+                        schedule = ScheduleChoice(); picked = false; photo = null
                     }
                 }
             }
