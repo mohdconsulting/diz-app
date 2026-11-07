@@ -111,7 +111,8 @@ data class Job(
 }
 
 data class AppUser(val id: String, val phone: String, val name: String, val role: String, val profiles: List<String>,
-                   val email: String? = null) {   // email: real address for password reset (diz_password_reset.sql)
+                   val email: String? = null,     // email: real address for password reset (diz_password_reset.sql)
+                   val approved: Boolean? = null) {  // providers: activated by admin (diz_provider_approval.sql); null = column missing → activated
     val isDriver: Boolean get() = role == "driver"
 
     companion object {
@@ -119,6 +120,7 @@ data class AppUser(val id: String, val phone: String, val name: String, val role
             id = o.getString("id"), phone = o.getString("phone"), name = o.str("name") ?: "", role = o.str("role") ?: "customer",
             profiles = o.optJSONArray("profiles")?.let { a -> (0 until a.length()).map { a.getString(it) } } ?: emptyList(),
             email = o.str("email"),
+            approved = if (o.isNull("approved")) null else o.optBoolean("approved"),
         )
     }
 }

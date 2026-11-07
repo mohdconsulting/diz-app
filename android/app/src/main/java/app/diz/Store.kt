@@ -74,6 +74,8 @@ class Store(app: Application) : AndroidViewModel(app) {
     fun changeLang(l: Lang) { lang = l; prefs.edit().putString("lang", l.code).apply() }
 
     val isDriver: Boolean get() = user?.isDriver ?: false
+    /** Provider not yet activated by admin: sees jobs but cannot make offers. */
+    val isUnapprovedProvider: Boolean get() = isDriver && user?.approved == false
     val myPhone: String get() = user?.phone ?: ""
 
     // ---- session lifecycle ----
@@ -85,6 +87,14 @@ class Store(app: Application) : AndroidViewModel(app) {
             val u = fetchUser(s.userId, 1)
             if (u != null) { user = u; afterSignIn() } else if (api.session == null) user = null
         } finally { restoring = false }
+    }
+
+    /** Re-reads the provider's own row so an activation by admin shows up without logging in again. */
+    suspend fun refreshApproval() {
+        val id = user?.id ?: return
+        if (!isUnapprovedProvider) return
+        val u = fetchUser(id, 1) ?: return
+        if (u.approved != false) { user = user?.copy(approved = u.approved); toast("toastNowApproved") }
     }
 
     private suspend fun fetchUser(id: String, retries: Int): AppUser? {
@@ -216,6 +226,7 @@ class Store(app: Application) : AndroidViewModel(app) {
     // ---- loading ----
     suspend fun refreshAll() {
         if (user == null) return
+        refreshApproval()
         loadJobs(); loadMessages(); loadLocations(); loadDismissals(); loadReviews()
         updateSharing()
     }
@@ -359,6 +370,13 @@ class Store(app: Application) : AndroidViewModel(app) {
 
     // ---- provider actions ----
     fun apply(j: Job, price: Int, proposal: SlotSelection? = null) {
+        if (isUnapprovedProvider) {
+            viewModelScope.launch {
+                refreshApproval()
+                if (isUnapprovedProvider) toast("toastNotApproved") else apply(j, price, proposal)
+            }
+            return
+        }
         val u = user
         if (price <= 0 || u == null) { toast("toastInvalidOffer"); return }
         val entry = Applicant(u.phone, u.name, price, nowMs(),

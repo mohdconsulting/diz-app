@@ -141,6 +141,10 @@ private fun ProviderSection(store: Store, job: Job, ignoredView: Boolean, isMyAc
             if (ignoredView) {
                 Footnote(store.tr("dismiss.note"))
                 SecondaryButton(store.tr("dismiss.restoreBtn")) { store.restoreJob(job.id) }
+            } else if (store.isUnapprovedProvider) {
+                // Not activated by admin yet: the job is visible, but no offer controls.
+                Footnote(store.tr("toastNotApproved"))
+                LinkButton(store.tr("dismiss.btn")) { store.dismiss(job.id) }
             } else if (mine != null) {
                 Footnote(store.tr("yourApplicationNote", mapOf("price" to store.money(mine.price))), DizInk)
                 mine.proposedWindow?.let { w ->

@@ -396,7 +396,10 @@
   "toastPasswordChanged": "تم تغيير كلمة المرور",
   "toastResetLinkInvalid": "الرابط غير صالح أو انتهت صلاحيته. اطلب رابطًا جديدًا.",
   "emailNudge": "أضف بريدك الإلكتروني حتى تتمكن من استعادة كلمة المرور إذا نسيتها.",
-  "emailNudgeBtn": "أضف البريد الإلكتروني"
+  "emailNudgeBtn": "أضف البريد الإلكتروني",
+  "approvalPending": "حسابك كمقدم خدمة بانتظار التفعيل من دز. يمكنك رؤية الطلبات الآن، لكن يمكنك تقديم العروض فقط بعد تفعيل حسابك.",
+  "toastNotApproved": "حسابك غير مفعّل بعد. يمكنك تقديم العروض بعد أن يفعّله دز.",
+  "toastNowApproved": "تم تفعيل حسابك – يمكنك الآن قبول الطلبات!"
  },
  "sv": {
   "chat.openBtn": "Chatta",
@@ -795,7 +798,10 @@
   "toastPasswordChanged": "Lösenordet är ändrat",
   "toastResetLinkInvalid": "Länken är ogiltig eller har gått ut. Be om en ny.",
   "emailNudge": "Lägg till din e-postadress så att du kan återställa lösenordet om du glömmer det.",
-  "emailNudgeBtn": "Lägg till e-post"
+  "emailNudgeBtn": "Lägg till e-post",
+  "approvalPending": "Ditt konto som tjänsteleverantör väntar på att aktiveras av Diz. Du kan se jobben redan nu, men kan lämna anbud först när kontot är aktiverat.",
+  "toastNotApproved": "Ditt konto är inte aktiverat än. Du kan lämna anbud när Diz har aktiverat det.",
+  "toastNowApproved": "Ditt konto är aktiverat – nu kan du ta jobb!"
  },
  "en": {
   "chat.openBtn": "Chat",
@@ -1194,6 +1200,9 @@
   "toastPasswordChanged": "Your password has been changed",
   "toastResetLinkInvalid": "The link is invalid or has expired. Ask for a new one.",
   "emailNudge": "Add your e-mail address so you can reset your password if you forget it.",
-  "emailNudgeBtn": "Add e-mail"
+  "emailNudgeBtn": "Add e-mail",
+  "approvalPending": "Your service provider account is waiting to be activated by Diz. You can already see the jobs, but you can make offers once your account is activated.",
+  "toastNotApproved": "Your account isn't activated yet. You can make offers once Diz has activated it.",
+  "toastNowApproved": "Your account is activated – you can now take jobs!"
  }
 }
