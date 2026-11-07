@@ -115,10 +115,10 @@ export function adminDocsHTML(userId: string): string {
   const list = docsByUser[userId] || [];
   const items = list.length
     ? list.map(doc => `<div style="display:flex;gap:8px;align-items:center;margin-top:4px;">
-        <span style="font-size:14px;flex:1;word-break:break-all;"><b>${esc(docKindLabel(doc.kind))}:</b> ${esc(doc.file_name)}</span>
+        <span style="font-size:16px;flex:1;word-break:break-all;"><b>${esc(docKindLabel(doc.kind))}:</b> ${esc(doc.file_name)}</span>
         <button class="secondary" style="padding:4px 10px;" onclick="adminOpenDoc('${esc(doc.file_path)}')">${d.open}</button></div>`).join('')
-    : `<span style="font-size:14px;color:var(--muted);">${d.adminNone}</span>`;
-  return `<div style="margin-top:8px;"><div style="font-size:14px;font-weight:600;">${d.title}</div>${items}</div>`;
+    : `<span style="font-size:16px;color:var(--muted);">${d.adminNone}</span>`;
+  return `<div style="margin-top:8px;"><div style="font-size:16px;font-weight:600;">${d.title}</div>${items}</div>`;
 }
 export async function adminOpenDoc(path: string){
   if(!sbRef || role !== 'admin') return;

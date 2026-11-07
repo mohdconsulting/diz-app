@@ -84,11 +84,11 @@ export function reviewBlockHTML(j: Job): string {
   const d = t().review, rv = reviews.get(j.id);
   if(rv){
     const who = role === 'driver' ? d.theirReview : d.yourReview;
-    return `<div class="review-box"><div class="review-stars">${stars(rv.rating)}</div><div style="font-size:13.5px;color:var(--muted);">${who}</div>
-      ${rv.comment ? `<div style="margin-top:4px;font-size:14.5px;">“${esc(rv.comment)}”</div>` : ''}
-      ${rv.hidden ? `<div style="margin-top:6px;font-size:13.5px;color:var(--danger);">${d.hiddenForYou}</div>` : ''}</div>`;
+    return `<div class="review-box"><div class="review-stars">${stars(rv.rating)}</div><div style="font-size:15.5px;color:var(--muted);">${who}</div>
+      ${rv.comment ? `<div style="margin-top:4px;font-size:16.5px;">“${esc(rv.comment)}”</div>` : ''}
+      ${rv.hidden ? `<div style="margin-top:6px;font-size:15.5px;color:var(--danger);">${d.hiddenForYou}</div>` : ''}</div>`;
   }
-  if(role !== 'customer' || j.ownerPhone !== currentUser.phone) return role === 'driver' ? `<div style="margin-top:8px;font-size:13.5px;color:var(--muted);">${d.noReviewForYou}</div>` : '';
+  if(role !== 'customer' || j.ownerPhone !== currentUser.phone) return role === 'driver' ? `<div style="margin-top:8px;font-size:15.5px;color:var(--muted);">${d.noReviewForYou}</div>` : '';
   const dr = drafts[j.id] || { rating: 0, comment: '' };
   return `<div class="review-box">
     <label style="margin-top:0;">${d.prompt}</label>
@@ -103,9 +103,9 @@ export function reviewBlockHTML(j: Job): string {
 export function ownRatingHTML(): string {
   if(!available || role !== 'driver' || !currentUser) return '';
   const d = t().review, r = ratings.get(currentUser.phone);
-  if(!r) return `<div class="card"><div style="font-size:14.5px;color:var(--muted);">${d.noReviewsYet}</div></div>`;
+  if(!r) return `<div class="card"><div style="font-size:16.5px;color:var(--muted);">${d.noReviewsYet}</div></div>`;
   const list = comments.filter(c => c.comment).slice(0, 5).map(c =>
-    `<div style="margin-top:8px;font-size:14.5px;"><span class="review-stars">${stars(c.rating)}</span> “${esc(c.comment)}”</div>`).join('');
+    `<div style="margin-top:8px;font-size:16.5px;"><span class="review-stars">${stars(c.rating)}</span> “${esc(c.comment)}”</div>`).join('');
   return `<div class="card"><div class="top-row"><div><h3>${d.yourRating}</h3></div><div class="price">★ ${r.avg.toFixed(1)} <span class="rating-n">(${r.count})</span></div></div>${list}</div>`;
 }
 
@@ -133,10 +133,10 @@ export function adminReviewHTML(j: Job): string {
   if(!rv) return '';
   const d = t().review, a = ad();
   const confirming = pendingClear === j.id;
-  return `<div class="review-box"><div style="font-size:13.5px;color:var(--muted);">${d.adminTitle}</div>
+  return `<div class="review-box"><div style="font-size:15.5px;color:var(--muted);">${d.adminTitle}</div>
     <div class="review-stars">${stars(rv.rating)}</div>
-    <div style="font-size:14.5px;">${rv.comment ? '“' + esc(rv.comment) + '”' : '<i>' + d.noComment + '</i>'}</div>
-    ${rv.hidden ? `<div style="margin-top:4px;font-size:13.5px;color:var(--danger);">${d.hiddenAdmin}</div>` : ''}
+    <div style="font-size:16.5px;">${rv.comment ? '“' + esc(rv.comment) + '”' : '<i>' + d.noComment + '</i>'}</div>
+    ${rv.hidden ? `<div style="margin-top:4px;font-size:15.5px;color:var(--danger);">${d.hiddenAdmin}</div>` : ''}
     ${confirming ? `<div class="adm-confirm">${d.clearConfirm}<div class="action-row">
         <button class="danger" onclick="moderateReview('${j.id}','clear_comment')">${a.yes}</button>
         <button class="secondary" onclick="askClearComment(null)">${a.no}</button></div></div>`

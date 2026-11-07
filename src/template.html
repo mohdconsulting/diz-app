@@ -209,7 +209,7 @@
       <!-- provider: documents for verification (diz_provider_documents.sql); has its own upload button -->
       <div id="docsWrap" style="display:none;margin-bottom:18px;">
         <p class="section-title" id="docsTitle"></p>
-        <p style="font-size:14px;color:var(--muted);margin:0 0 8px;" id="docsHint"></p>
+        <p style="font-size:16px;color:var(--muted);margin:0 0 8px;" id="docsHint"></p>
         <div id="docsList"></div>
         <!-- camera (phones open it directly) or one/several files; uploads start as soon as something is chosen -->
         <input type="file" id="docCameraInput" accept="image/*" capture="environment" style="display:none;" onchange="uploadDocs(this)">
@@ -218,7 +218,7 @@
           <button class="secondary" id="docCameraBtn" onclick="document.getElementById('docCameraInput').click()"></button>
           <button class="secondary" id="docFilesBtn" onclick="document.getElementById('docFileInput').click()"></button>
         </div>
-        <p style="font-size:14px;color:var(--muted);margin:6px 0 0;" id="docsStatus"></p>
+        <p style="font-size:16px;color:var(--muted);margin:6px 0 0;" id="docsStatus"></p>
       </div>
       <p class="section-title" id="allMineTitle"></p>
       <div id="mineList"></div>
