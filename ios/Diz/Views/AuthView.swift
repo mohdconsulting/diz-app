@@ -194,7 +194,7 @@ struct EmailEditCard: View {
 /// Profile page: e-mail and, for providers, skills (job types they see), saved with one button like on the web.
 struct AccountDetailsCard: View {
     @EnvironmentObject var store: Store
-    static let proCats = ["electrician", "plumber", "smith", "appliance_repair", "cleaner", "painter", "pest_control"]
+    static let proCats = ["electrician", "plumber", "smith", "appliance_repair", "cleaner", "carpet_cleaning", "painter", "pest_control"]
     @State private var picked: Set<String> = []
     @State private var email = ""
 
