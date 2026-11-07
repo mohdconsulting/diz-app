@@ -124,7 +124,7 @@ export async function stopSharing(){
 /** Provider's notice on an assigned job that has not been arrived at yet. */
 export function providerShareHTML(j: Job): string {
   const d = t().track;
-  const sub = 'margin-top:6px;font-size:12.5px;color:var(--muted);';
+  const sub = 'margin-top:6px;font-size:14px;color:var(--muted);';
   if(denied) return `<div style="${sub}color:var(--danger);">${d.shareDenied}</div><div class="action-row"><button class="secondary" onclick="retrySharing()">${d.retryBtn}</button></div>`;
   return sharingIds.has(j.id) ? `<div style="${sub}">${d.autoShareInfo}</div>` : '';
 }
@@ -178,16 +178,16 @@ function agoText(ms: number): string {
 
 /** Customer's tracking block for an accepted job that the provider has not arrived at yet. */
 export function customerTrackingHTML(j: Job): string {
-  const d = t().track, sub = 'margin-top:6px;font-size:12.5px;color:var(--muted);';
+  const d = t().track, sub = 'margin-top:6px;font-size:14px;color:var(--muted);';
   if(j.arrived || j.markedDoneByProvider) return '';
   const loc = locationFor(j.id);
   if(!loc) return `<div style="${sub}">${d.notSharing}</div>`;
   const age = Date.now() - loc.updatedAt, old = age > STALE_MS;
-  return `<div style="margin-top:8px;font-size:13px;">${d.onTheWay} · <span style="color:var(--muted)">${agoText(age)}</span></div>
+  return `<div style="margin-top:8px;font-size:14.5px;">${d.onTheWay} · <span style="color:var(--muted)">${agoText(age)}</span></div>
     ${old ? `<div style="${sub}color:var(--danger);">${d.stale}</div>` : ''}
     <div class="action-row">
       <button class="secondary" onclick="toggleTrackMap('${j.id}')">${openJobId === j.id ? d.hideMap : d.showMap}</button>
-      <a class="maplink" style="align-self:center;font-size:13px;" href="${mapsSearchUrl({ text: null, lat: loc.lat, lng: loc.lng })}" target="_blank" rel="noopener noreferrer">${d.openProvider}</a>
+      <a class="maplink" style="align-self:center;font-size:14.5px;" href="${mapsSearchUrl({ text: null, lat: loc.lat, lng: loc.lng })}" target="_blank" rel="noopener noreferrer">${d.openProvider}</a>
     </div>
     ${openJobId === j.id ? `<div class="track-slot" id="trackSlot-${j.id}"></div>` : ''}`;
 }

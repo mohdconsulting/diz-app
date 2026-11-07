@@ -219,7 +219,7 @@ export function adminJobCardHTML(j: Job): string {
     ${problemBox}
     ${j.acceptedByPhone ? chatHTML(j, true) : ''}
     ${adminReviewHTML(j)}
-    <div style="margin-top:10px;font-size:12px;color:var(--muted);">${a.noteLabel}</div>
+    <div style="margin-top:10px;font-size:13.5px;color:var(--muted);">${a.noteLabel}</div>
     <textarea id="admNote-${j.id}" placeholder="${a.notePh}" oninput="setAdminNoteDraft('${j.id}', this.value)">${esc(draft)}</textarea>
     <div class="action-row"><button class="secondary" onclick="saveAdminNote('${j.id}')">${a.saveNote}</button></div>
     ${confirmBox}
@@ -292,7 +292,7 @@ export function renderAdminUsers(){
     const n = jobs.filter(j=>j.ownerPhone===u.phone || j.acceptedByPhone===u.phone).length;
     const pend = adminPendingUser===u.id;
     const actions = u.role==='admin'
-      ? `<div style="margin-top:6px;font-size:12px;color:var(--muted);">${a.adminProtected}</div>`
+      ? `<div style="margin-top:6px;font-size:13.5px;color:var(--muted);">${a.adminProtected}</div>`
       : (pend
         ? `<div class="adm-confirm">${a.delUserConfirm}<div class="action-row">
             <button class="danger" onclick="adminDeleteUser('${esc(u.id)}')">${a.yes}</button>
@@ -304,15 +304,15 @@ export function renderAdminUsers(){
             <button class="danger" onclick="setAdminPendingUser('${esc(u.id)}')">${a.delUser}</button></div>`);
     const providerInfo = u.role==='driver' ? `
       <div style="margin-top:6px;"><span class="status ${u.approved===false ? 'waiting' : 'accepted'}">${u.approved===false ? a.pendingLabel : a.approvedLabel}</span></div>
-      <div style="margin-top:6px;font-size:12.5px;"><b>${a.skills}:</b> ${(u.profiles||[]).map(k=>esc(skill(k))).join(', ') || '–'}</div>
+      <div style="margin-top:6px;font-size:14px;"><b>${a.skills}:</b> ${(u.profiles||[]).map(k=>esc(skill(k))).join(', ') || '–'}</div>
       ${adminDocsHTML(u.id)}` : '';
     return `<div class="card">
       <div class="top-row"><div>
         <div class="service-badge">${roleName(u.role)}</div>
         <h3>${esc(u.name)}</h3>
         <p class="meta">${esc(u.phone)}${u.email ? ' · ' + esc(u.email) : ''}</p>
-      </div><div class="meta" style="font-size:12px;color:var(--muted);">${n} ${a.jobsCount}</div></div>
-      <div style="margin-top:6px;font-size:12px;color:var(--muted);">${fmtTime(u.createdAt)}</div>
+      </div><div class="meta" style="font-size:13.5px;color:var(--muted);">${n} ${a.jobsCount}</div></div>
+      <div style="margin-top:6px;font-size:13.5px;color:var(--muted);">${fmtTime(u.createdAt)}</div>
       ${providerInfo}
       ${actions}
     </div>`;
