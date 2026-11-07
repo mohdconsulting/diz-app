@@ -206,6 +206,16 @@
       <div style="margin:-8px 0 18px;">
         <button class="secondary" id="accountSaveBtn" onclick="saveAccountDetails()"></button>
       </div>
+      <!-- provider: documents for verification (diz_provider_documents.sql); has its own upload button -->
+      <div id="docsWrap" style="display:none;margin-bottom:18px;">
+        <p class="section-title" id="docsTitle"></p>
+        <p style="font-size:12.5px;color:var(--muted);margin:0 0 8px;" id="docsHint"></p>
+        <div id="docsList"></div>
+        <label id="docKindLabel"></label>
+        <select id="docKindSelect"></select>
+        <input type="file" id="docFileInput" accept="image/*,application/pdf" style="margin-top:8px;">
+        <div style="margin-top:8px;"><button class="secondary" id="docUploadBtn" onclick="uploadDoc()"></button></div>
+      </div>
       <p class="section-title" id="allMineTitle"></p>
       <div id="mineList"></div>
     </section>

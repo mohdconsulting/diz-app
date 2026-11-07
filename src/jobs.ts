@@ -7,6 +7,7 @@ import { esc, toast, routeLinksHTML, PIN_ADDR } from './util';
 import { role, paymentsMode, selectedService, setSelectedService, selectedCat, setSelectedCat, selectedSize, setSelectedSize, editingJobId, setEditingJobId, photoDataUrl, setPhotoDataUrl, jobs, dbRef, currentUser, t, me, db } from './state';
 import { seenSet, shownSigs, jobEvent } from './notifications';
 import { renderAccountEdit, renderProfileEdit, isUnapprovedProvider, refreshApproval, setApproval } from './auth';
+import { renderDocs } from './documents';
 import { goTo, refreshCurrentScreen } from './shell';
 import { ad } from './admin';
 import { chatHTML } from './chat';
@@ -674,6 +675,7 @@ export function renderMine(){
   if(!currentUser) return;
   renderAccountEdit();
   renderProfileEdit();
+  renderDocs();
   const list = $('mineList');
   if(role==='driver'){
     const mineJobs = jobs.filter(j=>j.acceptedByPhone===me().phone && !isFinal(j));

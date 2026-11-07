@@ -78,6 +78,9 @@ Flöde: kunden trycker **Tilldela & betala** på en sökande (ett enda steg) →
 ## Aktivering av tjänsteleverantörer
 Nya leverantörer måste aktiveras av admin innan de kan lämna anbud. De ser jobben och en ruta om att kontot väntar på aktivering. Admin aktiverar/inaktiverar under fliken **Användare** (leverantörer som väntar visas först, med kompetenser och e-post). Spärren ligger i databasen (`diz_provider_approval.sql`), så den gäller alla appar. Kör filen i Supabase SQL Editor; leverantörer som redan finns räknas då som aktiverade. Test: `python3 tests/e2e/provider_approval.py`.
 
+## Leverantörens dokument för verifiering
+Leverantörer laddar upp dokument (ID-handling, körkort, yrkesbevis, övrigt; bild eller PDF, max 10 MB, högst 20 st) under **Profil**. Filerna ligger i den privata Storage-bucketen `provider-docs` i mappen `<användar-id>/`; bara leverantören och admin kan läsa dem. Admin ser och öppnar dokumenten (tidsbegränsad länk) i användarkortet under **Användare**. Kör `diz_provider_documents.sql` i Supabase SQL Editor (skapar bucket, policies och tabellen `provider_documents`). Test: `python3 tests/e2e/provider_documents.py`.
+
 ## Glömt lösenord (återställning via e-post)
 Inloggningen är fortfarande telefon + lösenord. Varje konto har dessutom en riktig e-postadress (`users.email`, obligatorisk vid registrering; äldre konton får en påminnelse i appen tills de lagt till en). "Glömt lösenordet?" på inloggningen skickar en engångslänk dit. Länken öppnar webbappen (`?reset_token=…`), där man väljer nytt lösenord – samma flöde oavsett om man använder webben, iPhone eller Android.
 
