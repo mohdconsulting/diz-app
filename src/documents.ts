@@ -5,7 +5,6 @@ import { $, esc, toast } from './util';
 import { role, currentUser, t, me, sb, sbRef } from './state';
 
 export const DOC_BUCKET = 'provider-docs';
-export const DOC_KINDS = ['id', 'license', 'certificate', 'other'] as const;
 const MAX_BYTES = 10 * 1024 * 1024;
 const MAX_DOCS = 20;
 
@@ -36,48 +35,49 @@ export function renderDocs(){
   const d = t().docs;
   $('docsTitle').textContent = d.title;
   $('docsHint').textContent = d.hint;
-  $('docKindLabel').textContent = d.kindLabel;
-  const sel = $<HTMLSelectElement>('docKindSelect');
-  const keep = sel.value;
-  sel.innerHTML = DOC_KINDS.map(k => `<option value="${k}">${esc(docKindLabel(k))}</option>`).join('');
-  if(keep) sel.value = keep;
-  const btn = $<HTMLButtonElement>('docUploadBtn');
-  btn.textContent = uploading ? d.uploading : d.upload;
-  btn.disabled = uploading;
+  $('docCameraBtn').textContent = d.takePhoto;
+  $('docFilesBtn').textContent = d.chooseFiles;
+  $<HTMLButtonElement>('docCameraBtn').disabled = uploading;
+  $<HTMLButtonElement>('docFilesBtn').disabled = uploading;
+  if(!uploading) $('docsStatus').textContent = '';
   $('docsList').innerHTML = myDocs.length
     ? myDocs.map(doc => `<div class="card" style="padding:10px 12px;margin-bottom:8px;">
         <div class="top-row"><div>
-          <div class="service-badge">${esc(docKindLabel(doc.kind))}</div>
-          <p class="meta" style="word-break:break-all;">${esc(doc.file_name)}</p>
+          <p class="meta" style="word-break:break-all;margin:0;">📄 ${esc(doc.file_name)}</p>
         </div><button class="danger" onclick="deleteDoc('${esc(doc.id)}')">${d.remove}</button></div>
       </div>`).join('')
     : `<div class="empty" style="margin-bottom:8px;">${d.empty}</div>`;
 }
 
-export async function uploadDoc(){
+/** Uploads the photo or files chosen in one of the hidden inputs (camera or file picker), one after another. */
+export async function uploadDocs(input: HTMLInputElement){
   if(!sbRef || !currentUser || role !== 'driver' || uploading) return;
   const d = t().docs;
-  const input = $<HTMLInputElement>('docFileInput');
-  const file = input.files?.[0];
-  if(!file){ toast(d.noFile); return; }
-  if(file.size > MAX_BYTES){ toast(d.tooBig); return; }
-  const mime = file.type || (file.name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : '');
-  if(!(mime.startsWith('image/') || mime === 'application/pdf')){ toast(d.badType); return; }
-  if(myDocs.length >= MAX_DOCS){ toast(d.tooMany); return; }
-  const kind = $<HTMLSelectElement>('docKindSelect').value || 'other';
-  const ext = (file.name.split('.').pop() || (mime === 'application/pdf' ? 'pdf' : 'jpg')).toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 5) || 'bin';
-  const path = `${me().id}/${crypto.randomUUID()}.${ext}`;
+  const files = Array.from(input.files ?? []);
+  input.value = '';                       // the same file can be chosen again later
+  if(!files.length) return;
   uploading = true; renderDocs();
+  let done = 0;
   try{
-    const up = await sb().storage.from(DOC_BUCKET).upload(path, file, { contentType: mime, upsert: false });
-    if(up.error) throw up.error;
-    const { error } = await sb().from('provider_documents').insert({ user_id: me().id, kind, file_path: path, file_name: file.name.slice(0, 200), mime, size_bytes: file.size });
-    if(error){ await sb().storage.from(DOC_BUCKET).remove([path]); throw error; }
-    input.value = '';
-    toast(d.uploaded);
+    for(const [i, file] of files.entries()){
+      $('docsStatus').textContent = d.uploadingN.replace('{n}', String(i + 1)).replace('{total}', String(files.length));
+      if(file.size > MAX_BYTES){ toast(d.tooBig); continue; }
+      const mime = file.type || (file.name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : '');
+      if(!(mime.startsWith('image/') || mime === 'application/pdf')){ toast(d.badType); continue; }
+      if(myDocs.length + done >= MAX_DOCS){ toast(d.tooMany); break; }
+      const ext = (file.name.split('.').pop() || (mime === 'application/pdf' ? 'pdf' : 'jpg')).toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 5) || 'bin';
+      const path = `${me().id}/${crypto.randomUUID()}.${ext}`;
+      try{
+        const up = await sb().storage.from(DOC_BUCKET).upload(path, file, { contentType: mime, upsert: false });
+        if(up.error) throw up.error;
+        const { error } = await sb().from('provider_documents').insert({ user_id: me().id, kind: 'id', file_path: path, file_name: (file.name || 'photo.jpg').slice(0, 200), mime, size_bytes: file.size });
+        if(error){ await sb().storage.from(DOC_BUCKET).remove([path]); throw error; }
+        done++;
+      }catch(e){ console.error(e); toast(t().toastSaveFailed); }
+    }
+    if(done) toast(done === 1 ? d.uploaded : d.uploadedN.replace('{n}', String(done)));
     await loadMyDocs();
-  }catch(e){ console.error(e); toast(t().toastSaveFailed); }
-  finally{ uploading = false; renderDocs(); }
+  }finally{ uploading = false; renderDocs(); }
 }
 
 export async function deleteDoc(id: string){
