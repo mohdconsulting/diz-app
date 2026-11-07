@@ -2,17 +2,15 @@ import SwiftUI
 import PhotosUI
 import UniformTypeIdentifiers
 
-/// Provider profile: documents for verification (ID, licence, certificate …). Images are sent as JPEG, PDFs as they are.
+/// Provider profile: ID document for verification. The provider can take a photo, pick one or more images,
+/// or pick one or more files (images or PDF). Images are sent as JPEG. Uploads start right away.
 /// Files go to the private Storage bucket provider-docs; only the provider and admin can read them.
 struct DocumentsCard: View {
     @EnvironmentObject var store: Store
-    @State private var kind = "id"
-    @State private var photoItem: PhotosPickerItem?
-    @State private var showPdf = false
-
-    private func kindLabel(_ k: String) -> String {
-        store.tr(["id": "docs.kId", "license": "docs.kLicense", "certificate": "docs.kCertificate"][k] ?? "docs.kOther")
-    }
+    @State private var photoItems: [PhotosPickerItem] = []
+    @State private var showCamera = false
+    @State private var showFiles = false
+    @State private var progress: String?
 
     var body: some View {
         Card {
@@ -23,10 +21,7 @@ struct DocumentsCard: View {
             }
             ForEach(store.myDocs) { doc in
                 HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(kindLabel(doc.kind)).font(.system(size: 12, weight: .semibold)).foregroundColor(.dizBrand)
-                        Text(doc.fileName).font(.system(size: 13)).foregroundColor(.dizInk).lineLimit(1)
-                    }
+                    Text("📄 " + doc.fileName).font(.system(size: 13)).foregroundColor(.dizInk).lineLimit(1)
                     Spacer()
                     Button(store.tr("docs.remove")) { Task { await store.deleteDoc(doc) } }
                         .font(.footnote).foregroundColor(.red).disabled(store.busy)
@@ -34,41 +29,91 @@ struct DocumentsCard: View {
                 .padding(8)
                 .overlay(Rectangle().stroke(Color.dizLine, lineWidth: 1).allowsHitTesting(false))
             }
-            Text(store.tr("docs.kindLabel")).font(.system(size: 12.5)).foregroundColor(.dizMuted).padding(.top, 4)
-            Picker(store.tr("docs.kindLabel"), selection: $kind) {
-                ForEach(Store.docKinds, id: \.self) { Text(kindLabel($0)).tag($0) }
-            }
-            .pickerStyle(.menu)
-            HStack(spacing: 10) {
-                PhotosPicker(selection: $photoItem, matching: .images) { Text(store.tr("docs.pickImage")) }
-                    .buttonStyle(.bordered)
-                Button(store.tr("docs.pickPdf")) { showPdf = true }
-                    .buttonStyle(.bordered)
-            }
-            .disabled(store.busy)
-            if store.busy { Text(store.tr("docs.uploading")).font(.footnote).foregroundColor(.dizMuted) }
-        }
-        .onChange(of: photoItem) { item in
-            guard let item = item else { return }
-            Task {
-                if let data = try? await item.loadTransferable(type: Data.self),
-                   let image = UIImage(data: data),
-                   let jpeg = image.jpegData(compressionQuality: 0.85) {
-                    await store.uploadDoc(kind: kind, data: jpeg, fileName: "photo.jpg", mime: "image/jpeg")
-                } else {
-                    store.toast("docs.badType")
+            VStack(alignment: .leading, spacing: 8) {
+                if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                    Button(store.tr("docs.takePhoto")) { showCamera = true }.buttonStyle(.bordered)
                 }
-                photoItem = nil
+                HStack(spacing: 10) {
+                    PhotosPicker(selection: $photoItems, maxSelectionCount: 10, matching: .images) { Text(store.tr("docs.pickImage")) }
+                        .buttonStyle(.bordered)
+                    Button(store.tr("docs.chooseFiles")) { showFiles = true }.buttonStyle(.bordered)
+                }
+            }
+            .disabled(store.busy || progress != nil)
+            if let p = progress { Text(p).font(.footnote).foregroundColor(.dizMuted) }
+        }
+        .sheet(isPresented: $showCamera) {
+            CameraPicker { image in
+                guard let jpeg = image.jpegData(compressionQuality: 0.85) else { return }
+                Task { await upload([(jpeg, "photo.jpg", "image/jpeg")]) }
+            }
+            .ignoresSafeArea()
+        }
+        .onChange(of: photoItems) { items in
+            guard !items.isEmpty else { return }
+            Task {
+                var files: [(Data, String, String)] = []
+                for item in items {
+                    if let data = try? await item.loadTransferable(type: Data.self),
+                       let jpeg = UIImage(data: data)?.jpegData(compressionQuality: 0.85) {
+                        files.append((jpeg, "photo.jpg", "image/jpeg"))
+                    }
+                }
+                photoItems = []
+                await upload(files)
             }
         }
-        .fileImporter(isPresented: $showPdf, allowedContentTypes: [.pdf]) { result in
-            guard case .success(let url) = result else { return }
-            let scoped = url.startAccessingSecurityScopedResource()
-            let data = try? Data(contentsOf: url)
-            if scoped { url.stopAccessingSecurityScopedResource() }
-            guard let data = data else { store.toast("toastSaveFailed"); return }
-            Task { await store.uploadDoc(kind: kind, data: data, fileName: url.lastPathComponent, mime: "application/pdf") }
+        .fileImporter(isPresented: $showFiles, allowedContentTypes: [.pdf, .image], allowsMultipleSelection: true) { result in
+            guard case .success(let urls) = result else { return }
+            var files: [(Data, String, String)] = []
+            for url in urls {
+                let scoped = url.startAccessingSecurityScopedResource()
+                defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+                guard let data = try? Data(contentsOf: url) else { continue }
+                let isPdf = UTType(filenameExtension: url.pathExtension)?.conforms(to: .pdf) ?? false
+                if isPdf {
+                    files.append((data, url.lastPathComponent, "application/pdf"))
+                } else if let jpeg = UIImage(data: data)?.jpegData(compressionQuality: 0.85) {
+                    files.append((jpeg, url.deletingPathExtension().lastPathComponent + ".jpg", "image/jpeg"))
+                }
+            }
+            Task { await upload(files) }
         }
         .task { await store.loadMyDocs() }
+    }
+
+    /// Uploads the chosen files one after another, with "Uploading n of total…".
+    private func upload(_ files: [(Data, String, String)]) async {
+        guard !files.isEmpty else { store.toast("docs.badType"); return }
+        for (i, f) in files.enumerated() {
+            progress = store.tr("docs.uploadingN", ["n": String(i + 1), "total": String(files.count)])
+            await store.uploadDoc(kind: "id", data: f.0, fileName: f.1, mime: f.2)
+        }
+        progress = nil
+    }
+}
+
+/// Minimal camera wrapper (SwiftUI has no camera view of its own).
+struct CameraPicker: UIViewControllerRepresentable {
+    var onImage: (UIImage) -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.sourceType = .camera
+        picker.delegate = context.coordinator
+        return picker
+    }
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    final class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: CameraPicker
+        init(_ parent: CameraPicker) { self.parent = parent }
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
+            if let image = info[.originalImage] as? UIImage { parent.onImage(image) }
+            parent.dismiss()
+        }
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) { parent.dismiss() }
     }
 }
