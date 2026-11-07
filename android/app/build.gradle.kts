@@ -62,6 +62,7 @@ dependencies {
     // Push notifications (started from assets/google-services.json, see Push.kt)
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
     implementation("com.google.firebase:firebase-messaging")
+    implementation("androidx.fragment:fragment-ktx:1.8.5")   // Firebase pulls in an old Fragment; ActivityResult APIs need >= 1.3
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.json:json:20240303")
