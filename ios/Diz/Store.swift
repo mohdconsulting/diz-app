@@ -8,7 +8,10 @@ private struct DismissRow: Decodable { let job_id: String }
 final class Store: ObservableObject {
     // MARK: Published state
     @Published var lang: Lang {
-        didSet { UserDefaults.standard.set(lang.rawValue, forKey: "lang") }
+        didSet {
+            UserDefaults.standard.set(lang.rawValue, forKey: "lang")
+            if oldValue != lang { Task { await registerPush() } }   // notifications follow the app language
+        }
     }
     @Published var user: AppUser?
     @Published var jobs: [Job] = []
@@ -250,12 +253,42 @@ final class Store: ObservableObject {
         pollTask?.cancel(); pollTask = nil
         calls.stop()
         sharing.stop()
-        api.clearSession()
+        // Stop notifications to this phone, then end the session (unless a new login happened meanwhile).
+        if let t = PushManager.shared.token, let old = api.session?.accessToken {
+            let api = self.api
+            Task {
+                _ = try? await api.rpc("unregister_push_token", ["p_token": t])
+                if api.session?.accessToken == old { api.clearSession() }
+            }
+        } else {
+            api.clearSession()
+        }
+        PushManager.shared.clearBadge()
         user = nil; jobs = []; messages = []; locations = [:]; payments = [:]; dismissed = []
         reviews = [:]; ratings = [:]; myComments = []; myDocs = []; ratingsKey = ""; paymentsMode = "off"
     }
 
+    // MARK: Push notifications
+
+    /// Sends this phone's push token (and language) to Supabase so notifications reach it.
+    func registerPush() async {
+        guard user != nil, let t = PushManager.shared.token else { return }
+        _ = try? await api.rpc("register_push_token", ["p_token": t, "p_platform": "ios", "p_lang": lang.rawValue,
+                                                       "p_env": PushManager.environment])
+    }
+
+    /// App opened or brought to the front: clear the number on the icon (locally and on the server).
+    func appBecameActive() async {
+        PushManager.shared.clearBadge()
+        guard user != nil else { return }
+        _ = try? await api.rpc("reset_push_badge")
+    }
+
     private func afterSignIn() async {
+        PushManager.shared.onToken = { [weak self] _ in Task { await self?.registerPush() } }
+        PushManager.shared.requestAndRegister()
+        await registerPush()
+        await appBecameActive()
         await loadPaymentsMode()
         await refreshAll()
         calls.start()

@@ -3,6 +3,8 @@ import SwiftUI
 @main
 struct DizApp: App {
     @StateObject private var store = Store()
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+    @Environment(\.scenePhase) private var scenePhase
 
     init() { DizTheme.apply() }
 
@@ -15,6 +17,9 @@ struct DizApp: App {
                 .dynamicTypeSize(.xxLarge ... .accessibility5)
                 .environment(\.layoutDirection, store.lang.isRTL ? .rightToLeft : .leftToRight)
                 .task { await store.restore() }
+                .onChange(of: scenePhase) { phase in
+                    if phase == .active { Task { await store.appBecameActive() } }
+                }
         }
     }
 }
