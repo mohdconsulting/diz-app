@@ -21,6 +21,7 @@ struct Job: Decodable, Identifiable, Hashable {
     var cat: String?
     var size: Int?
     var desc: String
+    var photo: String?          // optional photo as a JPEG data URL (same as the web app)
     var addr: String
     var toAddr: String?
     var addrLat: Double?
@@ -49,7 +50,7 @@ struct Job: Decodable, Identifiable, Hashable {
     var slotEnd: Int64?
 
     enum CodingKeys: String, CodingKey {
-        case id, service, cat, size, addr, price, status, applicants, arrived, resolution
+        case id, service, cat, size, addr, price, status, applicants, arrived, resolution, photo
         case desc = "desc_text", toAddr = "to_addr", addrLat = "addr_lat", addrLng = "addr_lng", toLat = "to_lat", toLng = "to_lng"
         case ownerPhone = "owner_phone", acceptedByPhone = "accepted_by_phone", arrivedAt = "arrived_at"
         case markedDoneByProvider = "marked_done_by_provider", markedDoneAt = "marked_done_at"
@@ -66,6 +67,7 @@ struct Job: Decodable, Identifiable, Hashable {
         cat = try c.decodeIfPresent(String.self, forKey: .cat)
         size = try c.decodeIfPresent(Int.self, forKey: .size)
         desc = try c.decodeIfPresent(String.self, forKey: .desc) ?? ""
+        photo = try c.decodeIfPresent(String.self, forKey: .photo)
         addr = try c.decodeIfPresent(String.self, forKey: .addr) ?? ""
         toAddr = try c.decodeIfPresent(String.self, forKey: .toAddr)
         addrLat = try c.decodeIfPresent(Double.self, forKey: .addrLat)

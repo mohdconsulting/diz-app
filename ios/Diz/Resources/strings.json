@@ -400,7 +400,8 @@
   "docs.takePhoto": "التقاط صورة",
   "docs.chooseFiles": "اختيار ملفات",
   "docs.uploadingN": "جارٍ رفع {n} من {total}…",
-  "docs.uploadedN": "تم رفع {n} مستندات"
+  "docs.uploadedN": "تم رفع {n} مستندات",
+  "photoChooseBtn": "اختيار من الصور"
  },
  "sv": {
   "chat.openBtn": "Chatta",
@@ -803,7 +804,8 @@
   "docs.takePhoto": "Ta foto",
   "docs.chooseFiles": "Välj filer",
   "docs.uploadingN": "Laddar upp {n} av {total}…",
-  "docs.uploadedN": "{n} dokument uppladdade"
+  "docs.uploadedN": "{n} dokument uppladdade",
+  "photoChooseBtn": "Välj från bilder"
  },
  "en": {
   "chat.openBtn": "Chat",
@@ -1206,6 +1208,7 @@
   "docs.takePhoto": "Take photo",
   "docs.chooseFiles": "Choose files",
   "docs.uploadingN": "Uploading {n} of {total}…",
-  "docs.uploadedN": "{n} documents uploaded"
+  "docs.uploadedN": "{n} documents uploaded",
+  "photoChooseBtn": "Choose from photos"
  }
 }

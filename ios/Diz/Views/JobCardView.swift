@@ -65,6 +65,11 @@ struct JobCardView: View {
             if let c = job.cat { Text(store.tr("services.\(job.service).categories.\(c)")).font(.subheadline) }
             if let s = job.size { Text(store.tr("services.\(job.service).sizes.\(s)")).font(.subheadline).foregroundColor(.secondary) }
             if !job.desc.isEmpty { Text(job.desc).font(.subheadline) }
+            if let img = JobPhoto.image(job.photo) {
+                Image(uiImage: img).resizable().scaledToFill()
+                    .frame(maxWidth: .infinity).frame(height: 160).clipped()
+                    .overlay(Rectangle().stroke(Color.dizLine, lineWidth: 1).allowsHitTesting(false))
+            }
             ScheduleLine(job: job)
             cashLine
             if !job.addr.isEmpty {

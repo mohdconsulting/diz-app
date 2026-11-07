@@ -12,6 +12,7 @@ struct NewRequestView: View {
     @State private var schedule = ScheduleChoice()
     @State private var showAuth = false
     @State private var picked = false
+    @State private var photo: String?
 
     private var info: ServiceInfo? { Strings.shared.service(service) }
 
@@ -45,6 +46,7 @@ struct NewRequestView: View {
                             }
                         }
                         .background(Color.white).overlay(Rectangle().stroke(Color.dizLine, lineWidth: 1).allowsHitTesting(false))
+                    JobPhotoField(photo: $photo)
                     if !info.sizes.isEmpty {
                         FieldLabel(text: store.tr("services.\(service).sizeLabel"))
                         FlowLayout(spacing: 8) {
@@ -68,9 +70,9 @@ struct NewRequestView: View {
                         if store.user == nil { showAuth = true; return }
                         Task {
                             let ok = await store.createJob(service: service, cat: cat, size: size, desc: desc, addr: addr,
-                                                           toAddr: toAddr, price: customPrice.intValue, schedule: schedule)
+                                                           toAddr: toAddr, price: customPrice.intValue, schedule: schedule, photo: photo)
                             if ok { desc = ""; addr = ""; toAddr = ""; cat = nil; size = nil; customPrice = ""
-                                    schedule = ScheduleChoice(); picked = false }
+                                    schedule = ScheduleChoice(); picked = false; photo = nil }
                         }
                     }.padding(.top, 6)
                 }

@@ -380,7 +380,7 @@ final class Store: ObservableObject {
     }
 
     // MARK: Customer actions
-    func createJob(service: String, cat: String?, size: Int?, desc: String, addr: String, toAddr: String?, price: Int, schedule: ScheduleChoice) async -> Bool {
+    func createJob(service: String, cat: String?, size: Int?, desc: String, addr: String, toAddr: String?, price: Int, schedule: ScheduleChoice, photo: String? = nil) async -> Bool {
         let info = Strings.shared.service(service)
         let needsCat = !(info?.categories.isEmpty ?? true)
         if (needsCat && cat == nil) || (info?.sizes.isEmpty == false && size == nil) { toast("toastMissingCatSize"); return false }
@@ -403,6 +403,7 @@ final class Store: ObservableObject {
         if let cat = cat { row["cat"] = cat }
         if let size = size { row["size"] = size }
         if let t = toAddr, info?.needsToAddr == true, !t.isEmpty { row["to_addr"] = t }
+        if let p = photo { row["photo"] = p }
         do {
             try await insertJob(row, schedule: schedule)
             toast("toastSubmitted")
