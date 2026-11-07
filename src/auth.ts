@@ -13,6 +13,7 @@ import { setSeenSet, setShownSigs, setNotifiedSigs, setFirstSnapshotDone, loadSe
 import { subscribeJobs, applyRoleUI, goTo, refreshCurrentScreen } from './shell';
 import { roleLabel } from './jobs';
 import { setAdminUsersList, setAdminNotes, loadAdminData } from './admin';
+import { loadMyDocs } from './documents';
 
 /* ---------- AUTH ---------- */
 export function toggleAuthMode(){
@@ -170,6 +171,7 @@ export function enterApp(){
   applyRoleUI();
   if(!unsubJobs) setUnsubJobs(subscribeJobs());
   void startPayments();
+  void loadMyDocs();
   startTracking();
   startChat();
   startCalls();

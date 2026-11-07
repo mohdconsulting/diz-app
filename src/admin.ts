@@ -7,6 +7,7 @@ import { refreshCurrentScreen } from './shell';
 import { chatHTML, mountChat } from './chat';
 import { adminReviewHTML } from './reviews';
 import { catLabel, serviceLabel, statusLabel, statusClass } from './jobs';
+import { loadAllDocs, adminDocsHTML, adminRemoveUserFiles } from './documents';
 
 /* ---------- ADMIN PANEL ---------- */
 export const ADM = {
@@ -102,6 +103,7 @@ export async function loadAdminData(){
     if(error) throw error;
     adminNotes = Object.fromEntries((data as { job_id: string; note: string }[]).map(r=>[r.job_id, r.note]));
   }catch(e){ console.error('load notes failed', e); }
+  await loadAllDocs();
   if(role==='admin') refreshCurrentScreen();
 }
 export const loadAdminUsers = loadAdminData;
@@ -302,7 +304,8 @@ export function renderAdminUsers(){
             <button class="danger" onclick="setAdminPendingUser('${esc(u.id)}')">${a.delUser}</button></div>`);
     const providerInfo = u.role==='driver' ? `
       <div style="margin-top:6px;"><span class="status ${u.approved===false ? 'waiting' : 'accepted'}">${u.approved===false ? a.pendingLabel : a.approvedLabel}</span></div>
-      <div style="margin-top:6px;font-size:12.5px;"><b>${a.skills}:</b> ${(u.profiles||[]).map(k=>esc(skill(k))).join(', ') || '–'}</div>` : '';
+      <div style="margin-top:6px;font-size:12.5px;"><b>${a.skills}:</b> ${(u.profiles||[]).map(k=>esc(skill(k))).join(', ') || '–'}</div>
+      ${adminDocsHTML(u.id)}` : '';
     return `<div class="card">
       <div class="top-row"><div>
         <div class="service-badge">${roleName(u.role)}</div>
@@ -329,6 +332,7 @@ export async function adminSetApproved(id: string, approved: boolean){
 export async function adminDeleteUser(id: string){
   if(!dbRef || role!=='admin') return;
   try{
+    await adminRemoveUserFiles(id);
     const { error } = await sb().rpc('admin_delete_user', {uid:id});
     if(error) throw error;
     adminUsersList = adminUsersList.filter(u=>u.id!==id);

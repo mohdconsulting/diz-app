@@ -2,7 +2,7 @@
 (function(){
   const now=Date.now();
   let saved=null; try{ saved=JSON.parse(sessionStorage.getItem('dbs')); }catch(e){}
-  const db=saved?saved.db:{users:[{id:'u-admin',phone:'admin1',name:'Chefen',role:'admin',profiles:[],created_at:now}],jobs:[],admin_notes:[],payments:[],provider_locations:[],messages:[],call_signals:[],job_dismissals:[],reviews:[],app_settings:[{key:'payments_mode',value:'mock'}]};
+  const db=saved?saved.db:{users:[{id:'u-admin',phone:'admin1',name:'Chefen',role:'admin',profiles:[],created_at:now}],jobs:[],admin_notes:[],payments:[],provider_locations:[],messages:[],call_signals:[],job_dismissals:[],reviews:[],provider_documents:[],app_settings:[{key:'payments_mode',value:'mock'}]};
   db.payments=db.payments||[]; db.provider_locations=db.provider_locations||[]; db.messages=db.messages||[]; db.call_signals=db.call_signals||[]; db.job_dismissals=db.job_dismissals||[]; db.reviews=db.reviews||[]; db.app_settings=db.app_settings||[{key:'payments_mode',value:'mock'}];
   const auth=saved?saved.auth:[{id:'u-admin',email:'diz.admin1@gmail.com',pw:'secret1'}];
   const persist=()=>sessionStorage.setItem('dbs',JSON.stringify({db,auth}));
@@ -41,9 +41,23 @@
     }
     return q;
   }
+  if(!db.provider_documents) db.provider_documents=[];
+  // Storage stand-in: files are kept in memory (window.__files) and the policies of diz_provider_documents.sql are mimicked.
+  const files=window.__files={};
+  const storage={ from(bucket){ return {
+    async upload(path,file,opts){ const u=session&&db.users.find(x=>x.id===session.user.id);
+      if(!u||u.role!=='driver'||path.split('/')[0]!==u.id) return {data:null,error:{message:'new row violates row-level security policy'}};
+      if(file.size>10485760) return {data:null,error:{message:'Payload too large'}};
+      files[bucket+'/'+path]={size:file.size,type:(opts&&opts.contentType)||file.type}; return {data:{path},error:null}; },
+    async remove(paths){ paths.forEach(p=>delete files[bucket+'/'+p]); return {data:paths,error:null}; },
+    async createSignedUrl(path){ const u=session&&db.users.find(x=>x.id===session.user.id);
+      if(!files[bucket+'/'+path]||!u||(u.role!=='admin'&&path.split('/')[0]!==u.id)) return {data:null,error:{message:'Object not found'}};
+      return {data:{signedUrl:'about:blank#signed/'+encodeURIComponent(path)},error:null}; },
+  }; } };
   window.__db=db;
   const sbObj={
     from:Q,
+    storage,
     channel(){const c={on(){return c;},subscribe(){return c;}};return c;}, removeChannel(){},
     rpc:async(fn,args)=>{
       const me=session&&db.users.find(u=>u.id===session.user.id);

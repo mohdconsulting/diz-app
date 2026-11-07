@@ -24,6 +24,13 @@ export interface SbClient {
   removeChannel(ch: SbChannel): unknown;
   rpc(fn: string, args: object): PromiseLike<SbResult>;
   functions: { invoke(name: string, opts?: { body?: object }): Promise<SbResult> };
+  storage: {
+    from(bucket: string): {
+      upload(path: string, file: Blob, opts?: { contentType?: string; upsert?: boolean }): Promise<SbResult>;
+      remove(paths: string[]): Promise<SbResult>;
+      createSignedUrl(path: string, expiresIn: number): Promise<SbResult<{ signedUrl: string } | null>>;
+    };
+  };
   auth: {
     signUp(args: { email: string; password: string; options?: { data?: Record<string, unknown> } }):
       Promise<{ data: { user: { id: string } | null; session: SbSession | null }; error: SbError | null }>;
