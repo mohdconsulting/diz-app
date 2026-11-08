@@ -19,9 +19,6 @@ struct HomeView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 hero
-                if let u = store.user, u.role != "admin", (u.email ?? "").isEmpty {
-                    EmailEditCard(nudge: true).padding(.horizontal, 18).padding(.top, 14)
-                }
                 if store.user != nil {
                     VStack(alignment: .leading, spacing: 12) {
                         Text(store.tr("recentTitle")).font(.system(size: 16, weight: .semibold)).foregroundColor(.dizMuted)

@@ -172,25 +172,6 @@ struct ForgotPasswordView: View {
     }
 }
 
-/// E-mail used for password reset. Shown in the profile, and on the home screen while the account has none.
-struct EmailEditCard: View {
-    @EnvironmentObject var store: Store
-    var nudge = false
-    @State private var email = ""
-
-    var body: some View {
-        Card {
-            Text(store.tr(nudge ? "emailNudge" : "authEmailLabel")).font(.system(size: 16.5)).foregroundColor(nudge ? .dizInk : .dizMuted)
-            TextInputField(placeholder: store.tr("authEmailLabel"), text: $email, keyboard: .emailAddress).dizInput()
-                .environment(\.layoutDirection, .leftToRight)
-            PrimaryButton(title: store.tr(nudge ? "emailNudgeBtn" : "accountSaveBtn"), disabled: store.busy) {
-                Task { _ = await store.saveEmail(email) }
-            }
-        }
-        .onAppear { email = store.user?.email ?? "" }
-    }
-}
-
 /// Profile page: e-mail and, for providers, skills (job types they see), saved with one button like on the web.
 struct AccountDetailsCard: View {
     @EnvironmentObject var store: Store

@@ -121,16 +121,18 @@ final class Store: ObservableObject {
     func register(name: String, phone: String, email realEmail: String, password: String, role: String, profiles: [String]) async {
         let email = Config.authEmail(phone: phone)
         let mail = realEmail.trimmingCharacters(in: .whitespaces).lowercased()
-        guard !name.trimmingCharacters(in: .whitespaces).isEmpty, !email.isEmpty, !password.isEmpty, !mail.isEmpty else {
+        guard !name.trimmingCharacters(in: .whitespaces).isEmpty, !email.isEmpty, !password.isEmpty else {
             toast("toastAuthMissingFields"); return
         }
-        guard Store.isValidEmail(mail) else { toast("toastInvalidEmail"); return }
+        // E-mail is optional; if given it must be valid.
+        guard mail.isEmpty || Store.isValidEmail(mail) else { toast("toastInvalidEmail"); return }
         guard password.count >= 6 else { toast("toastPasswordShort"); return }
         if role == "driver" && profiles.isEmpty { toast("toastAuthMissingProfiles"); return }
         busy = true; defer { busy = false }
         do {
             let meta: [String: Any] = ["name": name.trimmingCharacters(in: .whitespaces), "phone": phone,
-                                       "role": role, "profiles": role == "driver" ? profiles : [], "email": mail]
+                                       "role": role, "profiles": role == "driver" ? profiles : [],
+                                       "email": mail.isEmpty ? NSNull() as Any : mail as Any]
             guard let s = try await api.signUp(email: email, password: password, metadata: meta) else {
                 toast("toastAuthNeedsConfirm"); return
             }
@@ -215,34 +217,17 @@ final class Store: ObservableObject {
     func saveDetails(email raw: String, profiles: [String]?) async -> Bool {
         guard let u = user else { return false }
         let mail = raw.trimmingCharacters(in: .whitespaces).lowercased()
-        guard !mail.isEmpty else { toast("toastAuthMissingFields"); return false }
-        guard Store.isValidEmail(mail) else { toast("toastInvalidEmail"); return false }
+        guard mail.isEmpty || Store.isValidEmail(mail) else { toast("toastInvalidEmail"); return false }
         if let p = profiles, p.isEmpty { toast("toastAuthMissingProfiles"); return false }
-        var patch: [String: Any] = ["email": mail]
+        var patch: [String: Any] = ["email": mail.isEmpty ? NSNull() as Any : mail as Any]
         if let p = profiles { patch["profiles"] = p }
         busy = true; defer { busy = false }
         do {
             try await api.update("users", id: u.id, patch)
-            user?.email = mail
+            user?.email = mail.isEmpty ? nil : mail
             if let p = profiles { user?.profiles = p }
             toast("toastAccountSaved")
             if profiles != nil { await refreshAll() }
-            return true
-        } catch {
-            toast("toastSaveFailed"); return false
-        }
-    }
-
-    func saveEmail(_ raw: String) async -> Bool {
-        guard let u = user else { return false }
-        let mail = raw.trimmingCharacters(in: .whitespaces).lowercased()
-        guard !mail.isEmpty else { toast("toastAuthMissingFields"); return false }
-        guard Store.isValidEmail(mail) else { toast("toastInvalidEmail"); return false }
-        busy = true; defer { busy = false }
-        do {
-            try await api.update("users", id: u.id, ["email": mail])
-            user?.email = mail
-            toast("toastAccountSaved")
             return true
         } catch {
             toast("toastSaveFailed"); return false
