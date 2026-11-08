@@ -123,8 +123,8 @@ export async function submitAuth(){
   if(authMode === 'register'){
     const name = $<HTMLInputElement>('authNameInput').value.trim();
     const realEmail = $<HTMLInputElement>('authEmailInput').value.trim().toLowerCase();
-    if(!name || !phone || !pass || !email || !realEmail){ toast(d.toastAuthMissingFields); return; }
-    if(!isValidEmail(realEmail)){ toast(d.toastInvalidEmail); return; }
+    if(!name || !phone || !pass || !email){ toast(d.toastAuthMissingFields); return; }
+    if(realEmail && !isValidEmail(realEmail)){ toast(d.toastInvalidEmail); return; }
     if(!authSelectedRole){ toast(d.toastAuthMissingRole); return; }
     if(authSelectedRole==='driver' && authSelectedProfiles.size===0){ toast(d.toastAuthMissingProfiles); return; }
     if(pass.length < 6){ toast(d.toastPasswordShort); return; }
@@ -132,7 +132,7 @@ export async function submitAuth(){
     try{
       const { data, error } = await sb().auth.signUp({
         email, password: pass,
-        options: { data: { name, phone, role: authSelectedRole, profiles, email: realEmail } }
+        options: { data: { name, phone, role: authSelectedRole, profiles, email: realEmail || null } }
       });
       if(error){
         console.error('signUp failed', error);
@@ -219,11 +219,8 @@ export function updateEmailNudge(){
   const an = $('approvalNote');
   an.style.display = isUnapprovedProvider() ? 'block' : 'none';
   if(isUnapprovedProvider()) an.textContent = t().approvalPending;
-  const show = !!currentUser && role !== 'admin' && !me().email;
-  $('emailNudge').style.display = show ? 'block' : 'none';
-  if(!show) return;
-  $('emailNudgeText').textContent = t().emailNudge;
-  $('emailNudgeBtn').textContent = t().emailNudgeBtn;
+  // E-mail is optional, so accounts without one are no longer nagged.
+  $('emailNudge').style.display = 'none';
 }
 export function openEmailEdit(){
   goTo('mine');
@@ -333,16 +330,16 @@ export async function saveAccountDetails(){
   const d = t();
   const newName = $<HTMLInputElement>('accountNameInput').value.trim();
   const newEmail = $<HTMLInputElement>('accountEmailInput').value.trim().toLowerCase();
-  if(!newName || !newEmail){ toast(d.toastAuthMissingFields); return; }
-  if(!isValidEmail(newEmail)){ toast(d.toastInvalidEmail); return; }
+  if(!newName){ toast(d.toastAuthMissingFields); return; }
+  if(newEmail && !isValidEmail(newEmail)){ toast(d.toastInvalidEmail); return; }
   // Providers also save their skills with the same button.
   const isProvider = role === 'driver';
   const profiles = isProvider ? Array.from(editProfiles ?? new Set(me().profiles || [])) : null;
   if(isProvider && (!profiles || profiles.length===0)){ toast(d.toastAuthMissingProfiles); return; }
   try{
-    await db().user(me().id).update(profiles ? {name:newName, email:newEmail, profiles} : {name:newName, email:newEmail});
+    await db().user(me().id).update(profiles ? {name:newName, email:newEmail || null, profiles} : {name:newName, email:newEmail || null});
     me().name = newName;
-    me().email = newEmail;
+    me().email = newEmail || null;
     if(profiles) me().profiles = profiles;
     toast(d.toastAccountSaved);
     updateUserRow();

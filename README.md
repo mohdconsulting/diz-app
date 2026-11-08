@@ -109,7 +109,7 @@ Flöde: triggers i `diz_push.sql` → tabellen `push_outbox` → (pg_net) Edge F
 Leverantörer laddar upp eller fotograferar sin ID-handling (en eller flera filer, bild eller PDF, max 10 MB per fil, högst 20 st) under **Profil**. Filerna ligger i den privata Storage-bucketen `provider-docs` i mappen `<användar-id>/`; bara leverantören och admin kan läsa dem. Admin ser och öppnar dokumenten (tidsbegränsad länk) i användarkortet under **Användare**. Kör `diz_provider_documents.sql` i Supabase SQL Editor (skapar bucket, policies och tabellen `provider_documents`). Test: `python3 tests/e2e/provider_documents.py`.
 
 ## Glömt lösenord (återställning via e-post)
-Inloggningen är fortfarande telefon + lösenord. Varje konto har dessutom en riktig e-postadress (`users.email`, obligatorisk vid registrering; äldre konton får en påminnelse i appen tills de lagt till en). "Glömt lösenordet?" på inloggningen skickar en engångslänk dit. Länken öppnar webbappen (`?reset_token=…`), där man väljer nytt lösenord – samma flöde oavsett om man använder webben, iPhone eller Android.
+Inloggningen är fortfarande telefon + lösenord. Varje konto kan dessutom ha en riktig e-postadress (`users.email`, frivillig vid registrering och kan läggas till eller ändras under Mina uppgifter). Konton utan e-post kan inte återställa lösenordet själva. "Glömt lösenordet?" på inloggningen skickar en engångslänk dit. Länken öppnar webbappen (`?reset_token=…`), där man väljer nytt lösenord – samma flöde oavsett om man använder webben, iPhone eller Android.
 
 **Driftsättning (en gång):**
 1. Kör `diz_password_reset.sql` i Supabase SQL Editor **innan** nya appversioner släpps (annars går det inte att spara e-post).
