@@ -108,6 +108,9 @@ Flöde: triggers i `diz_push.sql` → tabellen `push_outbox` → (pg_net) Edge F
 ## Leverantörens dokument för verifiering
 Leverantörer laddar upp eller fotograferar sin ID-handling (en eller flera filer, bild eller PDF, max 10 MB per fil, högst 20 st) under **Profil**. Filerna ligger i den privata Storage-bucketen `provider-docs` i mappen `<användar-id>/`; bara leverantören och admin kan läsa dem. Admin ser och öppnar dokumenten (tidsbegränsad länk) i användarkortet under **Användare**. Kör `diz_provider_documents.sql` i Supabase SQL Editor (skapar bucket, policies och tabellen `provider_documents`). Test: `python3 tests/e2e/provider_documents.py`.
 
+## WhatsApp till en användare (admin)
+Under fliken **Användare** har varje användare en grön **WhatsApp**-knapp. Admin skriver meddelandet och trycker *Öppna i WhatsApp*; då öppnas WhatsApp (appen eller WhatsApp Web) med användarens nummer och texten ifylld, och admin trycker skicka där. Meddelandet går från admins eget WhatsApp-konto. Irakiska nummer som är sparade lokalt (07…) får landskoden 964 automatiskt. Inget behöver ställas in. Test: `python3 tests/e2e/admin_whatsapp.py`.
+
 ## Glömt lösenord (återställning via e-post)
 Inloggningen är fortfarande telefon + lösenord. Varje konto kan dessutom ha en riktig e-postadress (`users.email`, frivillig vid registrering och kan läggas till eller ändras under Mina uppgifter). Konton utan e-post kan inte återställa lösenordet själva. "Glömt lösenordet?" på inloggningen skickar en engångslänk dit. Länken öppnar webbappen (`?reset_token=…`), där man väljer nytt lösenord – samma flöde oavsett om man använder webben, iPhone eller Android.
 

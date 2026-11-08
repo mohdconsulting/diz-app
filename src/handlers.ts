@@ -14,7 +14,7 @@ import {
 } from './jobs';
 import {
   setAdminFilter, saveAdminNote, adminDo, adminDeleteUser, adminAsk, adminAbort, setAdminQuery,
-  setAdminNoteDraft, setAdminPendingUser, adminSetApproved,
+  setAdminNoteDraft, setAdminPendingUser, adminSetApproved, adminWaToggle, setAdminWaDraft, adminWaSend,
 } from './admin';
 import { uploadDocs, deleteDoc, adminOpenDoc } from './documents';
 
@@ -27,4 +27,5 @@ export const handlers = {
   setAdminQuery, setAdminNoteDraft, setAdminPendingUser, startPayment, mockPay, cancelMockCheckout, retrySharing, toggleTrackMap, toggleChat, toggleAdminChat, startCall, dismissJob, restoreJob, toggleDismissed, setReviewRating, setReviewComment, submitReview, moderateReview, askClearComment,
   schedPickDay, schedTapSlot, schedSetAsap, schedToggleProposal, schedSetPrice, submitProposal,
   openForgot, closeForgot, sendResetLink, saveNewPassword, openEmailEdit, adminSetApproved, uploadDocs, deleteDoc, adminOpenDoc,
+  adminWaToggle, setAdminWaDraft, adminWaSend,
 };
