@@ -78,6 +78,33 @@ Flöde: kunden trycker **Tilldela & betala** på en sökande (ett enda steg) →
 ## Aktivering av tjänsteleverantörer
 Nya leverantörer måste aktiveras av admin innan de kan lämna anbud. De ser jobben och en ruta om att kontot väntar på aktivering. Admin aktiverar/inaktiverar under fliken **Användare** (leverantörer som väntar visas först, med kompetenser och e-post). Spärren ligger i databasen (`diz_provider_approval.sql`), så den gäller alla appar. Kör filen i Supabase SQL Editor; leverantörer som redan finns räknas då som aktiverade. Test: `python3 tests/e2e/provider_approval.py`.
 
+## Push-notiser (iPhone och Android)
+Notiser visas i telefonens notiscenter även när appen är stängd, och siffran på appikonen visar antalet olästa (nollställs när appen öppnas). Händelser: nytt jobb som matchar (till aktiverade leverantörer), nytt anbud, tilldelad, på plats, markerat utfört, problem, avslutat, avbokat och nya chattmeddelanden. Texten skickas på det språk mottagaren har i appen.
+
+Flöde: triggers i `diz_push.sql` → tabellen `push_outbox` → (pg_net) Edge Function `send-push` → Apple (APNs) / Google (FCM).
+
+**Uppsättning (en gång):**
+1. **Databas:** kör `diz_push.sql` i SQL Editor. Hitta på en lång slumpmässig hemlig sträng och kör:
+   ```sql
+   insert into public.push_config (id, function_url, secret)
+   values (1, 'https://royjjuxojdlqrjteqsge.supabase.co/functions/v1/send-push', 'DIN-HEMLIGA-STRÄNG')
+   on conflict (id) do update set function_url = excluded.function_url, secret = excluded.secret;
+   ```
+2. **Apple (iPhone):** developer.apple.com → *Certificates, IDs & Profiles* → *Keys* → **+** → namn "Diz Push", kryssa i *Apple Push Notifications service (APNs)* → *Register* → **Download** (`AuthKey_XXXXXXXXXX.p8`, kan bara laddas ner en gång). Notera *Key ID* och ditt *Team ID* (överst till höger / Membership). I Xcode: *Signing & Capabilities* → **+ Capability** → *Push Notifications* (entitlements-filen finns redan).
+3. **Firebase (Android):** console.firebase.google.com → *Add project* "Diz" (Analytics behövs inte) → *Add app* → Android, paketnamn `com.diz.app` → ladda ner **google-services.json** och lägg den i `android/app/src/main/assets/google-services.json` (på `develop-android`). Sedan *Project settings* → *Service accounts* → **Generate new private key** → en JSON-fil (hemlig – checka inte in den).
+4. **Hemligheter** (Supabase → Edge Functions → Secrets):
+   | Namn | Värde |
+   |---|---|
+   | `PUSH_SECRET` | samma sträng som i steg 1 |
+   | `APNS_KEY_P8` | hela innehållet i .p8-filen (inkl. BEGIN/END-raderna) |
+   | `APNS_KEY_ID` | Key ID från steg 2 |
+   | `APNS_TEAM_ID` | ditt Team ID |
+   | `APNS_TOPIC` | `com.mohdconsulting.diz` |
+   | `FCM_SERVICE_ACCOUNT` | hela innehållet i servicekonto-JSON:en från steg 3 |
+5. **Edge Function:** Edge Functions → *Deploy a new function* → *Via Editor*, namn `send-push`, klistra in `supabase/functions/send-push/index.ts` → *Deploy*. Slå **av** *Enforce JWT verification* (funktionen skyddas av `PUSH_SECRET`). Eller: `supabase functions deploy send-push --no-verify-jwt`.
+6. **Nya appbyggen:** iPhone från `develop-swift` (med Push Notifications-capability), Android från `develop-android` (med google-services.json).
+7. **Test:** logga in i appen på en riktig telefon och tillåt notiser, stäng appen, och skapa t.ex. ett chattmeddelande eller ett jobb från ett annat konto. Felsök i *Edge Functions → send-push → Logs* och tabellen `push_outbox`.
+
 ## Leverantörens dokument för verifiering
 Leverantörer laddar upp eller fotograferar sin ID-handling (en eller flera filer, bild eller PDF, max 10 MB per fil, högst 20 st) under **Profil**. Filerna ligger i den privata Storage-bucketen `provider-docs` i mappen `<användar-id>/`; bara leverantören och admin kan läsa dem. Admin ser och öppnar dokumenten (tidsbegränsad länk) i användarkortet under **Användare**. Kör `diz_provider_documents.sql` i Supabase SQL Editor (skapar bucket, policies och tabellen `provider_documents`). Test: `python3 tests/e2e/provider_documents.py`.
 
