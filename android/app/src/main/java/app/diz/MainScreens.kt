@@ -160,8 +160,6 @@ fun HomeScreen(store: Store, onStart: () -> Unit) {
             }
         }
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            val u = store.user
-            if (u != null && u.role != "admin" && u.email.isNullOrBlank()) EmailEditCard(store, nudge = true)
             if (store.user != null) {
                 SectionTitle(store.tr("recentTitle"))
                 if (mine.isEmpty()) EmptyBox(store.tr("emptyHome")) else mine.take(3).forEach { JobCard(store, it) }

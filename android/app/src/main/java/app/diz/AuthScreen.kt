@@ -151,17 +151,6 @@ fun EmailField(value: String, onChange: (String) -> Unit, label: String) {
     }
 }
 
-/** E-mail used for password reset. Shown in the profile, and on the home screen while the account has none. */
-@Composable
-fun EmailEditCard(store: Store, nudge: Boolean = false) {
-    var email by remember(store.user?.id) { mutableStateOf(store.user?.email ?: "") }
-    Card {
-        Text(store.tr(if (nudge) "emailNudge" else "authEmailLabel"), color = if (nudge) DizInk else DizMuted, fontSize = 13.sp)
-        EmailField(email, { email = it }, store.tr("authEmailLabel"))
-        PrimaryButton(store.tr(if (nudge) "emailNudgeBtn" else "accountSaveBtn"), enabled = !store.busy) { store.saveEmail(email) }
-    }
-}
-
 /** Profile page: e-mail and, for providers, skills (job types they see), saved with one button like on the web. */
 @Composable
 fun AccountDetailsCard(store: Store) {

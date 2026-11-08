@@ -139,14 +139,15 @@ class Store(app: Application) : AndroidViewModel(app) {
     fun register(name: String, phone: String, realEmail: String, password: String, role: String, profiles: List<String>) {
         val email = Config.authEmail(phone)
         val mail = realEmail.trim().lowercase()
-        if (name.isBlank() || email.isEmpty() || password.isEmpty() || mail.isEmpty()) { toast("toastAuthMissingFields"); return }
-        if (!isValidEmail(mail)) { toast("toastInvalidEmail"); return }
+        if (name.isBlank() || email.isEmpty() || password.isEmpty()) { toast("toastAuthMissingFields"); return }
+        // E-mail is optional; if given it must be valid.
+        if (mail.isNotEmpty() && !isValidEmail(mail)) { toast("toastInvalidEmail"); return }
         if (password.length < 6) { toast("toastPasswordShort"); return }
         if (role == "driver" && profiles.isEmpty()) { toast("toastAuthMissingProfiles"); return }
         viewModelScope.launch {
             busy = true
             try {
-                val meta = mapOf("name" to name.trim(), "phone" to phone, "role" to role, "profiles" to if (role == "driver") profiles else emptyList<String>(), "email" to mail)
+                val meta = mapOf("name" to name.trim(), "phone" to phone, "role" to role, "profiles" to if (role == "driver") profiles else emptyList<String>(), "email" to mail.ifEmpty { null })
                 val s = api.signUp(email, password, meta)
                 if (s == null) { toast("toastAuthNeedsConfirm"); return@launch }
                 val u = fetchUser(s.userId, 6)
@@ -242,33 +243,17 @@ class Store(app: Application) : AndroidViewModel(app) {
     fun saveDetails(rawEmail: String, profiles: List<String>?) {
         val u = user ?: return
         val mail = rawEmail.trim().lowercase()
-        if (mail.isEmpty()) { toast("toastAuthMissingFields"); return }
-        if (!isValidEmail(mail)) { toast("toastInvalidEmail"); return }
+        if (mail.isNotEmpty() && !isValidEmail(mail)) { toast("toastInvalidEmail"); return }
         if (profiles != null && profiles.isEmpty()) { toast("toastAuthMissingProfiles"); return }
-        val patch = if (profiles != null) mapOf("email" to mail, "profiles" to profiles) else mapOf("email" to mail)
+        val newEmail: String? = mail.ifEmpty { null }
+        val patch: Map<String, Any?> = if (profiles != null) mapOf("email" to newEmail, "profiles" to profiles) else mapOf("email" to newEmail)
         viewModelScope.launch {
             busy = true
             try {
                 api.update("users", u.id, patch)
-                user = user?.copy(email = mail, profiles = profiles ?: u.profiles)
+                user = user?.copy(email = newEmail, profiles = profiles ?: u.profiles)
                 toast("toastAccountSaved")
                 if (profiles != null) refreshAll()
-            } catch (e: Exception) { toast("toastSaveFailed") }
-            finally { busy = false }
-        }
-    }
-
-    fun saveEmail(raw: String) {
-        val u = user ?: return
-        val mail = raw.trim().lowercase()
-        if (mail.isEmpty()) { toast("toastAuthMissingFields"); return }
-        if (!isValidEmail(mail)) { toast("toastInvalidEmail"); return }
-        viewModelScope.launch {
-            busy = true
-            try {
-                api.update("users", u.id, mapOf("email" to mail))
-                user = user?.copy(email = mail)
-                toast("toastAccountSaved")
             } catch (e: Exception) { toast("toastSaveFailed") }
             finally { busy = false }
         }
