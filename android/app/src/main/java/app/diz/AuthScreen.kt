@@ -1,6 +1,11 @@
 package app.diz
 
 import androidx.compose.foundation.background
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -46,6 +51,10 @@ fun AuthScreen(store: Store, onClose: () -> Unit) {
     var email by remember { mutableStateOf("") }
     var forgot by remember { mutableStateOf(false) }
     var resetSent by remember { mutableStateOf(false) }
+    var codeMode by remember { mutableStateOf(false) }
+    var code by remember { mutableStateOf("") }
+    var newPass by remember { mutableStateOf("") }
+    var repeatPass by remember { mutableStateOf("") }
     var role by remember { mutableStateOf("customer") }
     var profiles by remember { mutableStateOf(setOf<String>()) }
 
@@ -63,13 +72,41 @@ fun AuthScreen(store: Store, onClose: () -> Unit) {
                     Box(Modifier.background(DizAmber, CircleShape).padding(3.5.dp))
                     Text("دز  Diz", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = DizBrand)
                 }
+                if (forgot && codeMode) {
+                    // Code from WhatsApp + new password (Edge Function whatsapp-reset).
+                    LangPills(store, light = true)
+                    Text(store.tr("codeTitle"), fontSize = 21.sp, fontWeight = FontWeight.SemiBold)
+                    Text(store.tr("codeSent"), color = DizMuted, fontSize = 13.5.sp)
+                    DigitField(code, { code = it.take(6) }, store.tr("codeLabel"))
+                    OutlinedTextField(
+                        newPass, { newPass = it }, label = { Text(store.tr("resetNewLabel")) }, singleLine = true,
+                        visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    OutlinedTextField(
+                        repeatPass, { repeatPass = it }, label = { Text(store.tr("resetRepeatLabel")) }, singleLine = true,
+                        visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    PrimaryButton(store.tr("codeSave"), enabled = !store.busy) { store.resetWithCode(phone, code, newPass, repeatPass) }
+                    LinkButton(store.tr("codeResend")) { store.sendResetCode(phone) { store.toast("codeSent") } }
+                    LinkButton(store.tr("forgotBack")) { codeMode = false }
+                    return@Column
+                }
                 if (forgot) {
-                    // "Forgot password": the e-mailed link opens the web app, where the new password is chosen.
+                    // "Forgot password": a code on WhatsApp, or an e-mailed link that opens the web app.
                     LangPills(store, light = true)
                     Text(store.tr("forgotTitle"), fontSize = 21.sp, fontWeight = FontWeight.SemiBold)
                     Text(store.tr("forgotText"), color = DizMuted, fontSize = 13.5.sp)
                     DigitField(phone, { phone = it }, store.tr("authPhoneLabel"), phone = true)
-                    PrimaryButton(store.tr("forgotSend"), enabled = !store.busy) { store.requestPasswordReset(phone) { resetSent = true } }
+                    WhatsAppButton(store.tr("forgotWaSend"), enabled = !store.busy) {
+                        store.sendResetCode(phone) { code = ""; newPass = ""; repeatPass = ""; codeMode = true }
+                    }
+                    SecondaryButton(store.tr("forgotSend"), Modifier.fillMaxWidth()) {
+                        if (!store.busy) store.requestPasswordReset(phone) { resetSent = true }
+                    }
                     if (resetSent) Text(store.tr("forgotSent"), color = DizBrand, fontSize = 13.sp)
                     LinkButton(store.tr("forgotBack")) { forgot = false; resetSent = false }
                     return@Column
@@ -114,7 +151,7 @@ fun AuthScreen(store: Store, onClose: () -> Unit) {
                     Text(store.tr(if (registering) "authSwitchTextRegister" else "authSwitchTextLogin"), color = DizMuted, fontSize = 14.sp)
                     LinkButton(store.tr(if (registering) "authSwitchBtnRegister" else "authSwitchBtnLogin")) { registering = !registering }
                 }
-                if (!registering) LinkButton(store.tr("forgotLink")) { forgot = true; resetSent = false }
+                if (!registering) LinkButton(store.tr("forgotLink")) { forgot = true; resetSent = false; codeMode = false }
             }
         }
     }
@@ -169,4 +206,18 @@ fun AccountDetailsCard(store: Store) {
             store.saveDetails(email, if (u.isDriver) picked.sorted() else null)
         }
     }
+}
+
+/** Full-width WhatsApp-green button. */
+@Composable
+fun WhatsAppButton(title: String, enabled: Boolean = true, onClick: () -> Unit) {
+    val green = Color(0xFF25D366)
+    Button(
+        onClick = onClick, enabled = enabled, modifier = Modifier.fillMaxWidth(), shape = RectangleShape,
+        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 13.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = green, contentColor = Color.White,
+            disabledContainerColor = green.copy(alpha = 0.5f), disabledContentColor = Color.White.copy(alpha = 0.8f),
+        ),
+    ) { Text(title, fontWeight = FontWeight.SemiBold, fontSize = 15.sp, textAlign = TextAlign.Center) }
 }

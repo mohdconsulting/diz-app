@@ -177,6 +177,47 @@ class Store(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /** "Forgot password" with a 6-digit code on WhatsApp (Edge Function whatsapp-reset). The server answers ok whether
+     *  or not the number exists; not ok only when WhatsApp isn't set up (then the e-mail link is the way). */
+    fun sendResetCode(phone: String, onSent: () -> Unit) {
+        if (Config.authEmail(phone).isEmpty()) { toast("toastAuthMissingFields"); return }
+        viewModelScope.launch {
+            busy = true
+            try {
+                val res = org.json.JSONObject(api.invokePublic("whatsapp-reset", mapOf("action" to "send", "phone" to phone, "lang" to lang.code)))
+                if (res.optBoolean("ok")) onSent() else toast("toastWaUnavailable")
+            } catch (e: Exception) { toast("toastWaUnavailable") }
+            finally { busy = false }
+        }
+    }
+
+    /** Sets a new password with the WhatsApp code, then signs in with it. */
+    fun resetWithCode(phone: String, rawCode: String, password: String, again: String) {
+        val code = rawCode.asciiDigits().filter { it in '0'..'9' }
+        if (code.length != 6) { toast("toastCodeInvalid"); return }
+        if (password.length < 6) { toast("toastPasswordShort"); return }
+        if (password != again) { toast("toastPasswordMismatch"); return }
+        viewModelScope.launch {
+            busy = true
+            var ok = false
+            try {
+                val res = org.json.JSONObject(api.invokePublic("whatsapp-reset",
+                    mapOf("action" to "reset", "phone" to phone, "code" to code, "password" to password)))
+                if (res.optBoolean("ok")) ok = true
+                else when (res.optString("error")) {
+                    "expired", "too_many" -> toast("toastCodeExpired")
+                    "weak" -> toast("toastPasswordShort")
+                    else -> toast("toastCodeInvalid")
+                }
+            } catch (e: Exception) { toast("toastDbUnavailable") }
+            finally { busy = false }
+            if (ok) {
+                toast("toastPasswordChanged")
+                login(phone, password)
+            }
+        }
+    }
+
     // ---- Provider documents (verification) ----
     fun loadMyDocs() {
         val id = user?.id
