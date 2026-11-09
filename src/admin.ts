@@ -25,7 +25,7 @@ export const ADM = {
     release:"Släpp betalning", refund:"Återbetala kund", cancel:"Avbryt uppdrag", reopen:"Återöppna", del:"Radera",
     confirm:{release:"Släpp betalningen till utföraren och avsluta uppdraget?", refund:"Avbryt uppdraget och återbetala kunden?", cancel:"Avbryt uppdraget?", reopen:"Återöppna uppdraget så att nya utförare kan ansöka? Tilldelning och problemrapport rensas.", delete:"Radera uppdraget permanent?"},
     yes:"Bekräfta", no:"Avbryt", done:"Klart",
-    usersEmpty:"Inga användare.", jobsCount:"uppdrag", delUser:"Radera användare", delUserConfirm:"Radera användaren permanent? Deras uppdrag finns kvar.", userDeleted:"Användare raderad", adminProtected:"Admin-konton raderas via databasen.", approvedLabel:"Aktiv", pendingLabel:"Väntar på aktivering", approve:"Aktivera", revoke:"Inaktivera", approvedToast:"Leverantören är aktiverad", revokedToast:"Leverantören är inaktiverad", skills:"Kompetenser"
+    usersEmpty:"Inga användare.", jobsCount:"uppdrag", delUser:"Radera användare", delUserConfirm:"Radera användaren permanent? Deras uppdrag finns kvar.", userDeleted:"Användare raderad", adminProtected:"Admin-konton raderas via databasen.", approvedLabel:"Aktiv", pendingLabel:"Väntar på aktivering", approve:"Aktivera", revoke:"Inaktivera", approvedToast:"Leverantören är aktiverad", revokedToast:"Leverantören är inaktiverad", skills:"Kompetenser", waBtn:"WhatsApp", waPlaceholder:"Skriv meddelandet…", waOpen:"Öppna i WhatsApp", waCancel:"Avbryt", waGreeting:"Hej", waBadNumber:"Numret går inte att använda i WhatsApp", waEmpty:"Skriv ett meddelande först"
   },
   en:{
     roleAdmin:"Admin", cancelledNote:"The job was cancelled by an administrator. The payment is refunded to the customer.",
@@ -41,7 +41,7 @@ export const ADM = {
     release:"Release payment", refund:"Refund customer", cancel:"Cancel job", reopen:"Reopen", del:"Delete",
     confirm:{release:"Release the payment to the provider and close the job?", refund:"Cancel the job and refund the customer?", cancel:"Cancel the job?", reopen:"Reopen the job so new providers can apply? Assignment and problem report are cleared.", delete:"Delete the job permanently?"},
     yes:"Confirm", no:"Cancel", done:"Done",
-    usersEmpty:"No users.", jobsCount:"jobs", delUser:"Delete user", delUserConfirm:"Delete this user permanently? Their jobs remain.", userDeleted:"User deleted", adminProtected:"Admin accounts are removed via the database.", approvedLabel:"Active", pendingLabel:"Waiting for activation", approve:"Activate", revoke:"Deactivate", approvedToast:"Provider activated", revokedToast:"Provider deactivated", skills:"Skills"
+    usersEmpty:"No users.", jobsCount:"jobs", delUser:"Delete user", delUserConfirm:"Delete this user permanently? Their jobs remain.", userDeleted:"User deleted", adminProtected:"Admin accounts are removed via the database.", approvedLabel:"Active", pendingLabel:"Waiting for activation", approve:"Activate", revoke:"Deactivate", approvedToast:"Provider activated", revokedToast:"Provider deactivated", skills:"Skills", waBtn:"WhatsApp", waPlaceholder:"Write the message…", waOpen:"Open in WhatsApp", waCancel:"Cancel", waGreeting:"Hi", waBadNumber:"This number can't be used with WhatsApp", waEmpty:"Write a message first"
   },
   ar:{
     roleAdmin:"مشرف", cancelledNote:"ألغى المشرف الطلب. سيُعاد المبلغ إلى العميل.",
@@ -57,7 +57,7 @@ export const ADM = {
     release:"تحرير الدفع", refund:"إعادة المبلغ للعميل", cancel:"إلغاء الطلب", reopen:"إعادة الفتح", del:"حذف",
     confirm:{release:"تحرير الدفع لمقدم الخدمة وإغلاق الطلب؟", refund:"إلغاء الطلب وإعادة المبلغ للعميل؟", cancel:"إلغاء الطلب؟", reopen:"إعادة فتح الطلب ليتقدم مقدمو خدمة جدد؟ سيُمسح التكليف وبلاغ المشكلة.", delete:"حذف الطلب نهائيًا؟"},
     yes:"تأكيد", no:"إلغاء", done:"تم",
-    usersEmpty:"لا يوجد مستخدمون.", jobsCount:"طلبات", delUser:"حذف المستخدم", delUserConfirm:"حذف هذا المستخدم نهائيًا؟ تبقى طلباته.", userDeleted:"تم حذف المستخدم", adminProtected:"تُحذف حسابات المشرفين عبر قاعدة البيانات.", approvedLabel:"مفعّل", pendingLabel:"بانتظار التفعيل", approve:"تفعيل", revoke:"إلغاء التفعيل", approvedToast:"تم تفعيل مقدم الخدمة", revokedToast:"تم إلغاء تفعيل مقدم الخدمة", skills:"المهارات"
+    usersEmpty:"لا يوجد مستخدمون.", jobsCount:"طلبات", delUser:"حذف المستخدم", delUserConfirm:"حذف هذا المستخدم نهائيًا؟ تبقى طلباته.", userDeleted:"تم حذف المستخدم", adminProtected:"تُحذف حسابات المشرفين عبر قاعدة البيانات.", approvedLabel:"مفعّل", pendingLabel:"بانتظار التفعيل", approve:"تفعيل", revoke:"إلغاء التفعيل", approvedToast:"تم تفعيل مقدم الخدمة", revokedToast:"تم إلغاء تفعيل مقدم الخدمة", skills:"المهارات", waBtn:"واتساب", waPlaceholder:"اكتب الرسالة…", waOpen:"فتح في واتساب", waCancel:"إلغاء", waGreeting:"مرحبًا", waBadNumber:"لا يمكن استخدام هذا الرقم في واتساب", waEmpty:"اكتب رسالة أولًا"
   }
 };
 export function ad(){ return ADM[lang]; }
@@ -75,6 +75,46 @@ export let adminPendingUser: string | null = null;
 export function setAdminQuery(v: string){ adminQuery = v; renderAdminList(); }
 export function setAdminNoteDraft(id: string, v: string){ adminNoteDrafts[id] = v; }
 export function setAdminPendingUser(id: string | null){ adminPendingUser = id; renderAdminUsers(); }
+
+/* ---------- WHATSAPP MESSAGE TO A USER ---------- */
+let adminWaUser: string | null = null;
+const adminWaDrafts: Record<string, string> = {};
+
+/** Phone number as WhatsApp wants it: digits only, with country code, no + or leading zeros.
+ *  Iraqi numbers are stored as typed (07xx…, +9647xx…, 009647xx…, 7xx…), so local ones get 964. */
+export function waNumber(phone: string | null | undefined): string | null {
+  const ar = '٠١٢٣٤٥٦٧٨٩', fa = '۰۱۲۳۴۵۶۷۸۹';
+  let n = String(phone ?? '').replace(/[٠-٩۰-۹]/g, c => String(ar.indexOf(c) >= 0 ? ar.indexOf(c) : fa.indexOf(c)))
+    .replace(/\D/g, '');
+  if(n.startsWith('00')) n = n.slice(2);
+  else if(n.startsWith('0')) n = '964' + n.slice(1);
+  else if(n.length === 10 && n.startsWith('7')) n = '964' + n;
+  return n.length >= 8 && n.length <= 15 ? n : null;
+}
+export function adminWaToggle(id: string | null){
+  adminWaUser = adminWaUser === id ? null : id;
+  if(id && adminWaDrafts[id] === undefined){
+    const u = adminUsersList.find(x=>x.id===id);
+    adminWaDrafts[id] = u ? `${ad().waGreeting} ${u.name},\n` : '';
+  }
+  renderAdminUsers();
+  if(adminWaUser){
+    const el = document.getElementById('waText-' + adminWaUser) as HTMLTextAreaElement | null;
+    if(el){ el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+  }
+}
+export function setAdminWaDraft(id: string, v: string){ adminWaDrafts[id] = v; }
+export function adminWaSend(id: string){
+  const u = adminUsersList.find(x=>x.id===id); if(!u) return;
+  const num = waNumber(u.phone);
+  if(!num){ toast(ad().waBadNumber); return; }
+  const text = (adminWaDrafts[id] ?? '').trim();
+  if(!text){ toast(ad().waEmpty); return; }
+  window.open(`https://wa.me/${num}?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
+  delete adminWaDrafts[id];
+  adminWaUser = null;
+  renderAdminUsers();
+}
 
 export function adminCat(j: Job): 'open' | 'active' | 'problem' | 'done' | 'cancelled' {
   if(j.status==='open') return 'open';
@@ -297,7 +337,15 @@ export function renderAdminUsers(){
         ? `<div class="adm-confirm">${a.delUserConfirm}<div class="action-row">
             <button class="danger" onclick="adminDeleteUser('${esc(u.id)}')">${a.yes}</button>
             <button class="secondary" onclick="setAdminPendingUser(null)">${a.no}</button></div></div>`
+        : adminWaUser===u.id
+        ? `<div class="adm-wa">
+            <textarea id="waText-${esc(u.id)}" dir="auto" rows="4" placeholder="${a.waPlaceholder}"
+              oninput="setAdminWaDraft('${esc(u.id)}', this.value)">${esc(adminWaDrafts[u.id] ?? '')}</textarea>
+            <div class="action-row">
+              <button class="primary wa-btn" onclick="adminWaSend('${esc(u.id)}')">${a.waOpen}</button>
+              <button class="secondary" onclick="adminWaToggle(null)">${a.waCancel}</button></div></div>`
         : `<div class="action-row">
+            <button class="secondary wa-btn" onclick="adminWaToggle('${esc(u.id)}')">${a.waBtn}</button>
             ${u.role==='driver' ? (u.approved===false
               ? `<button class="primary" onclick="adminSetApproved('${esc(u.id)}', true)">${a.approve}</button>`
               : `<button class="secondary" onclick="adminSetApproved('${esc(u.id)}', false)">${a.revoke}</button>`) : ''}

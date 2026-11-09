@@ -74,10 +74,29 @@
         <label id="forgotPhoneLabel"></label>
         <input type="text" id="forgotPhoneInput">
         <div style="margin-top:18px;">
-          <button class="primary" id="forgotSendBtn" onclick="sendResetLink()"></button>
+          <button class="primary wa-btn" id="forgotWaBtn" onclick="sendResetCode()"></button>
+        </div>
+        <div style="margin-top:10px;">
+          <button class="secondary" id="forgotSendBtn" style="width:100%;" onclick="sendResetLink()"></button>
         </div>
         <p class="auth-note" id="forgotNote"></p>
         <div class="auth-switch"><button onclick="closeForgot()" id="forgotBackBtn"></button></div>
+      </div>
+
+      <!-- code sent on WhatsApp: code + new password -->
+      <div id="authCodeWrap" style="display:none;">
+        <p class="auth-note" id="codeNote" style="margin-top:0;"></p>
+        <label id="codeLabel"></label>
+        <input type="text" id="codeInput" inputmode="numeric" autocomplete="one-time-code" maxlength="6" dir="ltr">
+        <label id="codeNewLabel"></label>
+        <input type="password" id="codeNewInput" autocomplete="new-password">
+        <label id="codeRepeatLabel"></label>
+        <input type="password" id="codeRepeatInput" autocomplete="new-password">
+        <div style="margin-top:18px;">
+          <button class="primary" id="codeSaveBtn" onclick="saveWithCode()"></button>
+        </div>
+        <div class="auth-switch"><button onclick="sendResetCode(true)" id="codeResendBtn"></button></div>
+        <div class="auth-switch"><button onclick="openForgot()" id="codeBackBtn"></button></div>
       </div>
 
       <!-- opened from the e-mailed link: choose a new password -->
