@@ -162,6 +162,49 @@ final class Store: ObservableObject {
         }
     }
 
+    /// "Forgot password" with a 6-digit code on WhatsApp (Edge Function whatsapp-reset). Answers ok whether or not the
+    /// number exists; false only when WhatsApp isn't set up on the server (then the e-mail link is the way).
+    func sendResetCode(phone: String) async -> Bool {
+        guard !Config.authEmail(phone: phone).isEmpty else { toast("toastAuthMissingFields"); return false }
+        busy = true; defer { busy = false }
+        do {
+            let data = try await api.invokePublic("whatsapp-reset", ["action": "send", "phone": phone, "lang": lang.rawValue])
+            let o = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
+            guard o?["ok"] as? Bool == true else { toast("toastWaUnavailable"); return false }
+            return true
+        } catch {
+            toast("toastWaUnavailable"); return false
+        }
+    }
+
+    /// Sets a new password with the WhatsApp code, then signs in with it.
+    func resetWithCode(phone: String, code raw: String, password: String, repeat again: String) async -> Bool {
+        let code = raw.asciiDigits.filter { $0.isASCII && $0.isNumber }
+        guard code.count == 6 else { toast("toastCodeInvalid"); return false }
+        guard password.count >= 6 else { toast("toastPasswordShort"); return false }
+        guard password == again else { toast("toastPasswordMismatch"); return false }
+        busy = true
+        var ok = false
+        do {
+            let data = try await api.invokePublic("whatsapp-reset",
+                                                  ["action": "reset", "phone": phone, "code": code, "password": password])
+            let o = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
+            if o?["ok"] as? Bool == true {
+                ok = true
+            } else {
+                let err = o?["error"] as? String
+                toast(err == "expired" || err == "too_many" ? "toastCodeExpired" : (err == "weak" ? "toastPasswordShort" : "toastCodeInvalid"))
+            }
+        } catch {
+            toast("toastDbUnavailable")
+        }
+        busy = false
+        guard ok else { return false }
+        toast("toastPasswordChanged")
+        await login(phone: phone, password: password)
+        return true
+    }
+
     // MARK: Provider documents (verification)
 
     static let docBucket = "provider-docs"

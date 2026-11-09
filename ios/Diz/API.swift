@@ -210,8 +210,9 @@ final class API {
     }
 
     /// Calls a public Edge Function (deployed with --no-verify-jwt), e.g. request-password-reset.
-    func invokePublic(_ fn: String, _ body: [String: Any]) async throws {
-        _ = try await raw("POST", "/functions/v1/" + fn, body: body, auth: false)
+    @discardableResult
+    func invokePublic(_ fn: String, _ body: [String: Any]) async throws -> Data {
+        try await raw("POST", "/functions/v1/" + fn, body: body, auth: false)
     }
 
     @discardableResult

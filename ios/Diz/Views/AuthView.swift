@@ -138,26 +138,23 @@ struct AuthField: View {
     }
 }
 
-/// "Forgot password": asks the server to mail a reset link. The new password is chosen on the web page the link opens.
+/// "Forgot password": a 6-digit code on WhatsApp (code + new password here), or a link mailed to the account's e-mail
+/// (the new password is then chosen on the web page the link opens).
 struct ForgotPasswordView: View {
     @EnvironmentObject var store: Store
     @Environment(\.dismiss) private var dismiss
     @State var phone: String
     @State private var sent = false
+    @State private var codeMode = false
+    @State private var code = ""
+    @State private var newPass = ""
+    @State private var repeatPass = ""
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
-                    Text(store.tr("forgotTitle")).font(.system(size: 27, weight: .semibold)).foregroundColor(.dizInk)
-                    Text(store.tr("forgotText")).font(.system(size: 17)).foregroundColor(.dizMuted)
-                    AuthField(label: store.tr("authPhoneLabel"), text: $phone, keyboard: .phonePad)
-                    PrimaryButton(title: store.tr("forgotSend"), disabled: store.busy) {
-                        Task { if await store.requestPasswordReset(phone: phone) { sent = true } }
-                    }
-                    if sent {
-                        Text(store.tr("forgotSent")).font(.system(size: 16.5)).foregroundColor(.dizBrand)
-                    }
+                    if codeMode { codeForm } else { phoneForm }
                 }
                 .padding(22)
                 .background(Color.white).overlay(Rectangle().stroke(Color.dizLine, lineWidth: 1).allowsHitTesting(false))
@@ -166,9 +163,76 @@ struct ForgotPasswordView: View {
             .background(Color.dizPaper.ignoresSafeArea())
             .overlay(alignment: .bottom) { ToastView() }
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button(store.tr("forgotBack")) { dismiss() } }
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(store.tr("forgotBack")) { if codeMode { codeMode = false } else { dismiss() } }
+                }
             }
         }
+    }
+
+    @ViewBuilder private var phoneForm: some View {
+        Text(store.tr("forgotTitle")).font(.system(size: 27, weight: .semibold)).foregroundColor(.dizInk)
+        Text(store.tr("forgotText")).font(.system(size: 17)).foregroundColor(.dizMuted)
+        AuthField(label: store.tr("authPhoneLabel"), text: $phone, keyboard: .phonePad)
+        WhatsAppButton(title: store.tr("forgotWaSend"), disabled: store.busy) {
+            Task {
+                if await store.sendResetCode(phone: phone) {
+                    code = ""; newPass = ""; repeatPass = ""; codeMode = true
+                }
+            }
+        }
+        Button(store.tr("forgotSend")) {
+            Task { if await store.requestPasswordReset(phone: phone) { sent = true } }
+        }
+        .buttonStyle(SecondaryButtonStyle()).frame(maxWidth: .infinity).disabled(store.busy)
+        if sent {
+            Text(store.tr("forgotSent")).font(.system(size: 16.5)).foregroundColor(.dizBrand)
+        }
+    }
+
+    @ViewBuilder private var codeForm: some View {
+        Text(store.tr("codeTitle")).font(.system(size: 27, weight: .semibold)).foregroundColor(.dizInk)
+        Text(store.tr("codeSent")).font(.system(size: 16.5)).foregroundColor(.dizMuted)
+        VStack(alignment: .leading, spacing: 4) {
+            Text(store.tr("codeLabel")).font(.system(size: 16)).foregroundColor(.dizMuted)
+            DigitField(placeholder: "123456", text: $code).dizInput()
+                .environment(\.layoutDirection, .leftToRight)
+        }
+        VStack(alignment: .leading, spacing: 4) {
+            Text(store.tr("resetNewLabel")).font(.system(size: 16)).foregroundColor(.dizMuted)
+            TextInputField(placeholder: store.tr("resetNewLabel"), text: $newPass, secure: true).dizInput()
+        }
+        VStack(alignment: .leading, spacing: 4) {
+            Text(store.tr("resetRepeatLabel")).font(.system(size: 16)).foregroundColor(.dizMuted)
+            TextInputField(placeholder: store.tr("resetRepeatLabel"), text: $repeatPass, secure: true).dizInput()
+        }
+        PrimaryButton(title: store.tr("codeSave"), disabled: store.busy) {
+            Task {
+                if await store.resetWithCode(phone: phone, code: code, password: newPass, repeat: repeatPass) { dismiss() }
+            }
+        }
+        Button {
+            Task { if await store.sendResetCode(phone: phone) { store.toast("codeSent") } }
+        } label: {
+            Text(store.tr("codeResend")).font(.system(size: 16.5, weight: .semibold)).foregroundColor(.dizBrand).underline()
+        }
+        .buttonStyle(.plain).frame(maxWidth: .infinity).disabled(store.busy)
+    }
+}
+
+/// Full-width WhatsApp-green button.
+struct WhatsAppButton: View {
+    let title: String
+    var disabled = false
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            Text(title).font(.system(size: 19.5, weight: .semibold)).foregroundColor(.white)
+                .frame(maxWidth: .infinity).padding(.vertical, 13)
+                .background(Color(red: 0x25 / 255, green: 0xD3 / 255, blue: 0x66 / 255))
+                .opacity(disabled ? 0.5 : 1)
+        }
+        .buttonStyle(.plain).disabled(disabled)
     }
 }
 
