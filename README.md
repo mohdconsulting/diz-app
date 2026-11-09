@@ -108,6 +108,18 @@ Flöde: triggers i `diz_push.sql` → tabellen `push_outbox` → (pg_net) Edge F
 ## Leverantörens dokument för verifiering
 Leverantörer laddar upp eller fotograferar sin ID-handling (en eller flera filer, bild eller PDF, max 10 MB per fil, högst 20 st) under **Profil**. Filerna ligger i den privata Storage-bucketen `provider-docs` i mappen `<användar-id>/`; bara leverantören och admin kan läsa dem. Admin ser och öppnar dokumenten (tidsbegränsad länk) i användarkortet under **Användare**. Kör `diz_provider_documents.sql` i Supabase SQL Editor (skapar bucket, policies och tabellen `provider_documents`). Test: `python3 tests/e2e/provider_documents.py`.
 
+## Glömt lösenord via WhatsApp-kod
+"Glömt lösenordet?" har två val: **Skicka kod via WhatsApp** och **Skicka länk via e-post**. WhatsApp-vägen fungerar för alla konton (även utan e-post): användaren får en sexsiffrig kod på WhatsApp och skriver in den tillsammans med sitt nya lösenord – i webben, iPhone- och Android-appen. Koden gäller 10 minuter, kan bara användas en gång, högst 5 felförsök och högst 3 koder per nummer och timme. Svaret avslöjar aldrig om ett nummer är registrerat.
+
+Så aktiverar du det:
+1. Kör `diz_whatsapp_reset.sql` i Supabase SQL Editor (efter `diz_password_reset.sql`).
+2. Meta: verifierat företag, eget nummer i WhatsApp Cloud API, betalmetod, och en mall av kategorin **Authentication** (*One-time passcode*, *Copy code*) med namnet `diz_reset_code` på arabiska, svenska och engelska (UK).
+3. Supabase → Edge Functions → Secrets: `WHATSAPP_TOKEN` (permanent token från en systemanvändare), `WHATSAPP_PHONE_ID` (Phone number ID från *WhatsApp → API Setup*) och vid behov `WHATSAPP_TEMPLATE` (standard `diz_reset_code`).
+4. Driftsätt `supabase/functions/whatsapp-reset/index.ts` (dashboardens editor eller `supabase functions deploy whatsapp-reset --no-verify-jwt`) med JWT-kontrollen avstängd.
+5. Testa: logga ut, "Glömt lösenordet?" → *Skicka kod via WhatsApp*. Fel syns under *Edge Functions → Logs* (t.ex. fel mallnamn eller token).
+
+Innan steg 3–4 är klara visar appen "Återställning via WhatsApp är inte tillgänglig just nu" och e-postvägen fungerar som vanligt. Med Metas testnummer går koder bara till de (högst 5) mottagare du lagt in under *API Setup → To*. Test: `python3 tests/e2e/whatsapp_reset.py`.
+
 ## WhatsApp till en användare (admin)
 Under fliken **Användare** har varje användare en grön **WhatsApp**-knapp. Admin skriver meddelandet och trycker *Öppna i WhatsApp*; då öppnas WhatsApp (appen eller WhatsApp Web) med användarens nummer och texten ifylld, och admin trycker skicka där. Meddelandet går från admins eget WhatsApp-konto. Irakiska nummer som är sparade lokalt (07…) får landskoden 964 automatiskt. Inget behöver ställas in. Test: `python3 tests/e2e/admin_whatsapp.py`.
 

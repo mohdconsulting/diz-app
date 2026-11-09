@@ -1,4 +1,4 @@
-import { toggleAuthMode, submitAuth, logout, saveAccountDetails, openForgot, closeForgot, sendResetLink, saveNewPassword, openEmailEdit } from './auth';
+import { toggleAuthMode, submitAuth, logout, saveAccountDetails, openForgot, closeForgot, sendResetLink, sendResetCode, saveWithCode, saveNewPassword, openEmailEdit } from './auth';
 import { goTo } from './shell';
 import { dismissJob, restoreJob, toggleDismissed } from './dismissals';
 import { startCall } from './call';
@@ -26,6 +26,6 @@ export const handlers = {
   assignJob, askDelete, useMyLocation, clearPin, adminDo, adminDeleteUser, adminAsk, adminAbort, setReportDraft, setRespondDraft,
   setAdminQuery, setAdminNoteDraft, setAdminPendingUser, startPayment, mockPay, cancelMockCheckout, retrySharing, toggleTrackMap, toggleChat, toggleAdminChat, startCall, dismissJob, restoreJob, toggleDismissed, setReviewRating, setReviewComment, submitReview, moderateReview, askClearComment,
   schedPickDay, schedTapSlot, schedSetAsap, schedToggleProposal, schedSetPrice, submitProposal,
-  openForgot, closeForgot, sendResetLink, saveNewPassword, openEmailEdit, adminSetApproved, uploadDocs, deleteDoc, adminOpenDoc,
+  openForgot, closeForgot, sendResetLink, sendResetCode, saveWithCode, saveNewPassword, openEmailEdit, adminSetApproved, uploadDocs, deleteDoc, adminOpenDoc,
   adminWaToggle, setAdminWaDraft, adminWaSend,
 };

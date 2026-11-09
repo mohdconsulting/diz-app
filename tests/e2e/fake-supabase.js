@@ -112,7 +112,20 @@
         if(args.p_action==='payout'&&p.status==='released') p.status='paid_out'; else if(args.p_action==='refund'&&p.status==='refund_due') p.status='refunded'; else return {error:{message:'bad state'}};
         persist(); return {data:p,error:null};
       } if(fn==='admin_delete_user'){ const i=db.users.findIndex(u=>u.id===args.uid); if(i>=0) db.users.splice(i,1); return {error:null}; } return {error:{message:'x'}}; },
-    functions:{ async invoke(name,opts){ (window.__fnCalls=window.__fnCalls||[]).push({name,body:opts&&opts.body}); return {data:{ok:true},error:null}; } },
+    functions:{ async invoke(name,opts){ const b=opts&&opts.body; (window.__fnCalls=window.__fnCalls||[]).push({name,body:b});
+      // whatsapp-reset: the code is always 123456 here; window.__waUnavailable simulates missing WhatsApp secrets
+      if(name==='whatsapp-reset'){
+        const norm=v=>String(v||'').replace(/[^a-zA-Z0-9]/g,'').toLowerCase();
+        if(b.action==='send') return {data: window.__waUnavailable?{ok:false,error:'unavailable'}:{ok:true}, error:null};
+        if(b.action==='reset'){
+          if(String(b.password||'').length<6) return {data:{ok:false,error:'weak'},error:null};
+          if(b.code==='000000') return {data:{ok:false,error:'expired'},error:null};
+          const u=db.users.find(x=>norm(x.phone)===norm(b.phone)); const a=u&&auth.find(x=>x.id===u.id);
+          if(b.code!=='123456'||!a) return {data:{ok:false,error:'invalid'},error:null};
+          a.pw=b.password; persist(); return {data:{ok:true},error:null};
+        }
+      }
+      return {data:{ok:true},error:null}; } },
     auth:{
       async signUp({email,password,options}){
         if(auth.find(a=>a.email===email)) return {data:{},error:{message:'User already registered'}};

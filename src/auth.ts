@@ -33,7 +33,9 @@ export function profileOptions(){
 }
 
 /** Which part of the sign-in card is shown: the normal form, "forgot password", or "choose a new password". */
-let authPanel: 'main' | 'forgot' | 'reset' = 'main';
+let authPanel: 'main' | 'forgot' | 'reset' | 'code' = 'main';
+/** Phone number the WhatsApp code was sent to. */
+let codePhone = '';
 
 export function isValidEmail(v: string): boolean { return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.trim()); }
 
@@ -43,14 +45,24 @@ export function renderAuth(){
   $('authMainWrap').style.display = authPanel === 'main' ? 'block' : 'none';
   $('authForgotWrap').style.display = authPanel === 'forgot' ? 'block' : 'none';
   $('authResetWrap').style.display = authPanel === 'reset' ? 'block' : 'none';
+  $('authCodeWrap').style.display = authPanel === 'code' ? 'block' : 'none';
   $('forgotPhoneLabel').textContent = d.authPhoneLabel;
+  $('forgotWaBtn').textContent = d.forgotWaSend;
   $('forgotSendBtn').textContent = d.forgotSend;
+  $('codeNote').textContent = d.codeSent;
+  $('codeLabel').textContent = d.codeLabel;
+  $('codeNewLabel').textContent = d.resetNewLabel;
+  $('codeRepeatLabel').textContent = d.resetRepeatLabel;
+  $('codeSaveBtn').textContent = d.codeSave;
+  $('codeResendBtn').textContent = d.codeResend;
+  $('codeBackBtn').textContent = d.forgotBack;
   $('forgotBackBtn').textContent = d.forgotBack;
   $('resetNewLabel').textContent = d.resetNewLabel;
   $('resetRepeatLabel').textContent = d.resetRepeatLabel;
   $('resetSaveBtn').textContent = d.resetSave;
   if(authPanel === 'forgot'){ $('authTitle').textContent = d.forgotTitle; $('authSubtitle').textContent = d.forgotText; return; }
   if(authPanel === 'reset'){ $('authTitle').textContent = d.resetTitle; $('authSubtitle').textContent = ''; return; }
+  if(authPanel === 'code'){ $('authTitle').textContent = d.codeTitle; $('authSubtitle').textContent = ''; return; }
   $('authTitle').textContent = isRegister ? d.authTitleRegister : d.authTitleLogin;
   $('authSubtitle').textContent = isRegister ? d.authSubtitleRegister : d.authSubtitleLogin;
   $('authEmailWrap').style.display = isRegister ? 'block' : 'none';
@@ -229,8 +241,9 @@ export function openEmailEdit(){
 
 /* ---------- FORGOTTEN PASSWORD ---------- */
 export function openForgot(){
+  const from = authPanel;
   authPanel = 'forgot';
-  $<HTMLInputElement>('forgotPhoneInput').value = $<HTMLInputElement>('authPhoneInput').value;
+  if(from !== 'code') $<HTMLInputElement>('forgotPhoneInput').value = $<HTMLInputElement>('authPhoneInput').value;
   $('forgotNote').textContent = '';
   renderAuth();
 }
@@ -248,6 +261,66 @@ export async function sendResetLink(){
     const { error } = await sb().functions.invoke('request-password-reset', { body: { phone, lang } });
     if(error) throw error;
     $('forgotNote').textContent = d.forgotSent;
+  }catch(e){ console.error(e); toast(d.toastSaveFailed); }
+  finally{ btn.disabled = false; }
+}
+
+/** Arabic-Indic / Persian digits → 0-9 (codes may be typed on an Arabic keyboard). */
+function toAsciiDigits(v: string): string {
+  return v.replace(/[٠-٩]/g, c => String(c.charCodeAt(0) - 0x0660)).replace(/[۰-۹]/g, c => String(c.charCodeAt(0) - 0x06f0));
+}
+
+/** "Forgot password" with a 6-digit code on WhatsApp (Edge Function whatsapp-reset). */
+export async function sendResetCode(resend = false){
+  const d = t();
+  const phone = resend ? codePhone : $<HTMLInputElement>('forgotPhoneInput').value.trim();
+  if(!phone || !authEmail(phone)){ toast(d.toastAuthMissingFields); return; }
+  if(!sbRef){ toast(d.toastDbUnavailable); return; }
+  const btn = $<HTMLButtonElement>(resend ? 'codeResendBtn' : 'forgotWaBtn');
+  btn.disabled = true;
+  try{
+    const { data, error } = await sb().functions.invoke('whatsapp-reset', { body: { action: 'send', phone, lang } });
+    if(error){ console.error(error); toast(d.toastWaUnavailable); return; }
+    if((data as {ok?: boolean})?.ok !== true){ toast(d.toastWaUnavailable); return; }
+    codePhone = phone;
+    if(!resend){
+      $<HTMLInputElement>('codeInput').value = '';
+      $<HTMLInputElement>('codeNewInput').value = ''; $<HTMLInputElement>('codeRepeatInput').value = '';
+    }
+    authPanel = 'code';
+    renderAuth();
+    if(resend) toast(d.codeSent);
+    $<HTMLInputElement>('codeInput').focus();
+  }catch(e){ console.error(e); toast(d.toastWaUnavailable); }
+  finally{ btn.disabled = false; }
+}
+
+export async function saveWithCode(){
+  const d = t();
+  const code = toAsciiDigits($<HTMLInputElement>('codeInput').value).replace(/\D/g, '');
+  const p1 = $<HTMLInputElement>('codeNewInput').value;
+  const p2 = $<HTMLInputElement>('codeRepeatInput').value;
+  if(code.length !== 6){ toast(d.toastCodeInvalid); return; }
+  if(p1.length < 6){ toast(d.toastPasswordShort); return; }
+  if(p1 !== p2){ toast(d.toastPasswordMismatch); return; }
+  const btn = $<HTMLButtonElement>('codeSaveBtn');
+  btn.disabled = true;
+  try{
+    const { data, error } = await sb().functions.invoke('whatsapp-reset', { body: { action: 'reset', phone: codePhone, code, password: p1 } });
+    const res = (data ?? {}) as { ok?: boolean; error?: string };
+    if(error || !res.ok){
+      if(error) console.error(error);
+      toast(res.error === 'expired' || res.error === 'too_many' ? d.toastCodeExpired
+        : res.error === 'weak' ? d.toastPasswordShort : d.toastCodeInvalid);
+      return;
+    }
+    toast(d.toastPasswordChanged);
+    // Sign straight in with the new password.
+    const login = await sb().auth.signInWithPassword({ email: authEmail(codePhone), password: p1 });
+    authPanel = 'main';
+    if(!login.error && login.data.user && await loadProfile(login.data.user.id)){ enterApp(); return; }
+    $<HTMLInputElement>('authPhoneInput').value = codePhone;
+    renderAuth();
   }catch(e){ console.error(e); toast(d.toastSaveFailed); }
   finally{ btn.disabled = false; }
 }
