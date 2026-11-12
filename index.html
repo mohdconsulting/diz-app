@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="sv" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jobbmatch</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top-row">
+      <div class="brand"><span class="dot"></span>Jobbmatch</div>
+      <div id="langSwitch" class="lang">
+        <button data-lang="sv">Svenska</button><button data-lang="ar">العربية</button>
+      </div>
+    </div>
+    <div class="wrap"><p class="tagline" data-t="tagline"></p></div>
+    <nav class="wrap tabs">
+      <button data-tab="profile" data-t="tabProfile"></button>
+      <button data-tab="jobs" data-t="tabJobs"></button>
+      <button data-tab="applied"><span data-t="tabApplied"></span> <span id="appliedCount" class="badge"></span></button>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <!-- PROFIL -->
+    <section id="panel-profile" class="panel">
+      <div class="card">
+        <h2 data-t="profileTitle"></h2>
+        <p class="muted" data-t="profileText"></p>
+        <div class="grid">
+          <label><span data-t="name"></span><input id="p_name" autocomplete="name"></label>
+          <label><span data-t="role"></span><input id="p_role" data-ph="rolePh"></label>
+          <label><span data-t="city"></span><input id="p_city" data-ph="cityPh" autocomplete="address-level2"></label>
+          <label class="wide"><span data-t="skills"></span><input id="p_skills" data-ph="skillsPh"></label>
+          <label><span data-t="phone"></span><input id="p_phone" type="tel" autocomplete="tel" dir="ltr"></label>
+          <label><span data-t="email"></span><input id="p_email" type="email" autocomplete="email" dir="ltr"></label>
+          <label class="wide"><span data-t="cv"></span><textarea id="p_cv" rows="9" data-ph="cvPh" dir="auto"></textarea></label>
+          <label class="wide file"><span data-t="cvFile"></span><input id="cvFile" type="file" accept=".txt,text/plain"></label>
+        </div>
+        <button id="saveBtn" class="primary big" data-t="save"></button>
+      </div>
+    </section>
+
+    <!-- JOBB -->
+    <section id="panel-jobs" class="panel" hidden>
+      <div class="row-between">
+        <h2 data-t="jobsTitle"></h2>
+        <button id="refreshBtn" class="ghost" data-t="refresh"></button>
+      </div>
+      <p id="jobSource" class="source"></p>
+      <div id="jobList"></div>
+    </section>
+
+    <!-- SÖKTA JOBB -->
+    <section id="panel-applied" class="panel" hidden>
+      <div class="card">
+        <h2 data-t="appliedTitle"></h2>
+        <p class="muted" data-t="appliedText"></p>
+        <div class="report-bar">
+          <label class="inline"><span data-t="month"></span><input id="monthInput" type="month" dir="ltr"></label>
+          <span id="reportCount" class="muted"></span>
+          <span class="spacer"></span>
+          <button id="copyReportBtn" class="ghost" data-t="copyReport"></button>
+          <button id="csvBtn" class="ghost" data-t="exportCsv"></button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th data-t="date"></th><th data-t="employer"></th><th data-t="jobTitle"></th><th data-t="place"></th><th></th></tr></thead>
+            <tbody id="appliedBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- BREV -->
+  <div id="letterDialog" class="overlay" hidden>
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="letterHeading">
+      <h2 id="letterHeading" data-t="letterTitle"></h2>
+      <p id="letterJob" class="meta"></p>
+      <p class="muted" data-t="letterText"></p>
+      <textarea id="letterText" rows="14" dir="ltr" lang="sv"></textarea>
+      <div class="actions">
+        <button id="letterCopy" class="ghost" data-t="copy"></button>
+        <button id="letterApply" class="primary" data-t="applyAndMark"></button>
+        <button id="letterClose" class="link" data-t="close"></button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="wrap foot" data-t="footer"></footer>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/i18n.js"></script>
+  <script src="js/match.js"></script>
+  <script src="js/demo-jobs.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
