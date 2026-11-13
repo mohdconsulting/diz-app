@@ -8,6 +8,7 @@ import { role, paymentsMode, selectedService, setSelectedService, selectedCat, s
 import { seenSet, shownSigs, jobEvent } from './notifications';
 import { renderAccountEdit, renderProfileEdit, isUnapprovedProvider, refreshApproval, setApproval } from './auth';
 import { renderDocs } from './documents';
+import { renderAvatarCard, providerMissingPhoto, providerAvatarHTML, markPhotoMissing } from './avatars';
 import { goTo, refreshCurrentScreen } from './shell';
 import { ad } from './admin';
 import { chatHTML } from './chat';
@@ -377,6 +378,7 @@ export async function applyToJob(id: string, price: number, proposal?: { start: 
   const j = jobs.find(x=>x.id===id);
   if(!j) return false;
   if(!(await refreshApproval())){ toast(t().toastNotApproved); return false; }
+  if(providerMissingPhoto()){ toast(t().avatar.neededToast); return false; }
   const applicants = Array.isArray(j.applicants) ? j.applicants.slice() : [];
   const idx = applicants.findIndex(a=>a.phone===me().phone);
   const entry: Applicant = {phone: me().phone, name: me().name, price, appliedAt: Date.now()};
@@ -389,7 +391,9 @@ export async function applyToJob(id: string, price: number, proposal?: { start: 
     toast(t().toastApplied);
   }catch(e){
     // Deactivated by admin in the meantime: the database refuses the offer.
-    if(String((e as { message?: string })?.message ?? e).includes('provider_not_approved')){ setApproval(false); return false; }
+    const msg = String((e as { message?: string })?.message ?? e);
+    if(msg.includes('provider_not_approved')){ setApproval(false); return false; }
+    if(msg.includes('provider_no_photo')){ markPhotoMissing(); return false; }
     toast(t().toastSaveFailed); return false;
   }
 
@@ -447,6 +451,11 @@ export function jobCardHTML(j: Job, courierView: boolean, ignoredView = false): 
       // Not activated by admin yet: the job is visible, but no offer controls.
       body = `<div style="margin-top:6px;font-size:15.5px;color:var(--muted);">${d.toastNotApproved}</div>
       <div class="action-row"><button class="secondary" onclick="dismissJob('${j.id}')">${d.dismiss.btn}</button></div>`;
+    } else if(j.status==='open' && providerMissingPhoto() && !applicants.some(a=>a.phone===currentUser?.phone)){
+      // No profile photo yet: the job is visible, but offers need a photo.
+      body = `<div style="margin-top:6px;font-size:15.5px;color:var(--muted);">${d.avatar.neededJob}</div>
+      <div class="action-row"><button class="secondary" onclick="openAvatarEdit()">${d.avatar.nudgeBtn}</button>
+        <button class="secondary" onclick="dismissJob('${j.id}')">${d.dismiss.btn}</button></div>`;
     } else if(j.status==='open'){
       const mine = applicants.find(a=>a.phone===currentUser?.phone);
       const note = mine
@@ -471,7 +480,7 @@ export function jobCardHTML(j: Job, courierView: boolean, ignoredView = false): 
         ? applicants.slice().sort((a,b)=>a.price-b.price).map(a=>`
           <div class="card" style="margin-bottom:8px;padding:10px 12px;">
             <div class="top-row">
-              <div><h3 style="font-size:18px;">${esc(a.name || a.phone)}</h3>${ratingBadgeHTML(a.phone)}${applicantTimeHTML(j, a)}</div>
+              <div class="who">${providerAvatarHTML(a.phone, a.name || a.phone, 52)}<div><h3 style="font-size:18px;">${esc(a.name || a.phone)}</h3>${ratingBadgeHTML(a.phone)}${applicantTimeHTML(j, a)}</div></div>
               <div class="price" style="font-size:18px;">${a.price} ${d.priceUnit}</div>
             </div>
             <div class="action-row">
@@ -532,7 +541,11 @@ export function jobCardHTML(j: Job, courierView: boolean, ignoredView = false): 
           ${j.problemReported ? '' : `<button class="secondary" onclick="startReport('${j.id}')">${d.reportProblemBtn}</button>`}
         </div>`;
       }
+      const chosen = (Array.isArray(j.applicants) ? j.applicants : []).find(a=>a.phone===j.acceptedByPhone);
+      const providerLine = j.acceptedByPhone ? `<div class="who provider-line">${providerAvatarHTML(j.acceptedByPhone, chosen?.name || '', 48)}
+        <div><div style="font-size:14.5px;color:var(--muted);">${d.avatar.provider}</div><b>${esc(chosen?.name || '')}</b> ${ratingBadgeHTML(j.acceptedByPhone)}</div></div>` : '';
       body = `<span class="status ${statusClass(j)}">${statusLabel(j)}</span>
+      ${providerLine}
       ${payBlock}
       ${funded ? customerTrackingHTML(j) : ''}
       ${funded ? chatHTML(j) : ''}
@@ -675,6 +688,7 @@ export function renderMine(){
   if(!currentUser) return;
   renderAccountEdit();
   renderProfileEdit();
+  renderAvatarCard();
   renderDocs();
   const list = $('mineList');
   if(role==='driver'){

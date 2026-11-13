@@ -68,6 +68,8 @@ export interface AppUser {
   email?: string | null;
   /** Providers: activated by admin (diz_provider_approval.sql). undefined = column not there yet → treated as activated. */
   approved?: boolean;
+  /** Providers: public URL of the profile photo (diz_provider_avatar.sql). Required before making offers. */
+  avatar_url?: string | null;
 }
 
 export type EventType =

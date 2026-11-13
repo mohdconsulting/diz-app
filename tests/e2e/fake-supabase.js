@@ -50,11 +50,12 @@
       if(file.size>10485760) return {data:null,error:{message:'Payload too large'}};
       files[bucket+'/'+path]={size:file.size,type:(opts&&opts.contentType)||file.type}; return {data:{path},error:null}; },
     async remove(paths){ paths.forEach(p=>delete files[bucket+'/'+p]); return {data:paths,error:null}; },
+    getPublicUrl(path){ return {data:{publicUrl:'https://fake.supabase.co/storage/v1/object/public/'+bucket+'/'+path}}; },
     async createSignedUrl(path){ const u=session&&db.users.find(x=>x.id===session.user.id);
       if(!files[bucket+'/'+path]||!u||(u.role!=='admin'&&path.split('/')[0]!==u.id)) return {data:null,error:{message:'Object not found'}};
       return {data:{signedUrl:'about:blank#signed/'+encodeURIComponent(path)},error:null}; },
   }; } };
-  window.__db=db;
+  window.__db=db; window.__files=files;
   const sbObj={
     from:Q,
     storage,
@@ -83,6 +84,7 @@
         if(!j||!me||j.owner_phone!==me.phone||j.status!=='done'||!j.accepted_by_phone||db.reviews.some(r=>r.job_id===j.id)||!(args.p_rating>=1&&args.p_rating<=5)||(c&&c.length>500)) return {error:{message:'cannot review'}};
         db.reviews.push({job_id:j.id,provider_phone:j.accepted_by_phone,customer_phone:me.phone,rating:args.p_rating,comment:c,created_at:Date.now()}); persist(); return {error:null}; }
       if(fn==='moderate_review'){ const r=db.reviews.find(x=>x.job_id===args.p_job_id); if(!me||me.role!=='admin'||!r) return {error:{message:'not allowed'}}; if(args.p_action==='hide') r.hidden=true; else if(args.p_action==='show') r.hidden=false; else if(args.p_action==='clear_comment') r.comment=null; else return {error:{message:'unknown action'}}; persist(); return {error:null}; }
+      if(fn==='provider_avatars'){ if(!me) return {error:{message:'not authenticated'}}; return {data:db.users.filter(u=>u.role==='driver'&&u.avatar_url&&args.p_phones.includes(u.phone)).map(u=>({phone:u.phone,avatar_url:u.avatar_url})),error:null}; }
       if(fn==='provider_ratings'){ if(!me) return {error:{message:'not authenticated'}}; const out=[]; for(const ph of args.p_phones){ const rs=db.reviews.filter(r=>r.provider_phone===ph&&!r.hidden); if(rs.length) out.push({provider_phone:ph,avg_rating:Math.round(rs.reduce((a,r)=>a+r.rating,0)/rs.length*10)/10,review_count:rs.length}); } return {data:out,error:null}; }
       if(fn==='provider_reviews'){ if(!me) return {error:{message:'not authenticated'}}; return {data:db.reviews.filter(r=>r.provider_phone===args.p_phone&&!r.hidden).map(r=>({rating:r.rating,comment:r.comment,created_at:r.created_at})),error:null}; }
       if(fn==='dismiss_job'){ const j=db.jobs.find(x=>x.id===args.p_job_id); if(!j||!me||j.status!=='open'||j.owner_phone===me.phone||(j.applicants||[]).some(a=>a.phone===me.phone)) return {error:{message:'job cannot be ignored'}}; if(!db.job_dismissals.some(d=>d.job_id===j.id&&d.provider_phone===me.phone)) db.job_dismissals.push({provider_phone:me.phone,job_id:j.id,created_at:Date.now()}); persist(); return {error:null}; }

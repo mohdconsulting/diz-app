@@ -1,5 +1,6 @@
 import { mountChat } from './chat';
 import { syncReviews } from './reviews';
+import { syncAvatars } from './avatars';
 import { mountTrackingMap, syncSharing } from './tracking';
 import { $, safeGetLocal } from './util';
 import { OFFERED_SERVICES } from './pricing';
@@ -28,6 +29,7 @@ export function subscribeJobs(): () => void {
     autoReleaseExpired();
     syncSharing();
     void syncReviews();
+    void syncAvatars();
   }, err=>{ console.error('jobs snapshot error', err); });
 }
 

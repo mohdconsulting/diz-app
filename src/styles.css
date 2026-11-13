@@ -325,3 +325,11 @@ button.danger{background:#fff;color:var(--danger);border:1px solid var(--danger)
 .cash-note b{display:block;margin-bottom:2px;}
 .cash-chip{margin-top:8px;font-size:16px;font-weight:600;color:var(--teal);}
 .cash-line{margin-top:8px;padding:8px 10px;border:1px solid var(--teal);background:#eaf3f1;font-size:16.5px;line-height:1.4;}
+
+/* profile photos */
+.avatar{border-radius:50%;object-fit:cover;flex:none;display:inline-flex;align-items:center;justify-content:center;background:var(--line,#e5e2da);}
+.avatar-empty{color:var(--muted);font-weight:700;}
+.who{display:flex;align-items:center;gap:10px;min-width:0;}
+.provider-line{margin:10px 0 4px;}
+.avatar-card{display:flex;align-items:center;gap:14px;}
+.req-badge:not(:empty){background:var(--danger,#b3261e);color:#fff;font-size:13px;padding:1px 8px;border-radius:10px;vertical-align:middle;}
