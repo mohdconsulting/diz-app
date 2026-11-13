@@ -29,6 +29,7 @@ export interface SbClient {
       upload(path: string, file: Blob, opts?: { contentType?: string; upsert?: boolean }): Promise<SbResult>;
       remove(paths: string[]): Promise<SbResult>;
       createSignedUrl(path: string, expiresIn: number): Promise<SbResult<{ signedUrl: string } | null>>;
+      getPublicUrl(path: string): { data: { publicUrl: string } };
     };
   };
   auth: {

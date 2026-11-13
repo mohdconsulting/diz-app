@@ -129,6 +129,10 @@
 
   <main>
     <div class="cash-note" id="approvalNote" style="display:none;margin:0 0 14px;"></div>
+    <div class="cash-note" id="photoNudge" style="display:none;margin:0 0 14px;">
+      <span id="photoNudgeText"></span>
+      <div style="margin-top:8px;"><button class="secondary" id="photoNudgeBtn" onclick="openAvatarEdit()"></button></div>
+    </div>
     <div class="cash-note" id="emailNudge" style="display:none;margin:0 0 14px;">
       <span id="emailNudgeText"></span>
       <div style="margin-top:8px;"><button class="secondary" id="emailNudgeBtn" onclick="openEmailEdit()"></button></div>
@@ -208,6 +212,24 @@
 
     <!-- MINE -->
     <section class="screen" data-screen="mine">
+      <!-- provider: profile photo, required before making offers (diz_provider_avatar.sql) -->
+      <div id="avatarWrap" class="card" style="display:none;margin-bottom:18px;">
+        <div class="avatar-card">
+          <div id="avatarPreview"></div>
+          <div style="flex:1;min-width:0;">
+            <p class="section-title" style="margin:0;"><span id="avatarTitle"></span> <span id="avatarRequired" class="req-badge"></span></p>
+            <p style="font-size:16px;color:var(--muted);margin:4px 0 0;" id="avatarHint"></p>
+          </div>
+        </div>
+        <!-- front camera on phones, or a saved photo -->
+        <input type="file" id="avatarCameraInput" accept="image/*" capture="user" style="display:none;" onchange="uploadAvatar(this)">
+        <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" onchange="uploadAvatar(this)">
+        <div class="action-row" style="margin-top:10px;">
+          <button class="secondary" id="avatarCameraBtn" onclick="document.getElementById('avatarCameraInput').click()"></button>
+          <button class="secondary" id="avatarFileBtn" onclick="document.getElementById('avatarFileInput').click()"></button>
+        </div>
+        <p style="font-size:16px;color:var(--muted);margin:6px 0 0;" id="avatarStatus"></p>
+      </div>
       <div id="accountEditWrap" style="margin-bottom:18px;">
         <p class="section-title" id="accountEditTitle"></p>
         <label id="accountNameLabel"></label>

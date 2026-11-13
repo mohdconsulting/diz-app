@@ -17,6 +17,7 @@ import {
   setAdminNoteDraft, setAdminPendingUser, adminSetApproved, adminWaToggle, setAdminWaDraft, adminWaSend,
 } from './admin';
 import { uploadDocs, deleteDoc, adminOpenDoc } from './documents';
+import { uploadAvatar, openAvatarEdit } from './avatars';
 
 /** Functions referenced from inline on* attributes in the markup (module scope isn't visible to those). */
 export const handlers = {
@@ -27,5 +28,6 @@ export const handlers = {
   setAdminQuery, setAdminNoteDraft, setAdminPendingUser, startPayment, mockPay, cancelMockCheckout, retrySharing, toggleTrackMap, toggleChat, toggleAdminChat, startCall, dismissJob, restoreJob, toggleDismissed, setReviewRating, setReviewComment, submitReview, moderateReview, askClearComment,
   schedPickDay, schedTapSlot, schedSetAsap, schedToggleProposal, schedSetPrice, submitProposal,
   openForgot, closeForgot, sendResetLink, sendResetCode, saveWithCode, saveNewPassword, openEmailEdit, adminSetApproved, uploadDocs, deleteDoc, adminOpenDoc,
+  uploadAvatar, openAvatarEdit,
   adminWaToggle, setAdminWaDraft, adminWaSend,
 };

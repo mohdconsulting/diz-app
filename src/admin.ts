@@ -8,6 +8,7 @@ import { chatHTML, mountChat } from './chat';
 import { adminReviewHTML } from './reviews';
 import { catLabel, serviceLabel, statusLabel, statusClass } from './jobs';
 import { loadAllDocs, adminDocsHTML, adminRemoveUserFiles } from './documents';
+import { avatarHTML, adminRemoveAvatar } from './avatars';
 
 /* ---------- ADMIN PANEL ---------- */
 export const ADM = {
@@ -355,11 +356,11 @@ export function renderAdminUsers(){
       <div style="margin-top:6px;font-size:16px;"><b>${a.skills}:</b> ${(u.profiles||[]).map(k=>esc(skill(k))).join(', ') || '–'}</div>
       ${adminDocsHTML(u.id)}` : '';
     return `<div class="card">
-      <div class="top-row"><div>
+      <div class="top-row"><div class="who">${u.role==='driver' ? avatarHTML((u as { avatar_url?: string | null }).avatar_url, u.name, 56) : ''}<div>
         <div class="service-badge">${roleName(u.role)}</div>
         <h3>${esc(u.name)}</h3>
         <p class="meta">${esc(u.phone)}${u.email ? ' · ' + esc(u.email) : ''}</p>
-      </div><div class="meta" style="font-size:15.5px;color:var(--muted);">${n} ${a.jobsCount}</div></div>
+      </div></div><div class="meta" style="font-size:15.5px;color:var(--muted);">${n} ${a.jobsCount}</div></div>
       <div style="margin-top:6px;font-size:15.5px;color:var(--muted);">${fmtTime(u.createdAt)}</div>
       ${providerInfo}
       ${actions}
@@ -381,6 +382,7 @@ export async function adminDeleteUser(id: string){
   if(!dbRef || role!=='admin') return;
   try{
     await adminRemoveUserFiles(id);
+    await adminRemoveAvatar((adminUsersList.find(x=>x.id===id) as { avatar_url?: string | null } | undefined)?.avatar_url);
     const { error } = await sb().rpc('admin_delete_user', {uid:id});
     if(error) throw error;
     adminUsersList = adminUsersList.filter(u=>u.id!==id);

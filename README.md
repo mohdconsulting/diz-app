@@ -108,6 +108,11 @@ Flöde: triggers i `diz_push.sql` → tabellen `push_outbox` → (pg_net) Edge F
 ## Leverantörens dokument för verifiering
 Leverantörer laddar upp eller fotograferar sin ID-handling (en eller flera filer, bild eller PDF, max 10 MB per fil, högst 20 st) under **Profil**. Filerna ligger i den privata Storage-bucketen `provider-docs` i mappen `<användar-id>/`; bara leverantören och admin kan läsa dem. Admin ser och öppnar dokumenten (tidsbegränsad länk) i användarkortet under **Användare**. Kör `diz_provider_documents.sql` i Supabase SQL Editor (skapar bucket, policies och tabellen `provider_documents`). Test: `python3 tests/e2e/provider_documents.py`.
 
+## Profilbild för tjänsteleverantörer
+Leverantörer måste ha en profilbild innan de kan lämna anbud. På profilsidan finns *Ta foto* (framkameran på mobilen) och *Välj bild*; bilden beskärs till en kvadrat (512×512 JPEG) och laddas upp till den publika Storage-bucketen `avatars` under `<user-id>/`. Kunden ser bilden bredvid varje anbud och på det tilldelade jobbet ("Din leverantör"), och admin ser den i användarlistan. Saknas bild visas en banner och jobben visas utan anbudsknappar; databasen stoppar också anbud utan bild (`provider_no_photo`).
+
+Aktivera: kör `diz_provider_avatar.sql` i Supabase SQL Editor (efter `diz_provider_approval.sql`). Det skapar kolumnen `users.avatar_url`, bucketen `avatars` med policies, rpc `provider_avatars` och spärren för anbud. Obs: befintliga leverantörer utan bild kan inte lämna anbud förrän de lagt till en. Test: `tests/sql/avatar_test.sql`, `python3 tests/e2e/provider_avatar.py`.
+
 ## Glömt lösenord via WhatsApp-kod
 "Glömt lösenordet?" har två val: **Skicka kod via WhatsApp** och **Skicka länk via e-post**. WhatsApp-vägen fungerar för alla konton (även utan e-post): användaren får en sexsiffrig kod på WhatsApp och skriver in den tillsammans med sitt nya lösenord – i webben, iPhone- och Android-appen. Koden gäller 10 minuter, kan bara användas en gång, högst 5 felförsök och högst 3 koder per nummer och timme. Svaret avslöjar aldrig om ett nummer är registrerat.
 
