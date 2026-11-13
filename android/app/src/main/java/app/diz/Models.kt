@@ -114,7 +114,9 @@ data class Job(
 
 data class AppUser(val id: String, val phone: String, val name: String, val role: String, val profiles: List<String>,
                    val email: String? = null,     // email: real address for password reset (diz_password_reset.sql)
-                   val approved: Boolean? = null) {  // providers: activated by admin (diz_provider_approval.sql); null = column missing → activated
+                   val approved: Boolean? = null,  // providers: activated by admin (diz_provider_approval.sql); null = column missing → activated
+                   val avatarUrl: String? = null,     // providers: public URL of the profile photo (diz_provider_avatar.sql)
+                   val hasAvatarColumn: Boolean = false) {  // false on a database without the column → no photo requirement
     val isDriver: Boolean get() = role == "driver"
 
     companion object {
@@ -123,6 +125,8 @@ data class AppUser(val id: String, val phone: String, val name: String, val role
             profiles = o.optJSONArray("profiles")?.let { a -> (0 until a.length()).map { a.getString(it) } } ?: emptyList(),
             email = o.str("email"),
             approved = if (o.isNull("approved")) null else o.optBoolean("approved"),
+            avatarUrl = o.str("avatar_url"),
+            hasAvatarColumn = o.has("avatar_url"),
         )
     }
 }

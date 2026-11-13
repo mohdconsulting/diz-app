@@ -71,6 +71,7 @@ fun App(store: Store) {
 private fun MainTabs(store: Store, onLogin: () -> Unit) {
     var tab by rememberSaveable { mutableStateOf("home") }
     LaunchedEffect(store.user?.id) { tab = "home" }
+    LaunchedEffect(store.tabRequest) { store.tabRequest?.let { tab = it; store.tabRequest = null } }
     val guest = store.user == null
     val driver = store.isDriver
     val unread = store.messages.count { it.recipientPhone == store.myPhone && it.readAt == null }
@@ -201,6 +202,7 @@ fun ProfileScreen(store: Store, onLogin: () -> Unit) {
                 }
             }
         }
+        if (u != null && u.isDriver) AvatarCard(store)
         if (u != null && u.role != "admin") AccountDetailsCard(store)
         if (u != null && u.isDriver) DocumentsCard(store)
         LangPills(store, light = true)

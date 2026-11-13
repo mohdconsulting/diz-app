@@ -7,7 +7,9 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job as CoJob
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.json.JSONArray
@@ -31,6 +33,8 @@ class Store(app: Application) : AndroidViewModel(app) {
     var reviews by mutableStateOf<Map<String, Review>>(emptyMap())
         private set
     var ratings by mutableStateOf<Map<String, Rating>>(emptyMap())
+    var providerPhotos by mutableStateOf<Map<String, String>>(emptyMap())   // provider phone -> profile photo URL
+    var tabRequest by mutableStateOf<String?>(null)                         // asks MainTabs to switch tab (e.g. "profile")
         private set
     var myComments by mutableStateOf<List<ProviderComment>>(emptyList())
     var myDocs by mutableStateOf<List<ProviderDoc>>(emptyList())   // provider: documents for verification
@@ -82,6 +86,10 @@ class Store(app: Application) : AndroidViewModel(app) {
     val isDriver: Boolean get() = user?.isDriver ?: false
     /** Provider not yet activated by admin: sees jobs but cannot make offers. */
     val isUnapprovedProvider: Boolean get() = isDriver && user?.approved == false
+    /** Provider without a profile photo: may not make offers (diz_provider_avatar.sql). */
+    val providerMissingPhoto: Boolean get() = isDriver && user?.hasAvatarColumn == true && user?.avatarUrl.isNullOrEmpty()
+    /** Photo of a provider by phone (own photo for the provider themself). */
+    fun photoUrl(phone: String?): String? = if (phone == null) null else if (phone == user?.phone) user?.avatarUrl else providerPhotos[phone]
     private var approvalChecked = false
     val myPhone: String get() = user?.phone ?: ""
 
@@ -216,6 +224,38 @@ class Store(app: Application) : AndroidViewModel(app) {
                 login(phone, password)
             }
         }
+    }
+
+    // ---- Profile photo (providers) ----
+    /** Crops to a 512×512 JPEG, uploads to avatars/<user id>/…, saves users.avatar_url and removes the old file. */
+    fun uploadAvatar(raw: ByteArray) {
+        val u = user ?: return
+        if (!isDriver) return
+        viewModelScope.launch {
+            busy = true
+            try {
+                val jpeg = withContext(Dispatchers.Default) { AvatarImages.squareJpeg(raw) }
+                if (jpeg == null) { toast("avatar.badType"); return@launch }
+                val path = "${u.id}/${nowMs()}.jpg"
+                val url = "${Config.SUPABASE_URL}/storage/v1/object/public/avatars/$path"
+                val old = avatarPath(u.avatarUrl)
+                api.uploadFile("avatars", path, jpeg, "image/jpeg")
+                try { api.update("users", u.id, mapOf("avatar_url" to url)) }
+                catch (e: Exception) { try { api.removeFiles("avatars", listOf(path)) } catch (_: Exception) {}; throw e }
+                user = user?.copy(avatarUrl = url, hasAvatarColumn = true)
+                if (old != null && old != path) try { api.removeFiles("avatars", listOf(old)) } catch (_: Exception) {}
+                toast("avatar.saved")
+            } catch (e: Exception) { toast("toastSaveFailed") }
+            finally { busy = false }
+        }
+    }
+
+    private fun avatarPath(url: String?): String? {
+        if (url == null) return null
+        val marker = "/object/public/avatars/"
+        val i = url.indexOf(marker)
+        if (i < 0) return null
+        return android.net.Uri.decode(url.substring(i + marker.length).substringBefore('?'))
     }
 
     // ---- Provider documents (verification) ----
@@ -401,6 +441,13 @@ class Store(app: Application) : AndroidViewModel(app) {
                     p to Rating(num(r, "avg_rating"), num(r, "review_count").toInt())
                 }.toMap()
             } catch (e: Exception) { }
+            if (!isDriver) try {
+                providerPhotos = JSONArray(api.rpc("provider_avatars", mapOf("p_phones" to phones))).objects().mapNotNull { r ->
+                    val p = r.str("phone") ?: return@mapNotNull null
+                    val u = r.str("avatar_url") ?: return@mapNotNull null
+                    p to u
+                }.toMap()
+            } catch (e: Exception) { }
         }
         if (isDriver) {
             try { myComments = JSONArray(api.rpc("provider_reviews", mapOf("p_phone" to myPhone, "p_limit" to 20))).objects().map { ProviderComment.from(it) } }
@@ -510,6 +557,7 @@ class Store(app: Application) : AndroidViewModel(app) {
             }
             return
         }
+        if (providerMissingPhoto) { toast("avatar.neededToast"); return }
         val u = user
         if (price <= 0 || u == null) { toast("toastInvalidOffer"); return }
         val entry = Applicant(u.phone, u.name, price, nowMs(),
@@ -595,6 +643,7 @@ class Store(app: Application) : AndroidViewModel(app) {
         try { api.update("jobs", id, fields); toast(ok); loadJobs(); updateSharing() } catch (e: Exception) {
             // Deactivated by admin in the meantime: the database refuses the offer.
             if (e.message?.contains("provider_not_approved") == true) { user = user?.copy(approved = false); toast("toastNotApproved") }
+            else if (e.message?.contains("provider_no_photo") == true) { user = user?.copy(avatarUrl = null); toast("avatar.neededToast") }
             else toast("toastSaveFailed")
         }
     }

@@ -78,7 +78,8 @@ private fun CustomerSection(store: Store, job: Job) {
             Text(store.tr("applicantsTitle"), fontWeight = FontWeight.Bold, fontSize = 14.sp)
             if (job.applicants.isEmpty()) Footnote(store.tr("noApplicantsYet")) else CashBanner(store.tr("cash.assignNote"))
             job.applicants.forEach { a ->
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Avatar(store.photoUrl(a.phone), a.name, 48.dp)
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(a.name)
                         RatingBadge(store, a.phone)
@@ -112,8 +113,14 @@ private fun AcceptedCustomer(store: Store, job: Job) {
     var problemText by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
     job.acceptedByPhone?.let { p ->
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(store.nameOf(p, job), fontWeight = FontWeight.Bold); RatingBadge(store, p)
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Avatar(store.photoUrl(p), store.nameOf(p, job), 46.dp)
+            Column {
+                Text(store.tr("avatar.provider"), fontSize = 12.sp, color = DizMuted)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(store.nameOf(p, job), fontWeight = FontWeight.Bold); RatingBadge(store, p)
+                }
+            }
         }
     }
     if (job.arrived) Footnote(store.tr("arrivedNoteCustomer"), DizInk)
@@ -145,6 +152,11 @@ private fun ProviderSection(store: Store, job: Job, ignoredView: Boolean, isMyAc
             } else if (store.isUnapprovedProvider) {
                 // Not activated by admin yet: the job is visible, but no offer controls.
                 Footnote(store.tr("toastNotApproved"))
+                LinkButton(store.tr("dismiss.btn")) { store.dismiss(job.id) }
+            } else if (store.providerMissingPhoto && mine == null) {
+                // No profile photo yet: the job is visible, but offers need a photo.
+                Footnote(store.tr("avatar.neededJob"))
+                SecondaryButton(store.tr("avatar.nudgeBtn")) { store.tabRequest = "profile" }
                 LinkButton(store.tr("dismiss.btn")) { store.dismiss(job.id) }
             } else if (mine != null) {
                 Footnote(store.tr("yourApplicationNote", mapOf("price" to store.money(mine.price))), DizInk)

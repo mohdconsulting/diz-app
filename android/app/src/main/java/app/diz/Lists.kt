@@ -32,6 +32,7 @@ fun OpenJobsScreen(store: Store) {
     val ignored = open.filter { it.id in store.dismissed }
     JobList {
         if (store.isUnapprovedProvider) item { CashBanner(store.tr("approvalPending")) }
+        if (store.providerMissingPhoto) item { PhotoNudge(store) }
         item { SectionTitle(store.tr("openJobsTitle")) }
         if (visible.isEmpty()) item { EmptyBox(store.tr("emptyJobs")) }
         items(visible, key = { it.id }) { JobCard(store, it) }
