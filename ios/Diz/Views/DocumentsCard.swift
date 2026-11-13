@@ -95,12 +95,14 @@ struct DocumentsCard: View {
 
 /// Minimal camera wrapper (SwiftUI has no camera view of its own).
 struct CameraPicker: UIViewControllerRepresentable {
+    var front = false
     var onImage: (UIImage) -> Void
     @Environment(\.dismiss) private var dismiss
 
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
         picker.sourceType = .camera
+        if front, UIImagePickerController.isCameraDeviceAvailable(.front) { picker.cameraDevice = .front }
         picker.delegate = context.coordinator
         return picker
     }

@@ -22,6 +22,8 @@ final class Store: ObservableObject {
     @Published var dismissed: Set<String> = []
     @Published var reviews: [String: Review] = [:]           // by job id
     @Published var ratings: [String: Rating] = [:]           // by provider phone
+    @Published var providerPhotos: [String: String] = [:]    // provider phone -> profile photo URL
+    @Published var tabRequest: String?                       // asks MainTabs to switch tab (e.g. "profile")
     @Published var myComments: [ProviderComment] = []
     @Published var myDocs: [ProviderDoc] = []                 // provider: documents for verification
     @Published var toastText: String?
@@ -63,6 +65,15 @@ final class Store: ObservableObject {
     var isDriver: Bool { user?.isDriver ?? false }
     /// Provider not yet activated by admin: sees jobs but cannot make offers.
     var isUnapprovedProvider: Bool { isDriver && user?.approved == false }
+    /// Provider without a profile photo: may not make offers (diz_provider_avatar.sql).
+    var providerMissingPhoto: Bool { isDriver && user?.hasAvatarColumn == true && (user?.avatarUrl ?? "").isEmpty }
+    func openProfileTab() { tabRequest = "profile" }
+    /// Photo of a provider by phone (own photo for the provider themself).
+    func photoURL(_ phone: String?) -> URL? {
+        guard let phone else { return nil }
+        let s = phone == user?.phone ? user?.avatarUrl : providerPhotos[phone]
+        return s.flatMap { URL(string: $0) }
+    }
     var myPhone: String { user?.phone ?? "" }
 
     // MARK: Session lifecycle
@@ -203,6 +214,49 @@ final class Store: ObservableObject {
         toast("toastPasswordChanged")
         await login(phone: phone, password: password)
         return true
+    }
+
+    // MARK: Profile photo (providers)
+    static let avatarBucket = "avatars"
+
+    /// Crops to a 512×512 JPEG, uploads to avatars/<user id>/…, saves users.avatar_url and removes the old file.
+    func uploadAvatar(_ image: UIImage) async {
+        guard isDriver, let id = user?.id else { return }
+        guard let jpeg = Store.squareJPEG(image, side: 512) else { toast("avatar.badType"); return }
+        let path = "\(id)/\(Store.nowMs()).jpg"
+        let url = Config.supabaseURL.absoluteString + "/storage/v1/object/public/\(Store.avatarBucket)/" + path
+        let old = Store.avatarPath(user?.avatarUrl)
+        busy = true; defer { busy = false }
+        do {
+            try await api.uploadFile(bucket: Store.avatarBucket, path: path, data: jpeg, contentType: "image/jpeg")
+            do { _ = try await api.update("users", id: id, ["avatar_url": url]) }
+            catch { try? await api.removeFiles(bucket: Store.avatarBucket, paths: [path]); throw error }
+            user?.avatarUrl = url
+            user?.hasAvatarColumn = true
+            if let old, old != path { try? await api.removeFiles(bucket: Store.avatarBucket, paths: [old]) }
+            toast("avatar.saved")
+        } catch {
+            toast("toastSaveFailed")
+        }
+    }
+
+    static func avatarPath(_ url: String?) -> String? {
+        guard let url, let r = url.range(of: "/object/public/avatars/") else { return nil }
+        let rest = url[r.upperBound...].split(separator: "?").first.map(String.init) ?? ""
+        return rest.removingPercentEncoding ?? rest
+    }
+
+    static func squareJPEG(_ image: UIImage, side: CGFloat) -> Data? {
+        let w = image.size.width, h = image.size.height
+        guard w > 0, h > 0 else { return nil }
+        let scale = side / min(w, h)
+        let size = CGSize(width: w * scale, height: h * scale)
+        let format = UIGraphicsImageRendererFormat.default()
+        format.scale = 1
+        let out = UIGraphicsImageRenderer(size: CGSize(width: side, height: side), format: format).image { _ in
+            image.draw(in: CGRect(x: (side - size.width) / 2, y: (side - size.height) / 2, width: size.width, height: size.height))
+        }
+        return out.jpegData(compressionQuality: 0.85)
     }
 
     // MARK: Provider documents (verification)
@@ -406,6 +460,13 @@ final class Store: ObservableObject {
             }
             ratings = out
         }
+        if !phones.isEmpty, !isDriver,
+           let data = try? await api.rpc("provider_avatars", ["p_phones": phones]),
+           let arr = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] {
+            var photos: [String: String] = [:]
+            for r in arr { if let p = r["phone"] as? String, let u = r["avatar_url"] as? String { photos[p] = u } }
+            providerPhotos = photos
+        }
         if isDriver,
            let data = try? await api.rpc("provider_reviews", ["p_phone": myPhone, "p_limit": 20]),
            let list = try? JSONDecoder().decode([ProviderComment].self, from: data) {
@@ -549,6 +610,7 @@ final class Store: ObservableObject {
     func apply(_ j: Job, price: Int, proposal: SlotSelection? = nil) async {
         await refreshApproval()
         guard !isUnapprovedProvider else { toast("toastNotApproved"); return }
+        guard !providerMissingPhoto else { toast("avatar.neededToast"); return }
         guard price > 0, let u = user else { toast("toastInvalidOffer"); return }
         var list = j.applicants
         var entry = Applicant(phone: u.phone, name: u.name, price: price, appliedAt: Store.nowMs())
@@ -644,6 +706,7 @@ final class Store: ObservableObject {
         catch {
             // Deactivated by admin in the meantime: the database refuses the offer.
             if String(describing: error).contains("provider_not_approved") { user?.approved = false; toast("toastNotApproved") }
+            else if String(describing: error).contains("provider_no_photo") { user?.avatarUrl = nil; toast("avatar.neededToast") }
             else { toast("toastSaveFailed") }
         }
     }

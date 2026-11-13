@@ -127,6 +127,8 @@ struct AppUser: Decodable, Hashable {
     var profiles: [String]
     var email: String?          // real e-mail for password reset (diz_password_reset.sql)
     var approved: Bool?         // providers: activated by admin (diz_provider_approval.sql); nil = column missing → treated as activated
+    var avatarUrl: String?      // providers: public URL of the profile photo (diz_provider_avatar.sql)
+    var hasAvatarColumn = false // false on a database without the column → no photo requirement
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -137,8 +139,10 @@ struct AppUser: Decodable, Hashable {
         profiles = try c.decodeIfPresent([String].self, forKey: .profiles) ?? []
         email = try c.decodeIfPresent(String.self, forKey: .email)
         approved = try c.decodeIfPresent(Bool.self, forKey: .approved)
+        hasAvatarColumn = c.contains(.avatarUrl)
+        avatarUrl = try c.decodeIfPresent(String.self, forKey: .avatarUrl)
     }
-    enum CodingKeys: String, CodingKey { case id, phone, name, role, profiles, email, approved }
+    enum CodingKeys: String, CodingKey { case id, phone, name, role, profiles, email, approved, avatarUrl = "avatar_url" }
     var isDriver: Bool { role == "driver" }
 }
 

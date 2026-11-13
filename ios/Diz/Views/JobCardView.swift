@@ -100,6 +100,7 @@ struct JobCardView: View {
             }
             ForEach(job.applicants, id: \.phone) { a in
                 HStack {
+                    AvatarView(url: store.photoURL(a.phone), name: a.name, size: 52)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(a.name)
                         RatingBadge(phone: a.phone)
@@ -138,7 +139,13 @@ struct JobCardView: View {
 
     @ViewBuilder private var acceptedCustomer: some View {
         if let p = providerPhone {
-            HStack { Text(providerName).font(.subheadline.bold()); RatingBadge(phone: p) }
+            HStack(spacing: 10) {
+                AvatarView(url: store.photoURL(p), name: providerName, size: 48)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(store.tr("avatar.provider")).font(.caption).foregroundColor(.secondary)
+                    HStack { Text(providerName).font(.subheadline.bold()); RatingBadge(phone: p) }
+                }
+            }
         }
         if let pay = store.payments[job.id] { paymentNote(pay.status) }
         if job.arrived { Text(store.tr("arrivedNoteCustomer")).font(.footnote) }
@@ -173,6 +180,13 @@ struct JobCardView: View {
                 // Not activated by admin yet: the job is visible, but no offer controls.
                 Text(store.tr("toastNotApproved")).font(.footnote).foregroundColor(.secondary)
                 Button(store.tr("dismiss.btn")) { Task { await store.dismiss(job.id) } }.font(.footnote)
+            } else if store.providerMissingPhoto && !job.applicants.contains(where: { $0.phone == store.myPhone }) {
+                // No profile photo yet: the job is visible, but offers need a photo.
+                Text(store.tr("avatar.neededJob")).font(.footnote).foregroundColor(.secondary)
+                HStack {
+                    Button(store.tr("avatar.nudgeBtn")) { store.openProfileTab() }.buttonStyle(.bordered)
+                    Button(store.tr("dismiss.btn")) { Task { await store.dismiss(job.id) } }.font(.footnote)
+                }
             } else if let mine = job.applicants.first(where: { $0.phone == store.myPhone }) {
                 Text(store.tr("yourApplicationNote", ["price": store.money(mine.price)])).font(.footnote)
                 if let w = mine.proposedWindow {

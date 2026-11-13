@@ -52,6 +52,11 @@ struct MainTabs: View {
         }
         .tint(.dizBrand)
         .onChange(of: store.user?.id) { _ in tab = "home" }
+        .onChange(of: store.tabRequest) { req in
+            guard let req else { return }
+            tab = req
+            store.tabRequest = nil
+        }
     }
 }
 
@@ -81,6 +86,7 @@ struct ProfileView: View {
                         }
                     }
                 }
+                if store.isDriver { AvatarCard() }
                 if store.user != nil && store.user?.role != "admin" { AccountDetailsCard() }
                 if store.isDriver { DocumentsCard() }
                 HStack { LangPills(light: true); Spacer() }
