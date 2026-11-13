@@ -667,7 +667,7 @@ const I18N_RAW = {
         descPlaceholder:"صف ما تريد طلبه ومن أين",
         addrLabel:"عنوان التوصيل", addrPlaceholder:"الشارع، الحي، المدينة", needsToAddr:false},
       pro:{label:"احجز خدمة منزلية", categoryLabel:"نوع الفني",
-        categories:{electrician:"كهربائي",plumber:"سباك",smith:"حداد",carpenter:"نجار",appliance_repair:"مصلّح أجهزة منزلية",ac_fridge:"فني تبريد وثلاجات",camera_satellite:"فني كاميرات وستلايت",cleaner:"عامل تنظيف منازل",carpet_cleaning:"غسيل السجاد",painter:"نقاش",pest_control:"مكافحة الحشرات"},
+        categories:{electrician:"كهربائي",plumber:"سباك",smith:"حداد",carpenter:"نجار",appliance_repair:"مصلّح أجهزة منزلية",ac_fridge:"فني تبريد وثلاجات",camera_satellite:"فني كاميرات وستلايت",cleaner:"عامل تنظيف منازل",carpet_cleaning:"غسيل السجاد",painter:"صباغ",pest_control:"مكافحة الحشرات"},
         sizeLabel:"حجم العمل", sizes:{1:"عمل صغير (أقل من ساعتين)",2:"عمل أكبر (يوم كامل)",3:"عاجل / نفس اليوم"},
         descPlaceholder:"صف ما يجب القيام به",
         addrLabel:"العنوان", addrPlaceholder:"الشارع، الحي، المدينة", needsToAddr:false},

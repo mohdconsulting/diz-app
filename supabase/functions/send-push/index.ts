@@ -31,7 +31,7 @@ const LABELS: Record<string, { services: Record<string, string>; cats: Record<st
    "ac_fridge": "فني تبريد وثلاجات",
    "cleaner": "عامل تنظيف منازل",
    "carpet_cleaning": "غسيل السجاد",
-   "painter": "نقاش",
+   "painter": "صباغ",
    "pest_control": "مكافحة الحشرات"
   }
  },
