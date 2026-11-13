@@ -33,9 +33,10 @@ class Store(app: Application) : AndroidViewModel(app) {
     var reviews by mutableStateOf<Map<String, Review>>(emptyMap())
         private set
     var ratings by mutableStateOf<Map<String, Rating>>(emptyMap())
-    var providerPhotos by mutableStateOf<Map<String, String>>(emptyMap())   // provider phone -> profile photo URL
-    var tabRequest by mutableStateOf<String?>(null)                         // asks MainTabs to switch tab (e.g. "profile")
         private set
+    var providerPhotos by mutableStateOf<Map<String, String>>(emptyMap())   // provider phone -> profile photo URL
+        private set
+    var tabRequest by mutableStateOf<String?>(null)                         // asks MainTabs to switch tab (e.g. "profile")
     var myComments by mutableStateOf<List<ProviderComment>>(emptyList())
     var myDocs by mutableStateOf<List<ProviderDoc>>(emptyList())   // provider: documents for verification
     var docProgress by mutableStateOf<String?>(null)              // "Uploading 1 of 3…" while uploading
