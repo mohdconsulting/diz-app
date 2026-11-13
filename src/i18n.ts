@@ -655,7 +655,7 @@ const I18N_RAW = {
         descPlaceholder:"صف ما تريد طلبه ومن أين",
         addrLabel:"عنوان التوصيل", addrPlaceholder:"الشارع، الحي، المدينة", needsToAddr:false},
       pro:{label:"احجز خدمة منزلية", categoryLabel:"نوع الفني",
-        categories:{electrician:"كهربائي",plumber:"سباك",gardener:"بستاني",painter:"نقاش",cleaner:"تنظيف"},
+        categories:{electrician:"كهربائي",plumber:"سباك",gardener:"بستاني",painter:"صباغ",cleaner:"تنظيف"},
         sizeLabel:"حجم العمل", sizes:{1:"عمل صغير (أقل من ساعتين)",2:"عمل أكبر (يوم كامل)",3:"عاجل / نفس اليوم"},
         descPlaceholder:"صف ما يجب القيام به",
         addrLabel:"العنوان", addrPlaceholder:"الشارع، الحي، المدينة", needsToAddr:false},
