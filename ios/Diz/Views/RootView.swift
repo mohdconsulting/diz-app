@@ -22,8 +22,18 @@ struct MainTabs: View {
 
     private var unread: Int { store.messages.filter { $0.recipientPhone == store.myPhone && $0.readAt == nil }.count }
 
+    /// The tabs that exist for the current user; a selection that no longer exists falls back to Home.
+    private var validTabs: Set<String> {
+        if store.user == nil { return ["home", "new", "profile"] }
+        if store.isDriver { return ["home", "open", "mine", "history", "profile"] }
+        return ["home", "new", "mine", "history", "profile"]
+    }
+    private var selection: Binding<String> {
+        Binding(get: { validTabs.contains(tab) ? tab : "home" }, set: { tab = $0 })
+    }
+
     var body: some View {
-        TabView(selection: $tab) {
+        TabView(selection: selection) {
             NavigationStack { HomeView(onStart: { tab = store.isDriver ? "open" : "new" }) }.id(store.lang)
                 .tabItem { Label(store.tr("tabs.home"), systemImage: "house") }.tag("home")
             if store.user == nil {

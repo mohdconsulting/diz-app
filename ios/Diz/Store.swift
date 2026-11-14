@@ -23,6 +23,7 @@ final class Store: ObservableObject {
     @Published var reviews: [String: Review] = [:]           // by job id
     @Published var ratings: [String: Rating] = [:]           // by provider phone
     @Published var providerPhotos: [String: String] = [:]    // provider phone -> profile photo URL
+    private var loggingOut = false
     @Published var tabRequest: String?                       // asks MainTabs to switch tab (e.g. "profile")
     @Published var myComments: [ProviderComment] = []
     @Published var myDocs: [ProviderDoc] = []                 // provider: documents for verification
@@ -331,7 +332,20 @@ final class Store: ObservableObject {
         }
     }
 
+    /// Switches to Home first, then clears the session a moment later. Clearing the user changes the number of tabs
+    /// (e.g. 5 -> 3); doing that while the Profile tab is selected can crash the tab bar.
     func logout() {
+        guard user != nil, !loggingOut else { return }
+        loggingOut = true
+        tabRequest = "home"
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 350_000_000)
+            self.performLogout()
+            self.loggingOut = false
+        }
+    }
+
+    private func performLogout() {
         pollTask?.cancel(); pollTask = nil
         calls.stop()
         sharing.stop()
