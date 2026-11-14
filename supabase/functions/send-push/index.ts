@@ -128,6 +128,10 @@ export function text(lang: Lang, row: Outbox): { title: string; body: string } {
   const what = (service === 'pro' && cat && l.cats[cat]) ? l.cats[cat] : (l.services[service] ?? service);
   const price = typeof p.price === 'number' ? p.price.toLocaleString('en-US') : String(p.price ?? '');
   const vars: Record<string, string> = { what, price, name: String(p.name ?? ''), text: String(p.text ?? '') };
+  if (row.kind === 'app_update') {
+    const msg = String(p[lang === 'ar' ? 'ar' : 'en'] || p.en || p.ar || '');
+    return { title: lang === 'ar' ? 'دز · تحديث جديد' : 'Diz · New version', body: msg };
+  }
   const [t, b] = (T[lang] ?? T.ar)[row.kind] ?? ['Diz', ''];
   const fill = (s: string) => s.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? '');
   return { title: fill(t), body: fill(b) };

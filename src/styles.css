@@ -333,3 +333,9 @@ button.danger{background:#fff;color:var(--danger);border:1px solid var(--danger)
 .provider-line{margin:10px 0 4px;}
 .avatar-card{display:flex;align-items:center;gap:14px;}
 .req-badge:not(:empty){background:var(--danger,#b3261e);color:#fff;font-size:13px;padding:1px 8px;border-radius:10px;vertical-align:middle;}
+.adm-grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:10px 0;}
+.adm-field{display:block;margin-bottom:8px;}
+.adm-field span{display:block;font-size:14px;color:var(--muted);margin-bottom:4px;}
+.adm-field input,.adm-field textarea{width:100%;box-sizing:border-box;}
+.check-row{display:flex;align-items:center;gap:8px;margin:8px 0;font-weight:600;}
+.check-row input{width:auto;}

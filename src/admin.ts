@@ -26,7 +26,8 @@ export const ADM = {
     release:"Släpp betalning", refund:"Återbetala kund", cancel:"Avbryt uppdrag", reopen:"Återöppna", del:"Radera",
     confirm:{release:"Släpp betalningen till utföraren och avsluta uppdraget?", refund:"Avbryt uppdraget och återbetala kunden?", cancel:"Avbryt uppdraget?", reopen:"Återöppna uppdraget så att nya utförare kan ansöka? Tilldelning och problemrapport rensas.", delete:"Radera uppdraget permanent?"},
     yes:"Bekräfta", no:"Avbryt", done:"Klart",
-    usersEmpty:"Inga användare.", jobsCount:"uppdrag", delUser:"Radera användare", delUserConfirm:"Radera användaren permanent? Deras uppdrag finns kvar.", userDeleted:"Användare raderad", adminProtected:"Admin-konton raderas via databasen.", approvedLabel:"Aktiv", pendingLabel:"Väntar på aktivering", approve:"Aktivera", revoke:"Inaktivera", approvedToast:"Leverantören är aktiverad", revokedToast:"Leverantören är inaktiverad", skills:"Kompetenser", waBtn:"WhatsApp", waPlaceholder:"Skriv meddelandet…", waOpen:"Öppna i WhatsApp", waCancel:"Avbryt", waGreeting:"Hej", waBadNumber:"Numret går inte att använda i WhatsApp", waEmpty:"Skriv ett meddelande först"
+    usersEmpty:"Inga användare.", jobsCount:"uppdrag", delUser:"Radera användare", delUserConfirm:"Radera användaren permanent? Deras uppdrag finns kvar.", userDeleted:"Användare raderad", adminProtected:"Admin-konton raderas via databasen.", approvedLabel:"Aktiv", pendingLabel:"Väntar på aktivering", approve:"Aktivera", revoke:"Inaktivera", approvedToast:"Leverantören är aktiverad", revokedToast:"Leverantören är inaktiverad", skills:"Kompetenser", waBtn:"WhatsApp", waPlaceholder:"Skriv meddelandet…", waOpen:"Öppna i WhatsApp", waCancel:"Avbryt", waGreeting:"Hej", waBadNumber:"Numret går inte att använda i WhatsApp", waEmpty:"Skriv ett meddelande först",
+    noticeTitle:"Ny appversion", noticeHint:"Visar \"Ny version finns\" i apparna. Under lägsta version tvingas uppdatering.", noticeActive:"Visa notisen i apparna", noticeIos:"iPhone senaste", noticeIosMin:"iPhone lägsta", noticeAnd:"Android senaste", noticeAndMin:"Android lägsta", noticeMsgAr:"Text (arabiska)", noticeMsgEn:"Text (engelska)", noticePush:"Skicka också som push", noticeSave:"Spara", noticeSaved:"Sparat", noticePushed:"Push skickad till"
   },
   en:{
     roleAdmin:"Admin", cancelledNote:"The job was cancelled by an administrator. The payment is refunded to the customer.",
@@ -42,7 +43,8 @@ export const ADM = {
     release:"Release payment", refund:"Refund customer", cancel:"Cancel job", reopen:"Reopen", del:"Delete",
     confirm:{release:"Release the payment to the provider and close the job?", refund:"Cancel the job and refund the customer?", cancel:"Cancel the job?", reopen:"Reopen the job so new providers can apply? Assignment and problem report are cleared.", delete:"Delete the job permanently?"},
     yes:"Confirm", no:"Cancel", done:"Done",
-    usersEmpty:"No users.", jobsCount:"jobs", delUser:"Delete user", delUserConfirm:"Delete this user permanently? Their jobs remain.", userDeleted:"User deleted", adminProtected:"Admin accounts are removed via the database.", approvedLabel:"Active", pendingLabel:"Waiting for activation", approve:"Activate", revoke:"Deactivate", approvedToast:"Provider activated", revokedToast:"Provider deactivated", skills:"Skills", waBtn:"WhatsApp", waPlaceholder:"Write the message…", waOpen:"Open in WhatsApp", waCancel:"Cancel", waGreeting:"Hi", waBadNumber:"This number can't be used with WhatsApp", waEmpty:"Write a message first"
+    usersEmpty:"No users.", jobsCount:"jobs", delUser:"Delete user", delUserConfirm:"Delete this user permanently? Their jobs remain.", userDeleted:"User deleted", adminProtected:"Admin accounts are removed via the database.", approvedLabel:"Active", pendingLabel:"Waiting for activation", approve:"Activate", revoke:"Deactivate", approvedToast:"Provider activated", revokedToast:"Provider deactivated", skills:"Skills", waBtn:"WhatsApp", waPlaceholder:"Write the message…", waOpen:"Open in WhatsApp", waCancel:"Cancel", waGreeting:"Hi", waBadNumber:"This number can't be used with WhatsApp", waEmpty:"Write a message first",
+    noticeTitle:"New app version", noticeHint:"Shows \"New version available\" in the apps. Below the minimum version, updating is required.", noticeActive:"Show the notice in the apps", noticeIos:"iPhone latest", noticeIosMin:"iPhone minimum", noticeAnd:"Android latest", noticeAndMin:"Android minimum", noticeMsgAr:"Text (Arabic)", noticeMsgEn:"Text (English)", noticePush:"Also send as push", noticeSave:"Save", noticeSaved:"Saved", noticePushed:"Push sent to"
   },
   ar:{
     roleAdmin:"مشرف", cancelledNote:"ألغى المشرف الطلب. سيُعاد المبلغ إلى العميل.",
@@ -58,7 +60,8 @@ export const ADM = {
     release:"تحرير الدفع", refund:"إعادة المبلغ للعميل", cancel:"إلغاء الطلب", reopen:"إعادة الفتح", del:"حذف",
     confirm:{release:"تحرير الدفع لمقدم الخدمة وإغلاق الطلب؟", refund:"إلغاء الطلب وإعادة المبلغ للعميل؟", cancel:"إلغاء الطلب؟", reopen:"إعادة فتح الطلب ليتقدم مقدمو خدمة جدد؟ سيُمسح التكليف وبلاغ المشكلة.", delete:"حذف الطلب نهائيًا؟"},
     yes:"تأكيد", no:"إلغاء", done:"تم",
-    usersEmpty:"لا يوجد مستخدمون.", jobsCount:"طلبات", delUser:"حذف المستخدم", delUserConfirm:"حذف هذا المستخدم نهائيًا؟ تبقى طلباته.", userDeleted:"تم حذف المستخدم", adminProtected:"تُحذف حسابات المشرفين عبر قاعدة البيانات.", approvedLabel:"مفعّل", pendingLabel:"بانتظار التفعيل", approve:"تفعيل", revoke:"إلغاء التفعيل", approvedToast:"تم تفعيل مقدم الخدمة", revokedToast:"تم إلغاء تفعيل مقدم الخدمة", skills:"المهارات", waBtn:"واتساب", waPlaceholder:"اكتب الرسالة…", waOpen:"فتح في واتساب", waCancel:"إلغاء", waGreeting:"مرحبًا", waBadNumber:"لا يمكن استخدام هذا الرقم في واتساب", waEmpty:"اكتب رسالة أولًا"
+    usersEmpty:"لا يوجد مستخدمون.", jobsCount:"طلبات", delUser:"حذف المستخدم", delUserConfirm:"حذف هذا المستخدم نهائيًا؟ تبقى طلباته.", userDeleted:"تم حذف المستخدم", adminProtected:"تُحذف حسابات المشرفين عبر قاعدة البيانات.", approvedLabel:"مفعّل", pendingLabel:"بانتظار التفعيل", approve:"تفعيل", revoke:"إلغاء التفعيل", approvedToast:"تم تفعيل مقدم الخدمة", revokedToast:"تم إلغاء تفعيل مقدم الخدمة", skills:"المهارات", waBtn:"واتساب", waPlaceholder:"اكتب الرسالة…", waOpen:"فتح في واتساب", waCancel:"إلغاء", waGreeting:"مرحبًا", waBadNumber:"لا يمكن استخدام هذا الرقم في واتساب", waEmpty:"اكتب رسالة أولًا",
+    noticeTitle:"إصدار جديد للتطبيق", noticeHint:"يعرض «يتوفر إصدار جديد» في التطبيقات. ما دون الحد الأدنى يُفرض التحديث.", noticeActive:"إظهار الإشعار في التطبيقات", noticeIos:"آيفون: الأحدث", noticeIosMin:"آيفون: الأدنى", noticeAnd:"أندرويد: الأحدث", noticeAndMin:"أندرويد: الأدنى", noticeMsgAr:"النص (بالعربية)", noticeMsgEn:"النص (بالإنجليزية)", noticePush:"إرسال كإشعار فوري أيضًا", noticeSave:"حفظ", noticeSaved:"تم الحفظ", noticePushed:"أُرسل الإشعار إلى"
   }
 };
 export function ad(){ return ADM[lang]; }
@@ -396,3 +399,44 @@ export async function adminDeleteUser(id: string){
 export function setAdminUsersList(v: typeof adminUsersList){ adminUsersList = v; }
 
 export function setAdminNotes(v: typeof adminNotes){ adminNotes = v; }
+
+
+/* ---------- APP UPDATE NOTICE (shown in the iPhone/Android apps) ---------- */
+type AppNotice = { active: boolean; ios_latest: string; ios_min: string; android_latest: string; android_min: string; msg_ar: string; msg_en: string };
+let appNotice: AppNotice = { active:false, ios_latest:'', ios_min:'', android_latest:'', android_min:'', msg_ar:'', msg_en:'' };
+let appNoticePush = false;
+
+export async function loadAppNotice(){
+  if(role!=='admin' || !sbRef) return;
+  const { data } = await sb().rpc('get_app_notice', {});
+  if(data) appNotice = { ...appNotice, ...(data as Partial<AppNotice>) };
+  renderAppNotice();
+}
+export function renderAppNotice(){
+  if(role!=='admin') return;
+  const a = ad(), el = $('adminNotice'), n = appNotice;
+  const inp = (k: keyof AppNotice, label: string, ph = '1.2')=>
+    `<label class="adm-field"><span>${label}</span><input type="text" dir="ltr" inputmode="decimal" placeholder="${ph}" value="${esc(String(n[k]))}" oninput="setAppNotice('${k}', this.value)"></label>`;
+  const txt = (k: keyof AppNotice, label: string, dir: string)=>
+    `<label class="adm-field"><span>${label}</span><textarea dir="${dir}" rows="2" oninput="setAppNotice('${k}', this.value)">${esc(String(n[k]))}</textarea></label>`;
+  el.innerHTML = `<div class="card" style="margin-bottom:14px;">
+    <h3 style="margin:0 0 4px;">${a.noticeTitle}</h3>
+    <p class="muted" style="margin:0 0 10px;">${a.noticeHint}</p>
+    <label class="check-row"><input type="checkbox" ${n.active?'checked':''} onchange="setAppNotice('active', this.checked)"> ${a.noticeActive}</label>
+    <div class="adm-grid2">${inp('ios_latest',a.noticeIos)}${inp('ios_min',a.noticeIosMin)}${inp('android_latest',a.noticeAnd)}${inp('android_min',a.noticeAndMin)}</div>
+    ${txt('msg_ar',a.noticeMsgAr,'rtl')}${txt('msg_en',a.noticeMsgEn,'ltr')}
+    <label class="check-row"><input type="checkbox" ${appNoticePush?'checked':''} onchange="setAppNoticePush(this.checked)"> ${a.noticePush}</label>
+    <button class="btn" onclick="saveAppNotice()">${a.noticeSave}</button>
+  </div>`;
+}
+export function setAppNotice(k: keyof AppNotice, v: string | boolean){ (appNotice as Record<string, unknown>)[k] = v; }
+export function setAppNoticePush(v: boolean){ appNoticePush = v; }
+export async function saveAppNotice(){
+  const n = appNotice;
+  const { data, error } = await sb().rpc('set_app_notice', {
+    p_active:n.active, p_ios_latest:n.ios_latest, p_ios_min:n.ios_min, p_android_latest:n.android_latest, p_android_min:n.android_min,
+    p_msg_ar:n.msg_ar, p_msg_en:n.msg_en, p_push:appNoticePush });
+  if(error){ toast(error.message); return; }
+  toast(appNoticePush && n.active ? `${ad().noticePushed} ${data ?? 0}` : ad().noticeSaved);
+  appNoticePush = false; renderAppNotice();
+}

@@ -10,7 +10,7 @@ import { lang, setLangState, role, selectedService, setJobs, dbRef, currentUser,
 import { setShownSigs, setFirstSnapshotDone, markShownSeen, updateBadges, notifyNewEvents } from './notifications';
 import { renderAuth, updateUserRow } from './auth';
 import { renderRequestDetails, resetNewRequestForm, updateEstimate, autoReleaseExpired, renderHome, renderJobs, renderMine, renderHistory } from './jobs';
-import { loadAdminUsers, renderAdmin, renderAdminUsers } from './admin';
+import { loadAdminUsers, renderAdmin, renderAdminUsers, loadAppNotice, renderAppNotice } from './admin';
 
 export function screenTitleFor(name: string){
   const d = t();
@@ -112,7 +112,7 @@ export function goTo(name: string){
   if(name==='mine') renderMine();
   if(name==='history') renderHistory();
   if(name==='admin') renderAdmin();
-  if(name==='adminUsers'){ renderAdminUsers(); loadAdminUsers(); }
+  if(name==='adminUsers'){ renderAdminUsers(); loadAdminUsers(); loadAppNotice(); }
   updateBadges();
 }
 
@@ -125,7 +125,7 @@ export function refreshCurrentScreen(){
   if(name==='mine') renderMine();
   if(name==='history') renderHistory();
   if(name==='admin') renderAdmin();
-  if(name==='adminUsers') renderAdminUsers();
+  if(name==='adminUsers'){ renderAdminUsers(); renderAppNotice(); }
   updateBadges();
   void mountTrackingMap();
   mountChat();
