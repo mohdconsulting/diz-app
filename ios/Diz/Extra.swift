@@ -10,6 +10,7 @@ enum Extra {
         "update.text": [.sv: "Uppdatera appen för de senaste förbättringarna.", .en: "Update the app to get the latest improvements.", .ar: "حدّث التطبيق للحصول على آخر التحسينات."],
         "update.requiredText": [.sv: "Du behöver uppdatera appen för att fortsätta.", .en: "You need to update the app to continue.", .ar: "يجب تحديث التطبيق للمتابعة."],
         "update.btn": [.sv: "Uppdatera", .en: "Update", .ar: "تحديث"],
+        "update.unavailable": [.sv: "Appen finns inte i App Store ännu.", .en: "The app is not in the App Store yet.", .ar: "التطبيق غير متوفر في App Store بعد."],
         "update.later": [.sv: "Senare", .en: "Later", .ar: "لاحقًا"],
         "guest.close": [.sv: "Stäng", .en: "Close", .ar: "إغلاق"],
         "account.deleteBtn": [.sv: "Radera mitt konto", .en: "Delete my account", .ar: "حذف حسابي"],

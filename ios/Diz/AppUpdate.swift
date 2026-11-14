@@ -37,14 +37,14 @@ enum AppUpdate {
     }
 
     /// The App Store page of this app (looked up by bundle id, so no app id is hard-coded).
-    static func storeURL() async -> URL {
+    static func storeURL() async -> URL? {
         let id = Bundle.main.bundleIdentifier ?? "com.mohdconsulting.diz"
         if let u = URL(string: "https://itunes.apple.com/lookup?bundleId=\(id)"),
            let (d, _) = try? await URLSession.shared.data(from: u),
            let o = try? JSONSerialization.jsonObject(with: d) as? [String: Any],
            let r = (o["results"] as? [[String: Any]])?.first,
            let s = r["trackViewUrl"] as? String, let url = URL(string: s) { return url }
-        return URL(string: "https://apps.apple.com/search?term=Diz")!
+        return nil   // not published in the App Store yet (Xcode / TestFlight build)
     }
 }
 
@@ -62,8 +62,8 @@ struct UpdateBanner: View {
             HStack(spacing: 10) {
                 PrimaryButton(title: store.tr("update.btn")) {
                     Task {
-                        let url = await AppUpdate.storeURL()
-                        await UIApplication.shared.open(url)
+                        if let url = await AppUpdate.storeURL() { await UIApplication.shared.open(url) }
+                        else { store.toast("update.unavailable") }
                     }
                 }
                 if !required {
