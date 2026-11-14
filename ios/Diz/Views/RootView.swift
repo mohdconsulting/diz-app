@@ -10,9 +10,27 @@ struct RootView: View {
             } else {
                 MainTabs()
             }
+            updateOverlay
             ToastView()
         }
         .animation(.easeInOut(duration: 0.2), value: store.toastText)
+    }
+
+    /// Update notice from the admin: a banner with "Later", or a blocking screen below the minimum version.
+    @ViewBuilder private var updateOverlay: some View {
+        switch AppUpdate.state(store.appNotice, lang: store.lang) {
+        case .required(let msg):
+            ZStack {
+                Color.black.opacity(0.45).ignoresSafeArea()
+                UpdateBanner(message: msg, required: true, onLater: {})
+            }
+        case .available(let msg):
+            if !store.updateDismissed {
+                VStack { UpdateBanner(message: msg, required: false) { store.updateDismissed = true }; Spacer() }
+            }
+        case .none:
+            EmptyView()
+        }
     }
 }
 

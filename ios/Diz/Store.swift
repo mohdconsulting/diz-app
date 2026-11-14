@@ -31,6 +31,8 @@ final class Store: ObservableObject {
     @Published var busy = false
     @Published var restoring = true
     @Published var locationDenied = false
+    @Published var appNotice: AppNotice?                      // admin's "new version" notice
+    @Published var updateDismissed = false
 
     let api = API()
     let sharing = LocationSharing()
@@ -80,6 +82,7 @@ final class Store: ObservableObject {
     // MARK: Session lifecycle
     func restore() async {
         defer { restoring = false }
+        await loadAppNotice()
         guard api.session != nil else { return }
         guard await api.refreshIfNeeded(), let s = api.session else { return }
         if let u = await fetchUser(id: s.userId, retries: 1) {
@@ -374,7 +377,14 @@ final class Store: ObservableObject {
     }
 
     /// App opened or brought to the front: clear the number on the icon (locally and on the server).
+    func loadAppNotice() async {
+        guard let d = try? await api.rpc("get_app_notice"),
+              let n = try? JSONDecoder().decode(AppNotice.self, from: d) else { return }
+        appNotice = n
+    }
+
     func appBecameActive() async {
+        await loadAppNotice()
         PushManager.shared.clearBadge()
         guard user != nil else { return }
         _ = try? await api.rpc("reset_push_badge")
