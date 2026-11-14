@@ -44,7 +44,11 @@ enum AppUpdate {
            let o = try? JSONSerialization.jsonObject(with: d) as? [String: Any],
            let r = (o["results"] as? [[String: Any]])?.first,
            let s = r["trackViewUrl"] as? String, let url = URL(string: s) { return url }
-        return nil   // not published in the App Store yet (Xcode / TestFlight build)
+        #if DEBUG
+        return URL(string: "https://apps.apple.com")   // lets the button be tested from Xcode before the app is published
+        #else
+        return nil   // not published in the App Store yet (TestFlight build)
+        #endif
     }
 }
 
