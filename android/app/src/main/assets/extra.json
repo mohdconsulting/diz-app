@@ -78,5 +78,30 @@
   "sv": "Stäng",
   "en": "Close",
   "ar": "إغلاق"
+ },
+ "update.title": {
+  "sv": "Ny version av Diz finns",
+  "en": "A new version of Diz is available",
+  "ar": "يتوفر إصدار جديد من دز"
+ },
+ "update.text": {
+  "sv": "Uppdatera appen för de senaste förbättringarna.",
+  "en": "Update the app to get the latest improvements.",
+  "ar": "حدّث التطبيق للحصول على آخر التحسينات."
+ },
+ "update.requiredText": {
+  "sv": "Du behöver uppdatera appen för att fortsätta.",
+  "en": "You need to update the app to continue.",
+  "ar": "يجب تحديث التطبيق للمتابعة."
+ },
+ "update.btn": {
+  "sv": "Uppdatera",
+  "en": "Update",
+  "ar": "تحديث"
+ },
+ "update.later": {
+  "sv": "Senare",
+  "en": "Later",
+  "ar": "لاحقًا"
  }
 }

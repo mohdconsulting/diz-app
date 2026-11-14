@@ -36,6 +36,8 @@ class Store(app: Application) : AndroidViewModel(app) {
         private set
     var providerPhotos by mutableStateOf<Map<String, String>>(emptyMap())   // provider phone -> profile photo URL
         private set
+    var appNotice by mutableStateOf<AppNotice?>(null)                       // admin's "new version" notice
+    var updateDismissed by mutableStateOf(false)
     var tabRequest by mutableStateOf<String?>(null)                         // asks MainTabs to switch tab (e.g. "profile")
     var myComments by mutableStateOf<List<ProviderComment>>(emptyList())
     var myDocs by mutableStateOf<List<ProviderDoc>>(emptyList())   // provider: documents for verification
@@ -95,8 +97,13 @@ class Store(app: Application) : AndroidViewModel(app) {
     val myPhone: String get() = user?.phone ?: ""
 
     // ---- session lifecycle ----
+    suspend fun loadAppNotice() {
+        try { appNotice = AppNotice.parse(JSONObject(api.rpc("get_app_notice"))) } catch (_: Exception) {}
+    }
+
     private suspend fun restore() {
         try {
+            loadAppNotice()
             if (api.session == null) return
             if (!api.refreshIfNeeded()) return
             val s = api.session ?: return
@@ -375,6 +382,7 @@ class Store(app: Application) : AndroidViewModel(app) {
 
     /** App opened or brought to the front: clear notifications and the number on the icon (locally and on the server). */
     fun appBecameActive() {
+        viewModelScope.launch { loadAppNotice() }
         Push.clear(getApplication())
         if (user == null) return
         viewModelScope.launch { try { api.rpc("reset_push_badge") } catch (_: Exception) {} }

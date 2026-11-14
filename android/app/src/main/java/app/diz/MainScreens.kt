@@ -59,6 +59,7 @@ fun App(store: Store) {
                         }
                     }
                 }
+                UpdateNotice(store)
                 ToastHost(store, Modifier.align(Alignment.BottomCenter))
                 CallPanel(store)
             }
