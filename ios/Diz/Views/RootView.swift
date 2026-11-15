@@ -43,9 +43,8 @@ struct MainTabs: View {
     /// The tabs that exist for the current user; a selection that no longer exists falls back to Home.
     private var validTabs: Set<String> {
         if store.user == nil { return ["home", "new", "profile"] }
-        if store.user?.role == "admin" { return store.isDriver ? ["home", "open", "mine", "history", "profile"] : ["home", "new", "mine", "history", "profile"] }
-        if store.isDriver { return ["home", "open", "mine", "history", "support", "profile"] }
-        return ["home", "new", "mine", "history", "support", "profile"]
+        if store.isDriver { return ["home", "open", "mine", "history", "profile"] }
+        return ["home", "new", "mine", "history", "profile"]
     }
     private var selection: Binding<String> {
         Binding(get: { validTabs.contains(tab) ? tab : "home" }, set: { tab = $0 })
@@ -76,13 +75,9 @@ struct MainTabs: View {
                 NavigationStack { HistoryView() }.id(store.lang)
                     .tabItem { Label(store.tr("tabs.history"), systemImage: "clock") }.tag("history")
             }
-            if store.user != nil && store.user?.role != "admin" {
-                NavigationStack { SupportView() }.id(store.lang)
-                    .tabItem { Label(store.tr("tabs.support"), systemImage: "bubble.left.and.bubble.right") }.tag("support")
-                    .badge(store.supportUnread)
-            }
             NavigationStack { ProfileView() }.id(store.lang)
                 .tabItem { Label(store.tr("tabs.mine"), systemImage: "person") }.tag("profile")
+                .badge(store.supportUnread)
         }
         .tint(.dizBrand)
         .onChange(of: store.user?.id) { _ in tab = "home" }
@@ -119,6 +114,25 @@ struct ProfileView: View {
                                 .font(.system(size: 16)).foregroundColor(.dizMuted)
                         }
                     }
+                }
+                if store.user != nil && store.user?.role != "admin" {
+                    // Support is opened from here: a sixth tab would push Profile into iOS's "More" list, where text fields misbehave.
+                    NavigationLink {
+                        SupportView()
+                    } label: {
+                        HStack {
+                            Text("💬 " + store.tr("tabs.support")).font(.system(size: 18, weight: .semibold)).foregroundColor(.dizInk)
+                            if store.supportUnread > 0 {
+                                Text("\(store.supportUnread)").font(.system(size: 14, weight: .bold)).foregroundColor(.white)
+                                    .padding(.horizontal, 8).padding(.vertical, 2).background(Color.dizDanger).clipShape(Capsule())
+                            }
+                            Spacer()
+                            Image(systemName: store.lang.isRTL ? "chevron.left" : "chevron.right").foregroundColor(.dizMuted)
+                        }
+                        .padding(16).frame(maxWidth: .infinity)
+                        .background(Color.white).overlay(Rectangle().stroke(Color.dizLine, lineWidth: 1))
+                    }
+                    .buttonStyle(.plain)
                 }
                 if store.isDriver { AvatarCard() }
                 if store.user != nil && store.user?.role != "admin" { AccountDetailsCard() }
