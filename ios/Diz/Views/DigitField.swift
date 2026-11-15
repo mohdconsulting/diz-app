@@ -54,7 +54,7 @@ struct DigitField: UIViewRepresentable {
 
     /// Always as wide as the space offered (a bare UITextField would shrink to its placeholder and be hard to hit).
     func sizeThatFits(_ proposal: ProposedViewSize, uiView: UITextField, context: Context) -> CGSize? {
-        CGSize(width: proposal.width ?? 200, height: 44)
+        CGSize(width: (proposal.width.flatMap { $0.isFinite ? $0 : nil }) ?? 200, height: 44)   // never an infinite width (layout crash)
     }
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
@@ -130,7 +130,7 @@ struct TextInputField: UIViewRepresentable {
     }
 
     func sizeThatFits(_ proposal: ProposedViewSize, uiView: UITextField, context: Context) -> CGSize? {
-        CGSize(width: proposal.width ?? 200, height: 44)
+        CGSize(width: (proposal.width.flatMap { $0.isFinite ? $0 : nil }) ?? 200, height: 44)   // never an infinite width (layout crash)
     }
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
