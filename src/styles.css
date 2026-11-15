@@ -339,3 +339,4 @@ button.danger{background:#fff;color:var(--danger);border:1px solid var(--danger)
 .adm-field input,.adm-field textarea{width:100%;box-sizing:border-box;}
 .check-row{display:flex;align-items:center;gap:8px;margin:8px 0;font-weight:600;}
 .check-row input{width:auto;}
+.auth-contact a{font-weight:700;color:var(--teal2);text-decoration:none;}

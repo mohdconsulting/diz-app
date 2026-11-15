@@ -71,6 +71,7 @@ export function renderAuth(){
   $('authEmailLabel').textContent = d.authEmailLabel;
   $('authForgotRow').style.display = isRegister ? 'none' : 'block';
   $('authForgotBtn').textContent = d.forgotLink;
+  $('authContactText').textContent = d.authContact;
   $('authNameWrap').style.display = isRegister ? 'block' : 'none';
   $('authNameLabel').textContent = d.authNameLabel;
   $('authPhoneLabel').textContent = d.authPhoneLabel;
