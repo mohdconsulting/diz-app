@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-private val proCats = listOf("electrician", "plumber", "smith", "carpenter", "appliance_repair", "ac_fridge", "camera_satellite", "cleaner", "carpet_cleaning", "painter", "pest_control")
+private val proCats = listOf("electrician", "plumber", "smith", "carpenter", "appliance_repair", "ac_fridge", "camera_satellite", "cleaner", "carpet_cleaning", "painter", "pest_control", "car_wash", "roof_mastic")
 
 /** Sign in / register, shown over the app when the user chooses to log in (e.g. to send an order). */
 @Composable
