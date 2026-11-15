@@ -48,8 +48,12 @@ struct DigitField: UIViewRepresentable {
 
     func updateUIView(_ f: UITextField, context: Context) {
         context.coordinator.parent = self
-        if f.text != text { f.text = text }
-        f.attributedPlaceholder = NSAttributedString(string: placeholder, attributes: [.foregroundColor: UIColor(Color.dizMuted)])
+        if f.text != text, f.markedTextRange == nil { f.text = text }
+        // Only touch the placeholder when it changed: resetting it while typing disturbs the keyboard session.
+        if context.coordinator.placeholder != placeholder {
+            context.coordinator.placeholder = placeholder
+            f.attributedPlaceholder = NSAttributedString(string: placeholder, attributes: [.foregroundColor: UIColor(Color.dizMuted)])
+        }
     }
 
     /// Always as wide as the space offered (a bare UITextField would shrink to its placeholder and be hard to hit).
@@ -61,7 +65,8 @@ struct DigitField: UIViewRepresentable {
 
     final class Coordinator: NSObject, UITextFieldDelegate {
         var parent: DigitField
-        init(_ p: DigitField) { parent = p }
+        var placeholder: String
+        init(_ p: DigitField) { parent = p; placeholder = p.placeholder }
 
         func clean(_ s: String) -> String {
             let plus = parent.allowPlusAndSpace
@@ -122,11 +127,19 @@ struct TextInputField: UIViewRepresentable {
 
     func updateUIView(_ f: UITextField, context: Context) {
         context.coordinator.parent = self
-        if f.text != text { f.text = text }
-        f.attributedPlaceholder = NSAttributedString(string: placeholder, attributes: [.foregroundColor: UIColor(Color.dizMuted)])
+        if f.text != text, f.markedTextRange == nil { f.text = text }
+        // Only touch placeholder / direction when they changed: setting them on every update while typing
+        // (Arabic keyboard in particular) disturbs the text input session.
+        if context.coordinator.placeholder != placeholder {
+            context.coordinator.placeholder = placeholder
+            f.attributedPlaceholder = NSAttributedString(string: placeholder, attributes: [.foregroundColor: UIColor(Color.dizMuted)])
+        }
         let rtl = context.environment.layoutDirection == .rightToLeft
-        f.semanticContentAttribute = rtl ? .forceRightToLeft : .forceLeftToRight
-        f.textAlignment = rtl ? .right : .left
+        if context.coordinator.rtl != rtl {
+            context.coordinator.rtl = rtl
+            f.semanticContentAttribute = rtl ? .forceRightToLeft : .forceLeftToRight
+            f.textAlignment = rtl ? .right : .left
+        }
     }
 
     func sizeThatFits(_ proposal: ProposedViewSize, uiView: UITextField, context: Context) -> CGSize? {
@@ -137,7 +150,9 @@ struct TextInputField: UIViewRepresentable {
 
     final class Coordinator: NSObject, UITextFieldDelegate {
         var parent: TextInputField
-        init(_ p: TextInputField) { parent = p }
+        var placeholder: String
+        var rtl: Bool? = nil
+        init(_ p: TextInputField) { parent = p; placeholder = p.placeholder }
         @objc func changed(_ tf: UITextField) {
             let new = tf.text ?? ""
             if parent.text != new { parent.text = new }
