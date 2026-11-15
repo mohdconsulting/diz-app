@@ -239,7 +239,7 @@ struct WhatsAppButton: View {
 /// Profile page: e-mail and, for providers, skills (job types they see), saved with one button like on the web.
 struct AccountDetailsCard: View {
     @EnvironmentObject var store: Store
-    static let proCats = ["electrician", "plumber", "smith", "carpenter", "appliance_repair", "ac_fridge", "camera_satellite", "cleaner", "carpet_cleaning", "painter", "pest_control"]
+    static let proCats = ["electrician", "plumber", "smith", "carpenter", "appliance_repair", "ac_fridge", "camera_satellite", "cleaner", "carpet_cleaning", "painter", "pest_control", "car_wash", "roof_mastic"]
     @State private var picked: Set<String> = []
     @State private var email = ""
 
