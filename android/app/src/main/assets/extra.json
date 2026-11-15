@@ -103,5 +103,30 @@
   "sv": "Senare",
   "en": "Later",
   "ar": "لاحقًا"
+ },
+ "tabs.support": {
+  "sv": "Support",
+  "en": "Support",
+  "ar": "الدعم"
+ },
+ "support.intro": {
+  "sv": "Skriv till oss om du har frågor eller problem. Vi svarar här.",
+  "en": "Write to us if you have questions or problems. We reply here.",
+  "ar": "راسلنا إذا كان لديك سؤال أو مشكلة. سنرد هنا."
+ },
+ "support.empty": {
+  "sv": "Inga meddelanden än.",
+  "en": "No messages yet.",
+  "ar": "لا توجد رسائل بعد."
+ },
+ "support.placeholder": {
+  "sv": "Skriv ett meddelande…",
+  "en": "Write a message…",
+  "ar": "اكتب رسالة…"
+ },
+ "support.staff": {
+  "sv": "Diz support",
+  "en": "Diz support",
+  "ar": "دعم دز"
  }
 }

@@ -78,15 +78,17 @@ private fun MainTabs(store: Store, onLogin: () -> Unit) {
     val unread = store.messages.count { it.recipientPhone == store.myPhone && it.readAt == null }
 
     // id, icon, label key
+    val admin = store.user?.role == "admin"
+    val support = if (!guest && !admin) listOf(Triple("support", "💬", "tabs.support")) else emptyList()
     val tabs: List<Triple<String, String, String>> = when {
         guest -> listOf(Triple("home", "🏠", "tabs.home"), Triple("new", "➕", "tabs.new"), Triple("profile", "👤", "tabs.mine"))
         driver -> listOf(
             Triple("home", "🏠", "tabs.home"), Triple("open", "💼", "tabs.jobs"), Triple("mine", "✅", "mineTitleDriver"),
-            Triple("history", "🕘", "tabs.history"), Triple("profile", "👤", "tabs.mine"),
+            Triple("history", "🕘", "tabs.history"), *support.toTypedArray(), Triple("profile", "👤", "tabs.mine"),
         )
         else -> listOf(
             Triple("home", "🏠", "tabs.home"), Triple("new", "➕", "tabs.new"), Triple("mine", "📋", "mineTitleCustomer"),
-            Triple("history", "🕘", "tabs.history"), Triple("profile", "👤", "tabs.mine"),
+            Triple("history", "🕘", "tabs.history"), *support.toTypedArray(), Triple("profile", "👤", "tabs.mine"),
         )
     }
     val current = if (tabs.any { it.first == tab }) tab else "home"
@@ -98,6 +100,7 @@ private fun MainTabs(store: Store, onLogin: () -> Unit) {
                 "open" -> "titles.jobs"
                 "mine" -> if (driver) "mineTitleDriver" else "mineTitleCustomer"
                 "history" -> "titles.history"
+                "support" -> "tabs.support"
                 else -> "tabs.mine"
             }))
         }
@@ -108,6 +111,7 @@ private fun MainTabs(store: Store, onLogin: () -> Unit) {
                 "open" -> OpenJobsScreen(store)
                 "mine" -> MyJobsScreen(store)
                 "history" -> HistoryScreen(store)
+                "support" -> SupportScreen(store)
                 else -> ProfileScreen(store, onLogin)
             }
         }
@@ -116,7 +120,7 @@ private fun MainTabs(store: Store, onLogin: () -> Unit) {
             tabs.forEach { (id, icon, key) ->
                 NavigationBarItem(
                     selected = current == id, onClick = { tab = id },
-                    icon = { Text(if (id == "mine" && unread > 0) "$icon $unread" else icon, fontSize = 20.sp) },
+                    icon = { Text(when { id == "mine" && unread > 0 -> "$icon $unread"; id == "support" && store.supportUnread > 0 -> "$icon ${store.supportUnread}"; else -> icon }, fontSize = 20.sp) },
                     label = { Text(store.tr(key), fontSize = 11.sp, maxLines = 1, fontWeight = FontWeight.SemiBold) },
                     colors = NavigationBarItemDefaults.colors(
                         selectedTextColor = DizBrand, unselectedTextColor = DizMuted, indicatorColor = DizSoft,

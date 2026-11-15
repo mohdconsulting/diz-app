@@ -36,6 +36,8 @@ class Store(app: Application) : AndroidViewModel(app) {
         private set
     var providerPhotos by mutableStateOf<Map<String, String>>(emptyMap())   // provider phone -> profile photo URL
         private set
+    var supportMessages by mutableStateOf<List<SupportMessage>>(emptyList())  // chat with Diz support
+    val supportUnread: Int get() = supportMessages.count { it.fromAdmin && !it.read }
     var appNotice by mutableStateOf<AppNotice?>(null)                       // admin's "new version" notice
     var updateDismissed by mutableStateOf(false)
     var tabRequest by mutableStateOf<String?>(null)                         // asks MainTabs to switch tab (e.g. "profile")
@@ -362,7 +364,7 @@ class Store(app: Application) : AndroidViewModel(app) {
             }
         } else api.clearSession()
         Push.clear(getApplication())
-        user = null; jobs = emptyList(); messages = emptyList(); locations = emptyMap(); dismissed = emptySet()
+        user = null; jobs = emptyList(); messages = emptyList(); supportMessages = emptyList(); locations = emptyMap(); dismissed = emptySet()
         reviews = emptyMap(); ratings = emptyMap(); myComments = emptyList(); myDocs = emptyList(); ratingsKey = ""
     }
 
@@ -407,7 +409,7 @@ class Store(app: Application) : AndroidViewModel(app) {
     suspend fun refreshAll() {
         if (user == null) return
         refreshApproval()
-        loadJobs(); loadMessages(); loadLocations(); loadDismissals(); loadReviews()
+        loadJobs(); loadMessages(); loadLocations(); loadDismissals(); loadReviews(); loadSupport()
         updateSharing()
     }
 
@@ -625,6 +627,26 @@ class Store(app: Application) : AndroidViewModel(app) {
     }
 
     // ---- chat ----
+    suspend fun loadSupport(markRead: Boolean = false) {
+        val u = user ?: return
+        if (u.role == "admin") return
+        try {
+            supportMessages = api.select("support_messages", order = "id.asc").map { SupportMessage.from(it) }
+            if (markRead && supportUnread > 0) {
+                api.rpc("mark_support_read")
+                supportMessages = supportMessages.map { if (it.fromAdmin) it.copy(read = true) else it }
+            }
+        } catch (_: Exception) { }
+    }
+
+    suspend fun sendSupport(body: String): Boolean {
+        val b = body.trim()
+        if (b.isEmpty()) return false
+        return try { api.rpc("send_support", mapOf("p_body" to b)); loadSupport(markRead = true); true }
+        catch (e: ApiError) { if (e.message.lowercase().contains("many") || e.status == 429) toast("chat.tooMany") else toast("chat.failed"); false }
+        catch (e: Exception) { toast("chat.failed"); false }
+    }
+
     suspend fun send(jobId: String, body: String): Boolean {
         val b = body.trim()
         if (b.isEmpty()) return false
