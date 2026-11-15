@@ -1,6 +1,7 @@
 import { startPayments, stopPayments } from './payments';
 import { startTracking, stopTracking } from './tracking';
 import { startChat, stopChat } from './chat';
+import { startSupport, stopSupport } from './support';
 import { startCalls, stopCalls } from './call';
 import { loadDismissals, clearDismissals } from './dismissals';
 import { clearReviews } from './reviews';
@@ -187,6 +188,7 @@ export function enterApp(){
   void loadMyDocs();
   startTracking();
   startChat();
+  startSupport();
   startCalls();
   void loadDismissals();
   if(role==='admin') loadAdminData();
@@ -371,6 +373,7 @@ export async function logout(){
   stopPayments();
   stopTracking();
   stopChat();
+  stopSupport();
   stopCalls();
   clearDismissals();
   clearReviews();

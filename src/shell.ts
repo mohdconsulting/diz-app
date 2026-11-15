@@ -10,6 +10,7 @@ import { lang, setLangState, role, selectedService, setJobs, dbRef, currentUser,
 import { setShownSigs, setFirstSnapshotDone, markShownSeen, updateBadges, notifyNewEvents } from './notifications';
 import { renderAuth, updateUserRow } from './auth';
 import { renderRequestDetails, resetNewRequestForm, updateEstimate, autoReleaseExpired, renderHome, renderJobs, renderMine, renderHistory } from './jobs';
+import { openSupportScreen, renderSupport } from './support';
 import { loadAdminUsers, renderAdmin, renderAdminUsers, loadAppNotice, renderAppNotice } from './admin';
 
 export function screenTitleFor(name: string){
@@ -79,10 +80,10 @@ export function applyRoleUI(){
   const show=(tab: string, on: boolean)=>{ const b = document.querySelector<HTMLElement>('.tabbar button[data-tab="'+tab+'"]'); if(b) b.style.display = on ? 'flex' : 'none'; };
   const isA = role==='admin';
   show('home', role==='customer'); show('new', role==='customer'); show('jobs', role==='driver');
-  show('mine', !isA); show('history', !isA); show('admin', isA); show('adminUsers', isA);
+  show('mine', !isA); show('history', !isA); show('admin', isA); show('adminUsers', isA); show('adminSupport', isA); show('support', !isA);
   const cur = currentScreen();
-  if(isA){ if(cur!=='admin' && cur!=='adminUsers') goTo('admin'); return; }
-  if(cur==='admin' || cur==='adminUsers'){ goTo(role==='driver' ? 'jobs' : 'home'); return; }
+  if(isA){ if(cur!=='admin' && cur!=='adminUsers' && cur!=='adminSupport') goTo('admin'); return; }
+  if(cur==='admin' || cur==='adminUsers' || cur==='adminSupport'){ goTo(role==='driver' ? 'jobs' : 'home'); return; }
   if(role==='driver' && (cur==='home' || cur==='new')){ goTo('jobs'); return; }
   if(role==='customer' && cur==='jobs'){ goTo('home'); return; }
 }
@@ -113,6 +114,7 @@ export function goTo(name: string){
   if(name==='history') renderHistory();
   if(name==='admin') renderAdmin();
   if(name==='adminUsers'){ renderAdminUsers(); loadAdminUsers(); loadAppNotice(); }
+  if(name==='support' || name==='adminSupport') openSupportScreen(name);
   updateBadges();
 }
 
@@ -126,6 +128,7 @@ export function refreshCurrentScreen(){
   if(name==='history') renderHistory();
   if(name==='admin') renderAdmin();
   if(name==='adminUsers'){ renderAdminUsers(); renderAppNotice(); }
+  if(name==='support' || name==='adminSupport') renderSupport();
   updateBadges();
   void mountTrackingMap();
   mountChat();

@@ -96,6 +96,8 @@ const T: Record<Lang, Record<string, [string, string]>> = {
     completed: ['Jobbet är avslutat', 'Kunden har bekräftat {what}. Tack!'],
     cancelled: ['Jobbet är avbokat', '{what}'],
     message: ['Meddelande från {name}', '{text}'],
+    support: ['Diz support', '{text}'],
+    support_in: ['Support: {name}', '{text}'],
   },
   en: {
     new_job: ['New job: {what}', '{price} IQD – tap to see the job.'],
@@ -107,6 +109,8 @@ const T: Record<Lang, Record<string, [string, string]>> = {
     completed: ['Job completed', 'The customer confirmed {what}. Thank you!'],
     cancelled: ['The job was cancelled', '{what}'],
     message: ['Message from {name}', '{text}'],
+    support: ['Diz support', '{text}'],
+    support_in: ['Support: {name}', '{text}'],
   },
   ar: {
     new_job: ['طلب جديد: {what}', '{price} دينار – اضغط لعرض الطلب.'],
@@ -118,6 +122,8 @@ const T: Record<Lang, Record<string, [string, string]>> = {
     completed: ['اكتمل الطلب', 'أكد الزبون إنهاء {what}. شكرًا لك!'],
     cancelled: ['تم إلغاء الطلب', '{what}'],
     message: ['رسالة من {name}', '{text}'],
+    support: ['دعم دز', '{text}'],
+    support_in: ['الدعم: {name}', '{text}'],
   },
 };
 
