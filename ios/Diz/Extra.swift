@@ -11,6 +11,7 @@ enum Extra {
         "support.empty": [.sv: "Inga meddelanden än.", .en: "No messages yet.", .ar: "لا توجد رسائل بعد."],
         "support.placeholder": [.sv: "Skriv ett meddelande…", .en: "Write a message…", .ar: "اكتب رسالة…"],
         "support.staff": [.sv: "Diz support", .en: "Diz support", .ar: "دعم دز"],
+        "authContact": [.sv: "Behöver du hjälp? Ring oss", .en: "Need help? Call us", .ar: "تحتاج مساعدة؟ اتصل بنا"],
         "update.title": [.sv: "Ny version av Diz finns", .en: "A new version of Diz is available", .ar: "يتوفر إصدار جديد من دز"],
         "update.text": [.sv: "Uppdatera appen för de senaste förbättringarna.", .en: "Update the app to get the latest improvements.", .ar: "حدّث التطبيق للحصول على آخر التحسينات."],
         "update.requiredText": [.sv: "Du behöver uppdatera appen för att fortsätta.", .en: "You need to update the app to continue.", .ar: "يجب تحديث التطبيق للمتابعة."],

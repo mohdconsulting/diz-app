@@ -76,6 +76,10 @@ struct AuthView: View {
                         Button(store.tr("forgotLink")) { showForgot = true }
                             .font(.subheadline).foregroundColor(.dizTeal2)
                     }
+                    HStack(spacing: 6) {
+                        Text(store.tr("authContact")).foregroundColor(.secondary)
+                        Link("07859179996", destination: URL(string: "tel:+9647859179996")!).foregroundColor(.dizTeal2).bold()
+                    }.font(.subheadline)
                 }
                 .padding(22)
                 .background(Color.white).overlay(Rectangle().stroke(Color.dizLine, lineWidth: 1).allowsHitTesting(false))
