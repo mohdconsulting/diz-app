@@ -43,8 +43,9 @@ struct MainTabs: View {
     /// The tabs that exist for the current user; a selection that no longer exists falls back to Home.
     private var validTabs: Set<String> {
         if store.user == nil { return ["home", "new", "profile"] }
-        if store.isDriver { return ["home", "open", "mine", "history", "profile"] }
-        return ["home", "new", "mine", "history", "profile"]
+        if store.user?.role == "admin" { return store.isDriver ? ["home", "open", "mine", "history", "profile"] : ["home", "new", "mine", "history", "profile"] }
+        if store.isDriver { return ["home", "open", "mine", "history", "support", "profile"] }
+        return ["home", "new", "mine", "history", "support", "profile"]
     }
     private var selection: Binding<String> {
         Binding(get: { validTabs.contains(tab) ? tab : "home" }, set: { tab = $0 })
@@ -74,6 +75,11 @@ struct MainTabs: View {
             if store.user != nil {
                 NavigationStack { HistoryView() }.id(store.lang)
                     .tabItem { Label(store.tr("tabs.history"), systemImage: "clock") }.tag("history")
+            }
+            if store.user != nil && store.user?.role != "admin" {
+                NavigationStack { SupportView() }.id(store.lang)
+                    .tabItem { Label(store.tr("tabs.support"), systemImage: "bubble.left.and.bubble.right") }.tag("support")
+                    .badge(store.supportUnread)
             }
             NavigationStack { ProfileView() }.id(store.lang)
                 .tabItem { Label(store.tr("tabs.mine"), systemImage: "person") }.tag("profile")

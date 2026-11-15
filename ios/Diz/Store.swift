@@ -31,6 +31,7 @@ final class Store: ObservableObject {
     @Published var busy = false
     @Published var restoring = true
     @Published var locationDenied = false
+    @Published var supportMessages: [SupportMessage] = []     // chat with Diz support
     @Published var appNotice: AppNotice?                      // admin's "new version" notice
     @Published var updateDismissed = false
 
@@ -363,7 +364,7 @@ final class Store: ObservableObject {
             api.clearSession()
         }
         PushManager.shared.clearBadge()
-        user = nil; jobs = []; messages = []; locations = [:]; payments = [:]; dismissed = []
+        user = nil; jobs = []; messages = []; supportMessages = []; locations = [:]; payments = [:]; dismissed = []
         reviews = [:]; ratings = [:]; myComments = []; myDocs = []; ratingsKey = ""; paymentsMode = "off"
     }
 
@@ -417,7 +418,8 @@ final class Store: ObservableObject {
         async let b: Void = loadLocations()
         async let c: Void = loadPayments()
         async let d: Void = loadDismissals()
-        _ = await (a, b, c, d)
+        async let e: Void = loadSupport()
+        _ = await (a, b, c, d, e)
         await loadReviews()
         updateSharing()
     }
@@ -701,6 +703,27 @@ final class Store: ObservableObject {
         let b = body.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !b.isEmpty else { return false }
         do { _ = try await api.rpc("send_message", ["p_job_id": jobId, "p_body": b]); await loadMessages(); return true }
+        catch let e as APIError where e.message.lowercased().contains("many") || e.status == 429 { toast("chat.tooMany"); return false }
+        catch { toast("chat.failed"); return false }
+    }
+
+    // MARK: Support chat
+    var supportUnread: Int { supportMessages.filter { $0.fromAdmin && $0.readAt == nil }.count }
+
+    func loadSupport(markRead: Bool = false) async {
+        guard let u = user, u.role != "admin" else { return }
+        guard let rows = try? await api.select("support_messages", SupportMessage.self, order: "id.asc") else { return }
+        supportMessages = rows
+        if markRead, supportUnread > 0 {
+            _ = try? await api.rpc("mark_support_read")
+            supportMessages = supportMessages.map { var m = $0; if m.fromAdmin && m.readAt == nil { m.readAt = "read" }; return m }
+        }
+    }
+
+    func sendSupport(_ body: String) async -> Bool {
+        let b = body.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !b.isEmpty else { return false }
+        do { _ = try await api.rpc("send_support", ["p_body": b]); await loadSupport(markRead: true); return true }
         catch let e as APIError where e.message.lowercased().contains("many") || e.status == 429 { toast("chat.tooMany"); return false }
         catch { toast("chat.failed"); return false }
     }
