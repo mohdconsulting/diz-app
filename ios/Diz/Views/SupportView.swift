@@ -42,7 +42,9 @@ struct SupportView: View {
                 }
             }
             HStack {
-                TextInputField(placeholder: store.tr("support.placeholder"), text: $text, capitalization: .sentences).dizInput()
+                // Same field as the job chat (ChatView): a plain SwiftUI TextField, which handles the Arabic keyboard.
+                TextField(store.tr("support.placeholder"), text: $text, axis: .vertical)
+                    .textFieldStyle(.roundedBorder).lineLimit(1...4).foregroundColor(.dizInk)
                 Button(store.tr("chat.sendBtn")) {
                     let t = text
                     Task { if await store.sendSupport(t) { text = "" } }
