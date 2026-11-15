@@ -128,5 +128,10 @@
   "sv": "Diz support",
   "en": "Diz support",
   "ar": "دعم دز"
+ },
+ "authContact": {
+  "sv": "Behöver du hjälp? Ring oss",
+  "en": "Need help? Call us",
+  "ar": "تحتاج مساعدة؟ اتصل بنا"
  }
 }

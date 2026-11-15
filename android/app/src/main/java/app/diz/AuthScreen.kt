@@ -152,6 +152,13 @@ fun AuthScreen(store: Store, onClose: () -> Unit) {
                     LinkButton(store.tr(if (registering) "authSwitchBtnRegister" else "authSwitchBtnLogin")) { registering = !registering }
                 }
                 if (!registering) LinkButton(store.tr("forgotLink")) { forgot = true; resetSent = false; codeMode = false }
+                val ctx = androidx.compose.ui.platform.LocalContext.current
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(store.tr("authContact"), color = DizMuted, fontSize = 14.sp)
+                    LinkButton("07859179996") {
+                        try { ctx.startActivity(android.content.Intent(android.content.Intent.ACTION_DIAL, android.net.Uri.parse("tel:+9647859179996"))) } catch (_: Exception) { }
+                    }
+                }
             }
         }
     }
