@@ -1,6 +1,7 @@
 import { esc, toast, $ } from './util';
 import { lang, sb, sbRef, role, currentUser } from './state';
-import { currentScreen } from './shell';
+import { currentScreen, goTo } from './shell';
+import { adminUsersList } from './admin';
 
 /*
  * Support chat between a user and the admin (diz_support.sql). One thread per user.
@@ -80,7 +81,8 @@ export function renderSupport(){
     $('adminSupportList').style.display = openUser ? 'none' : 'block';
     if(openUser){
       const t = threads.find(x => x.user_id === openUser);
-      $('supportThreadName').textContent = t ? `${t.name} · ${t.phone}` : d.user;
+      const u = adminUsersList.find(x => x.id === openUser);
+      $('supportThreadName').textContent = t ? `${t.name} · ${t.phone}` : (u ? `${u.name} · ${u.phone}` : d.user);
       const log = $('adminSupportLog');
       const near = log.scrollHeight - log.scrollTop - log.clientHeight < 40;
       const html = bubbles(openMsgs, true);
@@ -111,6 +113,8 @@ export function openSupportScreen(name: string){
   void loadSupport();
 }
 export function openSupportThread(id: string){ openUser = id; openMsgs = []; renderSupport(); void loadSupport(); }
+/** From the Users list: open (or start) the conversation with one user. */
+export function chatWithUser(id: string){ goTo('adminSupport'); openSupportThread(id); setTimeout(() => document.getElementById('adminSupportInput')?.focus(), 50); }
 export function closeSupportThread(){ openUser = null; renderSupport(); void loadSupport(); }
 
 async function post(fn: string, args: Record<string, unknown>, input: HTMLInputElement){

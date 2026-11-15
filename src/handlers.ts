@@ -16,7 +16,7 @@ import {
   setAdminFilter, saveAdminNote, adminDo, adminDeleteUser, adminAsk, adminAbort, setAdminQuery,
   setAdminNoteDraft, setAdminPendingUser, adminSetApproved, adminWaToggle, setAdminWaDraft, adminWaSend, setAppNotice, setAppNoticePush, saveAppNotice,
 } from './admin';
-import { sendSupport, adminSendSupport, openSupportThread, closeSupportThread } from './support';
+import { sendSupport, adminSendSupport, openSupportThread, closeSupportThread, chatWithUser } from './support';
 import { uploadDocs, deleteDoc, adminOpenDoc } from './documents';
 import { uploadAvatar, openAvatarEdit } from './avatars';
 
@@ -30,6 +30,6 @@ export const handlers = {
   schedPickDay, schedTapSlot, schedSetAsap, schedToggleProposal, schedSetPrice, submitProposal,
   openForgot, closeForgot, sendResetLink, sendResetCode, saveWithCode, saveNewPassword, openEmailEdit, adminSetApproved, uploadDocs, deleteDoc, adminOpenDoc,
   uploadAvatar, openAvatarEdit,
-  sendSupport, adminSendSupport, openSupportThread, closeSupportThread,
+  sendSupport, adminSendSupport, openSupportThread, closeSupportThread, chatWithUser,
   adminWaToggle, setAdminWaDraft, adminWaSend, setAppNotice, setAppNoticePush, saveAppNotice,
 };
