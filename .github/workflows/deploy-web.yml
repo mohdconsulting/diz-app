@@ -52,7 +52,9 @@ jobs:
           fi
           # Skydd: publicera aldrig till webbrotten eller utanför den.
           case "$DEPLOY_PATH" in
-            ""|"/"|"."|/*|*..*) echo "::error::Ogiltig DIZ_DEPLOY_PATH: '$DEPLOY_PATH'"; exit 1 ;;
+            *..*) echo "::error::Ogiltig DIZ_DEPLOY_PATH: '$DEPLOY_PATH'"; exit 1 ;;
+            /webroots/*/?*) ;;
+            ""|"/"|"."|/*) echo "::error::Ogiltig DIZ_DEPLOY_PATH: '$DEPLOY_PATH'"; exit 1 ;;
           esac
 
       - name: Install lftp
@@ -69,9 +71,15 @@ jobs:
             open -u $SFTP_USER --env-password sftp://$SFTP_HOST
             echo '--- Inloggningsmapp:'
             pwd
+            echo '--- Innehåll i inloggningsmappen:'
+            cls -la --time-style=long-iso
             echo '--- Mappar (max 3 nivåer):'
             find -d 3 .
-          " | grep -E '/$|Inloggningsmapp|Mappar|sftp://' || true
+            echo '--- Serverns rot /:'
+            cls -la /
+            echo '--- /webroots (one.com, nya servrar):'
+            find -d 3 /webroots/
+          " || true
 
       - name: Upload to one.com (SFTP)
         run: |
@@ -82,5 +90,7 @@ jobs:
             open -u $SFTP_USER --env-password sftp://$SFTP_HOST
             mkdir -p -f $DEPLOY_PATH
             mirror --reverse --verbose --no-perms site/ $DEPLOY_PATH
+            echo '--- Filer i målmappen efter uppladdning:'
+            cls -l --time-style=long-iso $DEPLOY_PATH
           "
           echo "Uppladdat till mappen $DEPLOY_PATH (relativt inloggningsmappen) – kontrollera sidan i webbläsaren."
