@@ -32,7 +32,9 @@ const LABELS: Record<string, { services: Record<string, string>; cats: Record<st
    "cleaner": "عامل تنظيف منازل",
    "carpet_cleaning": "غسيل السجاد",
    "painter": "صباغ",
-   "pest_control": "مكافحة الحشرات"
+   "pest_control": "مكافحة الحشرات",
+   "car_wash": "غسل سيارات موقعي",
+   "roof_mastic": "صيانة ماستك سطوح"
   }
  },
  "sv": {
@@ -52,7 +54,9 @@ const LABELS: Record<string, { services: Record<string, string>; cats: Record<st
    "cleaner": "Hemstädare",
    "carpet_cleaning": "Mattvätt",
    "painter": "Målare",
-   "pest_control": "Skadedjursbekämpare"
+   "pest_control": "Skadedjursbekämpare",
+   "car_wash": "Biltvätt på plats",
+   "roof_mastic": "Takunderhåll (mastik)"
   }
  },
  "en": {
@@ -72,7 +76,9 @@ const LABELS: Record<string, { services: Record<string, string>; cats: Record<st
    "cleaner": "Home cleaner",
    "carpet_cleaning": "Carpet cleaning",
    "painter": "Painter",
-   "pest_control": "Pest control"
+   "pest_control": "Pest control",
+   "car_wash": "Mobile car wash",
+   "roof_mastic": "Roof mastic maintenance"
   }
  }
 };
