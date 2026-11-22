@@ -185,3 +185,7 @@ När ett jobb är avslutat kan kunden ge utföraren **1–5 stjärnor och en val
 Run `diz_support.sql` in the Supabase SQL Editor (after `diz_supabase_schema.sql` and `diz_push.sql`) and redeploy `send-push`.
 Users get a **Support** tab and write to "Diz support"; admins get a **Support** tab with one conversation per user,
 unread counts and push notifications both ways. Messages are deleted together with the user.
+
+## Publicering (webb)
+Allt som hamnar på `main` publiceras automatiskt till **mohdconsulting.se/add/diz** (one.com, SFTP) av `.github/workflows/deploy-web.yml`. Kan även köras manuellt: Actions → *Deploy web* → *Run workflow*.
+Engångsinställning (Settings → Secrets and variables → Actions): secrets `ONECOM_SFTP_USER` och `ONECOM_SFTP_PASSWORD` (från one.com → SSH & SFTP). Valfria variabler: `ONECOM_SFTP_HOST` (standard `ssh.mohdconsulting.se`) och `DIZ_DEPLOY_PATH` (standard `add/diz`).
