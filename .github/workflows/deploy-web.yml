@@ -4,7 +4,8 @@
 # Engångsinställning i GitHub: Settings → Secrets and variables → Actions
 #   Secrets:   ONECOM_SFTP_USER      t.ex. mohdconsulting.se (står i one.com → SSH & SFTP)
 #              ONECOM_SFTP_PASSWORD  SFTP-lösenordet du satt i one.com
-#   Variables: ONECOM_SFTP_HOST      valfri, standard ssh.mohdconsulting.se
+#              ONECOM_SFTP_HOST      t.ex. ssh.xxxx.service.one (secret eller variabel)
+#   Variables:
 #              DIZ_DEPLOY_PATH       valfri, standard add/diz (relativt webbroten httpd.www)
 name: Deploy web
 
@@ -21,7 +22,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      SFTP_HOST: ${{ vars.ONECOM_SFTP_HOST || 'ssh.mohdconsulting.se' }}
+      SFTP_HOST: ${{ secrets.ONECOM_SFTP_HOST || vars.ONECOM_SFTP_HOST }}
       SFTP_USER: ${{ secrets.ONECOM_SFTP_USER }}
       LFTP_PASSWORD: ${{ secrets.ONECOM_SFTP_PASSWORD }}
       DEPLOY_PATH: ${{ vars.DIZ_DEPLOY_PATH || 'add/diz' }}
@@ -45,8 +46,8 @@ jobs:
 
       - name: Check settings
         run: |
-          if [ -z "$SFTP_USER" ] || [ -z "$LFTP_PASSWORD" ]; then
-            echo "::error::Lägg till ONECOM_SFTP_USER och ONECOM_SFTP_PASSWORD under Settings → Secrets and variables → Actions."
+          if [ -z "$SFTP_HOST" ] || [ -z "$SFTP_USER" ] || [ -z "$LFTP_PASSWORD" ]; then
+            echo "::error::Lägg till ONECOM_SFTP_HOST, ONECOM_SFTP_USER och ONECOM_SFTP_PASSWORD under Settings → Secrets and variables → Actions."
             exit 1
           fi
           # Skydd: publicera aldrig till webbrotten eller utanför den.
