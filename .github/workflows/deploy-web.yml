@@ -52,7 +52,9 @@ jobs:
           fi
           # Skydd: publicera aldrig till webbrotten eller utanför den.
           case "$DEPLOY_PATH" in
-            ""|"/"|"."|/*|*..*) echo "::error::Ogiltig DIZ_DEPLOY_PATH: '$DEPLOY_PATH'"; exit 1 ;;
+            *..*) echo "::error::Ogiltig DIZ_DEPLOY_PATH: '$DEPLOY_PATH'"; exit 1 ;;
+            /webroots/*/?*) ;;
+            ""|"/"|"."|/*) echo "::error::Ogiltig DIZ_DEPLOY_PATH: '$DEPLOY_PATH'"; exit 1 ;;
           esac
 
       - name: Install lftp
@@ -73,6 +75,10 @@ jobs:
             cls -la --time-style=long-iso
             echo '--- Mappar (max 3 nivåer):'
             find -d 3 .
+            echo '--- Serverns rot /:'
+            cls -la /
+            echo '--- /webroots (one.com, nya servrar):'
+            find -d 3 /webroots/
           " || true
 
       - name: Upload to one.com (SFTP)
