@@ -55,9 +55,26 @@ jobs:
             ""|"/"|"."|/*|*..*) echo "::error::Ogiltig DIZ_DEPLOY_PATH: '$DEPLOY_PATH'"; exit 1 ;;
           esac
 
+      - name: Install lftp
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+
+      # Visar var SFTP-inloggningen hamnar och vilka mappar som finns (3 nivåer ner),
+      # så att man kan se var webbroten ligger utan FileZilla.
+      - name: Show server folders
+        run: |
+          lftp -c "
+            set sftp:auto-confirm yes
+            set net:max-retries 3
+            set net:timeout 30
+            open -u $SFTP_USER --env-password sftp://$SFTP_HOST
+            echo '--- Inloggningsmapp:'
+            pwd
+            echo '--- Mappar (max 3 nivåer):'
+            find -d 3 .
+          " | grep -E '/$|Inloggningsmapp|Mappar|sftp://' || true
+
       - name: Upload to one.com (SFTP)
         run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq lftp
           lftp -c "
             set sftp:auto-confirm yes
             set net:max-retries 3
@@ -66,4 +83,4 @@ jobs:
             mkdir -p -f $DEPLOY_PATH
             mirror --reverse --verbose --no-perms site/ $DEPLOY_PATH
           "
-          echo "Publicerat: https://mohdconsulting.se/$DEPLOY_PATH/"
+          echo "Uppladdat till mappen $DEPLOY_PATH (relativt inloggningsmappen) – kontrollera sidan i webbläsaren."
