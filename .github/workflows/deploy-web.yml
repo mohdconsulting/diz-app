@@ -1,0 +1,68 @@
+# Publicerar webbversionen av Diz till one.com (mohdconsulting.se/add/diz) via SFTP
+# varje gång något hamnar på `main` – eller manuellt via "Run workflow" i fliken Actions.
+#
+# Engångsinställning i GitHub: Settings → Secrets and variables → Actions
+#   Secrets:   ONECOM_SFTP_USER      t.ex. mohdconsulting.se (står i one.com → SSH & SFTP)
+#              ONECOM_SFTP_PASSWORD  SFTP-lösenordet du satt i one.com
+#   Variables: ONECOM_SFTP_HOST      valfri, standard ssh.mohdconsulting.se
+#              DIZ_DEPLOY_PATH       valfri, standard add/diz (relativt webbroten httpd.www)
+name: Deploy web
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-web
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      SFTP_HOST: ${{ vars.ONECOM_SFTP_HOST || 'ssh.mohdconsulting.se' }}
+      SFTP_USER: ${{ secrets.ONECOM_SFTP_USER }}
+      LFTP_PASSWORD: ${{ secrets.ONECOM_SFTP_PASSWORD }}
+      DEPLOY_PATH: ${{ vars.DIZ_DEPLOY_PATH || 'add/diz' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build
+        run: |
+          npm install --no-audit --no-fund
+          npm run build
+
+      - name: Collect site files
+        run: |
+          mkdir -p site
+          cp index.html manifest.webmanifest privacy-policy.html \
+             favicon-32.png icon-192.png icon-512.png apple-touch-icon.png site/
+          ls -la site
+
+      - name: Check settings
+        run: |
+          if [ -z "$SFTP_USER" ] || [ -z "$LFTP_PASSWORD" ]; then
+            echo "::error::Lägg till ONECOM_SFTP_USER och ONECOM_SFTP_PASSWORD under Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          # Skydd: publicera aldrig till webbrotten eller utanför den.
+          case "$DEPLOY_PATH" in
+            ""|"/"|"."|/*|*..*) echo "::error::Ogiltig DIZ_DEPLOY_PATH: '$DEPLOY_PATH'"; exit 1 ;;
+          esac
+
+      - name: Upload to one.com (SFTP)
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+          lftp -c "
+            set sftp:auto-confirm yes
+            set net:max-retries 3
+            set net:timeout 30
+            open -u $SFTP_USER --env-password sftp://$SFTP_HOST
+            mkdir -p -f $DEPLOY_PATH
+            mirror --reverse --verbose --no-perms site/ $DEPLOY_PATH
+          "
+          echo "Publicerat: https://mohdconsulting.se/$DEPLOY_PATH/"
