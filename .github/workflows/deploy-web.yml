@@ -53,7 +53,7 @@ jobs:
           # Skydd: publicera aldrig till webbrotten eller utanför den.
           case "$DEPLOY_PATH" in
             *..*) echo "::error::Ogiltig DIZ_DEPLOY_PATH: '$DEPLOY_PATH'"; exit 1 ;;
-            /webroots/*/?*) ;;
+            /webroots/*/?*|/www/?*) ;;
             ""|"/"|"."|/*) echo "::error::Ogiltig DIZ_DEPLOY_PATH: '$DEPLOY_PATH'"; exit 1 ;;
           esac
 
@@ -73,12 +73,15 @@ jobs:
             pwd
             echo '--- Innehåll i inloggningsmappen:'
             cls -la --time-style=long-iso
-            echo '--- Mappar (max 3 nivåer):'
-            find -d 3 .
-            echo '--- Serverns rot /:'
-            cls -la /
-            echo '--- /webroots (one.com, nya servrar):'
-            find -d 3 /webroots/
+            echo '--- /www (webbroten):'
+            cls -la --time-style=long-iso /run/www/
+            echo '--- /www/diz:'
+            cls -la --time-style=long-iso /run/www/diz/
+            echo '--- /www/diz/app:'
+            cls -la --time-style=long-iso /run/www/diz/app/
+            echo '--- /webroots:'
+            cls -la --time-style=long-iso /run/webroots/
+            find -d 3 /run/webroots/
           " || true
 
       - name: Upload to one.com (SFTP)
