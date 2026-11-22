@@ -107,6 +107,7 @@ export function goTo(name: string){
   document.querySelectorAll<HTMLElement>('.screen').forEach(s=>s.classList.toggle('active', s.dataset.screen===name));
   document.querySelectorAll<HTMLElement>('.tabbar button').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
   $('screenTitle').textContent = screenTitleFor(name);
+  $('logoutBtn').style.display = name==='home' ? 'none' : ''; // no log-out button on the start page
   if(name==='new') resetNewRequestForm();
   if(name==='home') renderHome();
   if(name==='jobs') renderJobs();
