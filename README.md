@@ -188,4 +188,4 @@ unread counts and push notifications both ways. Messages are deleted together wi
 
 ## Publicering (webb)
 Allt som hamnar på `main` publiceras automatiskt till **mohdconsulting.se/add/diz** (one.com, SFTP) av `.github/workflows/deploy-web.yml`. Kan även köras manuellt: Actions → *Deploy web* → *Run workflow*.
-Engångsinställning (Settings → Secrets and variables → Actions): secrets `ONECOM_SFTP_USER` och `ONECOM_SFTP_PASSWORD` (från one.com → SSH & SFTP). Valfria variabler: `ONECOM_SFTP_HOST` (standard `ssh.mohdconsulting.se`) och `DIZ_DEPLOY_PATH` (standard `add/diz`).
+Engångsinställning (Settings → Secrets and variables → Actions): secrets `ONECOM_SFTP_USER` och `ONECOM_SFTP_PASSWORD` (från one.com → SSH & SFTP). `ONECOM_SFTP_HOST` (host från one.com, som secret eller variabel). Valfri variabel: `DIZ_DEPLOY_PATH` (standard `add/diz`).
